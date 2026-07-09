@@ -7,6 +7,9 @@ version_aware: true
 curie:
   prefix: EFO
   pad_to: 7
+cache:
+  builder: obo
+  obo_url: http://www.ebi.ac.uk/efo/efo.obo
 provenance:
   pattern_source: bioregistry
   homepage: https://www.ebi.ac.uk/efo/

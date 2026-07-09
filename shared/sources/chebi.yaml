@@ -7,6 +7,9 @@ species_aware: false
 version_aware: true
 curie:
   prefix: CHEBI
+cache:
+  builder: obo
+  obo_url: http://purl.obolibrary.org/obo/chebi/chebi_lite.obo
 provenance:
   pattern_source: bioregistry
   homepage: https://www.ebi.ac.uk/chebi/
