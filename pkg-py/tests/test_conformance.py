@@ -43,6 +43,7 @@ def test_conformance(case):
         case["input"],
         source_db=case["source_db"],
         how=case["how"],
+        species=case.get("species"),
         version=case.get("version"),
     )[0]
     assert result.valid == expect["valid"]
