@@ -1,0 +1,4 @@
+{"input": "P04637", "source_db": "uniprot", "how": "pattern", "expect": {"valid": true, "normalized": "P04637"}, "note": "canonical (TP53)"}
+{"input": "A0A024R1R8", "source_db": "uniprot", "how": "pattern", "expect": {"valid": true, "normalized": "A0A024R1R8"}, "note": "ten-character accession"}
+{"input": "p04637", "source_db": "uniprot", "how": "pattern", "expect": {"valid": false, "suggestion": "P04637"}, "note": "lowercase is suggestible"}
+{"input": "P0463", "source_db": "uniprot", "how": "pattern", "expect": {"valid": false}, "note": "too short"}
