@@ -58,7 +58,6 @@
 }
 
 test_that("remote conformance corpus passes against recorded fixtures", {
-  skip_if_not_installed("jsonlite")
   withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
   withr::local_options(biogate.remote_transport = .fixture_transport)
   .check_remote_corpus("remote")
@@ -66,7 +65,6 @@ test_that("remote conformance corpus passes against recorded fixtures", {
 
 test_that("remote conformance corpus passes against the live API", {
   skip_if(Sys.getenv("BIOGATE_REMOTE_TESTS") == "")
-  skip_if_not_installed("jsonlite")
   withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
   .check_remote_corpus("remote live")
 })

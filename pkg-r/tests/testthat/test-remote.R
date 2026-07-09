@@ -77,3 +77,29 @@ test_that("an on-disk cached response short-circuits the network", {
   expect_true(res$valid)
   expect_identical(res$normalized, "MONDO:0005148")
 })
+
+test_that("a corrupt cached response is ignored and refetched", {
+  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  path <- .remote_cache_path("mondo", "MONDO:0005148")
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  writeLines("{ this is not valid json", path)
+
+  withr::local_options(
+    biogate.remote_transport = .stub_present("MONDO:0005148")
+  )
+  res <- check_id("MONDO:0005148", source_db = "mondo", how = "remote")
+  expect_true(res$valid)
+})
+
+test_that(".remote_parse_body tolerates empty and non-json input", {
+  expect_null(.remote_parse_body(""))
+  expect_null(.remote_parse_body("<html>Bad Gateway</html>"))
+  parsed <- .remote_parse_body('{"page":{"totalElements":2}}')
+  expect_equal(parsed$page$totalElements, 2)
+})
+
+test_that(".ols_count returns 0 for missing, null, or malformed counts", {
+  expect_identical(.ols_count(NULL), 0L)
+  expect_identical(.ols_count(list(page = list())), 0L)
+  expect_identical(.ols_count(list(page = list(totalElements = 3))), 3L)
+})

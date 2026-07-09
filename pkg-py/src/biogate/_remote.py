@@ -28,6 +28,21 @@ class NoResolverError(ValueError):
     """Raised when a source has no remote resolver."""
 
 
+def _parse_body(text: str) -> dict | None:
+    """Parse a JSON body, tolerating an empty or non-JSON payload.
+
+    A proxy or outage can return HTML instead of JSON. That is not a parse
+    error to raise here; the status is what decides the verdict, so a body that
+    does not parse becomes ``None`` and the caller classifies by status.
+    """
+    if not text.strip():
+        return None
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        return None
+
+
 def _http_get(url: str, timeout: int = 30) -> tuple[int, dict | None]:
     """Fetch ``url`` and return ``(status, parsed_json_or_None)``.
 
@@ -40,16 +55,25 @@ def _http_get(url: str, timeout: int = 30) -> tuple[int, dict | None]:
             status = response.status
             text = response.read().decode("utf-8", errors="replace")
     except urllib.error.HTTPError as error:
-        body = error.read().decode("utf-8", errors="replace")
-        return error.code, (json.loads(body) if body.strip() else None)
+        return error.code, _parse_body(error.read().decode("utf-8", errors="replace"))
     except (urllib.error.URLError, TimeoutError, OSError) as error:
         raise RemoteError(f"Remote request failed for {url!r}: {error}") from error
-    return status, (json.loads(text) if text.strip() else None)
+    return status, _parse_body(text)
 
 
 def _remote_cache_path(onto: str, ident: str) -> Path:
     """On-disk path for a cached remote response."""
     return cache_dir() / "remote" / "ols" / onto / f"{ident.replace(':', '_')}.json"
+
+
+def _ols_count(body: dict | None) -> int:
+    """The matching-term count in an OLS response, 0 when absent or malformed."""
+    page = (body or {}).get("page") or {}
+    total = page.get("totalElements") or 0
+    try:
+        return int(total)
+    except (TypeError, ValueError):
+        return 0
 
 
 def _ols_request(
@@ -58,14 +82,20 @@ def _ols_request(
     """Return ``(status, body)`` for a term, backed by an on-disk response cache."""
     path = _remote_cache_path(onto, ident)
     if not refresh and path.is_file():
-        cached = json.loads(path.read_text(encoding="utf-8"))
-        return cached["status"], cached.get("body")
+        try:
+            cached = json.loads(path.read_text(encoding="utf-8"))
+            return cached["status"], cached.get("body")
+        except (json.JSONDecodeError, KeyError, OSError):
+            pass  # A corrupt or partial cache file is ignored and refetched.
     url = f"{_OLS_BASE}/ontologies/{onto}/terms?obo_id={ident}"
     status, body = _http_get(url)
     if status in (200, 404):
+        stored = (
+            {"page": {"totalElements": _ols_count(body)}} if status == 200 else None
+        )
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
-            json.dumps({"status": status, "body": body, "url": url}),
+            json.dumps({"status": status, "body": stored, "url": url}),
             encoding="utf-8",
         )
     return status, body
@@ -75,7 +105,7 @@ def _ols_exists(onto: str, ident: str) -> bool:
     """Whether ``ident`` exists in ``onto`` via the OLS resolver."""
     status, body = _ols_request(onto, ident)
     if status == 200:
-        return int((body or {}).get("page", {}).get("totalElements", 0)) >= 1
+        return _ols_count(body) >= 1
     if status == 404:
         return False
     raise RemoteError(f"Unexpected status {status} for {ident!r} in {onto!r}.")

@@ -6,6 +6,19 @@
   "biogate/0.1 (+https://github.com/samuelbharti/biogate)"
 }
 
+# Parse a JSON body, tolerating an empty or non-json payload. A proxy or outage
+# can return html instead of json; that is not an error to raise here, since the
+# status decides the verdict, so an unparseable body becomes NULL.
+.remote_parse_body <- function(txt) {
+  if (!nzchar(txt)) {
+    return(NULL)
+  }
+  tryCatch(
+    jsonlite::fromJSON(txt, simplifyVector = FALSE),
+    error = function(e) NULL
+  )
+}
+
 # Single network seam. Tests replace it with the biogate.remote_transport option.
 .remote_http_get <- function(url, timeout = 30) {
   transport <- getOption("biogate.remote_transport", NULL)
@@ -28,13 +41,10 @@
       )
     }
   )
-  txt <- rawToChar(resp$content)
-  body <- if (nzchar(txt)) {
-    jsonlite::fromJSON(txt, simplifyVector = FALSE)
-  } else {
-    NULL
-  }
-  list(status = resp$status_code, body = body)
+  list(
+    status = resp$status_code,
+    body = .remote_parse_body(rawToChar(resp$content))
+  )
 }
 
 .remote_cache_path <- function(onto, id) {
@@ -55,20 +65,44 @@
   )
 }
 
-# On-disk response cache. Only 200 and 404 responses are cached.
+# Matching-term count in an OLS response, 0 when absent or malformed.
+.ols_count <- function(body) {
+  total <- tryCatch(
+    as.integer(body$page$totalElements),
+    error = function(e) NA_integer_
+  )
+  if (length(total) == 0L || is.na(total)) {
+    0L
+  } else {
+    total
+  }
+}
+
+# On-disk response cache. Only 200 and 404 responses are cached, and a corrupt
+# cache file is ignored and refetched.
 .ols_request <- function(onto, id, refresh = FALSE) {
   path <- .remote_cache_path(onto, id)
   if (!refresh && file.exists(path)) {
-    cached <- jsonlite::fromJSON(path, simplifyVector = FALSE)
-    return(list(status = cached$status, body = cached$body))
+    cached <- tryCatch(
+      jsonlite::fromJSON(path, simplifyVector = FALSE),
+      error = function(e) NULL
+    )
+    if (!is.null(cached)) {
+      return(list(status = cached$status, body = cached$body))
+    }
   }
   url <- .ols_url(onto, id)
   resp <- .remote_http_get(url)
   if (resp$status == 200 || resp$status == 404) {
+    stored <- if (resp$status == 200) {
+      list(page = list(totalElements = .ols_count(resp$body)))
+    } else {
+      NULL
+    }
     dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
     writeLines(
       jsonlite::toJSON(
-        list(status = resp$status, body = resp$body, url = url),
+        list(status = resp$status, body = stored, url = url),
         auto_unbox = TRUE,
         null = "null"
       ),
@@ -81,14 +115,7 @@
 .ols_exists <- function(onto, id) {
   resp <- .ols_request(onto, id)
   if (resp$status == 200) {
-    total <- tryCatch(
-      as.integer(resp$body$page$totalElements),
-      error = function(e) NA_integer_
-    )
-    if (length(total) == 0L || is.na(total)) {
-      total <- 0L
-    }
-    return(isTRUE(total >= 1L))
+    return(isTRUE(.ols_count(resp$body) >= 1L))
   }
   if (resp$status == 404) {
     return(FALSE)
