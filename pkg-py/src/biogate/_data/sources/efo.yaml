@@ -1,0 +1,12 @@
+key: efo
+name: Experimental Factor Ontology
+description: EFO terms for experimental variables.
+pattern: "EFO:[0-9]{7}"
+species_aware: false
+version_aware: true
+curie:
+  prefix: EFO
+  pad_to: 7
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.ebi.ac.uk/efo/

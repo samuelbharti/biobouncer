@@ -1,0 +1,4 @@
+{"input": "GO:0006915", "source_db": "go", "how": "pattern", "expect": {"valid": true, "normalized": "GO:0006915"}, "note": "canonical (apoptotic process)"}
+{"input": "go:0006915", "source_db": "go", "how": "pattern", "expect": {"valid": false, "suggestion": "GO:0006915"}, "note": "lowercase prefix"}
+{"input": "GO:6915", "source_db": "go", "how": "pattern", "expect": {"valid": false, "suggestion": "GO:0006915"}, "note": "short local id"}
+{"input": "GO:00069150", "source_db": "go", "how": "pattern", "expect": {"valid": false}, "note": "too many digits"}

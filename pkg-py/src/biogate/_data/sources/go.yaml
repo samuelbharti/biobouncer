@@ -1,0 +1,12 @@
+key: go
+name: Gene Ontology
+description: Gene Ontology terms for molecular function, process, and component.
+pattern: "GO:[0-9]{7}"
+species_aware: false
+version_aware: true
+curie:
+  prefix: GO
+  pad_to: 7
+provenance:
+  pattern_source: bioregistry
+  homepage: https://geneontology.org

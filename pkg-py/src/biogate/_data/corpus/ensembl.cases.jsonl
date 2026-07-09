@@ -1,0 +1,4 @@
+{"input": "ENSG00000139618", "source_db": "ensembl", "how": "pattern", "expect": {"valid": true, "normalized": "ENSG00000139618"}, "note": "human gene BRCA2"}
+{"input": "ENSMUSG00000059552", "source_db": "ensembl", "how": "pattern", "expect": {"valid": true, "normalized": "ENSMUSG00000059552"}, "note": "mouse gene Trp53"}
+{"input": "ensg00000139618", "source_db": "ensembl", "how": "pattern", "expect": {"valid": false, "suggestion": "ENSG00000139618"}, "note": "lowercase is suggestible"}
+{"input": "ENSG139618", "source_db": "ensembl", "how": "pattern", "expect": {"valid": false}, "note": "too few digits"}
