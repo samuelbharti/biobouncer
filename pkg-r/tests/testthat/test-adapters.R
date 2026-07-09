@@ -34,3 +34,19 @@ test_that("adapters thread how and version to the core", {
     test_valid_id("MONDO:9999999", "mondo", how = "cache", version = "sample")
   )
 })
+
+test_that("id_predicate returns an elementwise logical vector", {
+  is_mondo <- id_predicate("mondo")
+  ids <- c("MONDO:0005148", "mondo:5148", "MONDO:0018076")
+  expect_identical(is_mondo(ids), c(TRUE, FALSE, TRUE))
+  expect_identical(ids[is_mondo(ids)], c("MONDO:0005148", "MONDO:0018076"))
+})
+
+test_that("id_predicate threads how and version to the core", {
+  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  is_sample <- id_predicate("mondo", how = "cache", version = "sample")
+  expect_identical(
+    is_sample(c("MONDO:0005148", "MONDO:9999999")),
+    c(TRUE, FALSE)
+  )
+})

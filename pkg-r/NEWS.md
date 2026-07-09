@@ -2,7 +2,9 @@
 
 * Adds validation-framework adapters that wrap the core classifier:
   `assert_valid_id()`, `check_valid_id()`, and `test_valid_id()` in the checkmate
-  style, and `sv_biogate()`, a shinyvalidate rule.
+  style, `sv_biogate()`, a shinyvalidate rule, and `id_predicate()`, an
+  elementwise predicate for data-frame validation with assertr or validate. The
+  Python package pairs these with a pandera check.
 * Adds an `hgnc` source for HUGO gene symbols. `cache` mode checks a symbol
   against the approved-symbol snapshot, and a withdrawn or previous symbol
   resolves to its approved successor through the retired-map (for example `MLL`

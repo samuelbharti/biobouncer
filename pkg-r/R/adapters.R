@@ -149,3 +149,51 @@ sv_biogate <- function(
     }
   }
 }
+
+#' Build a vectorized predicate for data-frame validation
+#'
+#' Returns a function of one argument that reports, element by element, whether
+#' each value is a valid identifier for `source_db`. The predicate is the shape
+#' that data-frame validation packages expect, so it drops straight into
+#' `assertr::assert()` or a `validate::validator()` rule, or into base `Filter()`
+#' and `vapply()`. It is the R counterpart of the pandera check in the Python
+#' package.
+#'
+#' @inheritParams check_id
+#' @return A function of one argument that returns a logical vector the same
+#'   length as its input.
+#' @seealso [is_valid_id()], [check_valid_id()].
+#' @examples
+#' is_mondo <- id_predicate("mondo")
+#' ids <- c("MONDO:0005148", "mondo:5148", "MONDO:0018076")
+#' is_mondo(ids)
+#' ids[is_mondo(ids)]
+#'
+#' # With assertr, if it is installed:
+#' # library(assertr)
+#' # df |> assert(id_predicate("mondo"), term)
+#'
+#' # With validate, if it is installed:
+#' # rules <- validate::validator(is_mondo := id_predicate("mondo")(term))
+#' # validate::confront(df, rules)
+#' @export
+id_predicate <- function(
+  source_db,
+  how = "pattern",
+  species = NULL,
+  version = NULL
+) {
+  force(source_db)
+  force(how)
+  force(species)
+  force(version)
+  function(x) {
+    is_valid_id(
+      x,
+      source_db = source_db,
+      how = how,
+      species = species,
+      version = version
+    )
+  }
+}
