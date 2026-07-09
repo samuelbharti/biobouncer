@@ -12,6 +12,7 @@
 
 .assert_mode_supported <- function(how) {
   known <- c("pattern", "cache", "remote", "existence")
+  implemented <- c("pattern", "cache")
   if (!how %in% known) {
     cli::cli_abort(
       c(
@@ -21,11 +22,11 @@
       class = "biogate_error_invalid_mode"
     )
   }
-  if (!identical(how, "pattern")) {
+  if (!how %in% implemented) {
     cli::cli_abort(
       c(
         "Mode {.val {how}} is not implemented yet.",
-        i = "Only {.val pattern} mode is available so far."
+        i = "Implemented modes: {.val {implemented}}."
       ),
       class = "biogate_error_unimplemented_mode"
     )
@@ -34,21 +35,25 @@
 
 #' Check biological identifiers
 #'
-#' Validate a vector of identifiers against a source. Only offline `pattern`
-#' mode is implemented so far.
+#' Validate a vector of identifiers against a source. `pattern` mode checks that
+#' each identifier is well-formed. `cache` mode also checks that it exists in a
+#' pinned local snapshot (see [biogate_snapshots()]).
 #'
 #' @param x A vector of identifiers. Coerced to character.
 #' @param source_db Source key, for example `"mondo"`. See [sources()].
-#' @param how Checking mode. Only `"pattern"` is implemented.
+#' @param how Checking mode: `"pattern"` (offline, shape only) or `"cache"`
+#'   (offline existence against a snapshot).
 #' @param species Optional species context, echoed in the result. A name such as
 #'   `"homo_sapiens"` or an NCBI taxon id such as `9606`.
-#' @param version Optional version context. Ignored in `pattern` mode.
+#' @param version Snapshot version. Required for `cache` mode; ignored in
+#'   `pattern` mode.
 #' @return A [tibble][tibble::tibble] with one row per element of `x` and the
 #'   columns `input`, `valid`, `normalized`, `suggestion`, `source_db`,
 #'   `version`, `species`, and `how`.
-#' @seealso [is_valid_id()], [sources()], [source_info()].
+#' @seealso [is_valid_id()], [sources()], [source_info()], [biogate_snapshots()].
 #' @examples
 #' check_id(c("MONDO:0005148", "mondo:5148"), source_db = "mondo")
+#' check_id("MONDO:0005148", source_db = "mondo", how = "cache", version = "sample")
 #' @export
 check_id <- function(
   x,
@@ -64,22 +69,39 @@ check_id <- function(
   x <- as.character(x)
   n <- length(x)
   is_na <- is.na(x)
-  valid <- rep(NA, n)
-  valid[!is_na] <- .matches(source$pattern, x[!is_na])
-  normalized <- ifelse(!is_na & valid, x, NA_character_)
-  suggestion <- rep(NA_character_, n)
-  for (i in which(!is_na & !valid)) {
-    suggestion[i] <- .suggest_one(source, x[i])
-  }
-  species_val <- if (is.null(species)) NA_character_ else as.character(species)
 
+  if (identical(how, "cache")) {
+    if (is.null(version)) {
+      installed <- .snapshot_versions(source_db)
+      cli::cli_abort(
+        c(
+          "{.arg version} is required for {.val cache} mode.",
+          i = "Installed versions for {.val {source_db}}: {.val {installed}}."
+        ),
+        class = "biogate_error_missing_version"
+      )
+    }
+    version <- as.character(version)
+    verdicts <- .cache_verdicts(
+      source,
+      x,
+      is_na,
+      .snapshot_set(source_db, version)
+    )
+    version_col <- version
+  } else {
+    verdicts <- .pattern_verdicts(source, x, is_na)
+    version_col <- NA_character_
+  }
+
+  species_val <- if (is.null(species)) NA_character_ else as.character(species)
   tibble::tibble(
     input = x,
-    valid = valid,
-    normalized = normalized,
-    suggestion = suggestion,
+    valid = verdicts$valid,
+    normalized = verdicts$normalized,
+    suggestion = verdicts$suggestion,
     source_db = rep(source_db, n),
-    version = rep(NA_character_, n),
+    version = rep(version_col, n),
     species = rep(species_val, n),
     how = rep(how, n)
   )

@@ -56,3 +56,16 @@
   }
   NA_character_
 }
+
+# Shape-only verdicts: valid when the string is well-formed for the source.
+.pattern_verdicts <- function(source, x, is_na) {
+  n <- length(x)
+  valid <- rep(NA, n)
+  valid[!is_na] <- .matches(source$pattern, x[!is_na])
+  normalized <- ifelse(!is_na & valid, x, NA_character_)
+  suggestion <- rep(NA_character_, n)
+  for (i in which(!is_na & !valid)) {
+    suggestion[i] <- .suggest_one(source, x[i])
+  }
+  list(valid = valid, normalized = normalized, suggestion = suggestion)
+}
