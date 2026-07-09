@@ -156,3 +156,79 @@ biogate_snapshots <- function() {
   }
   tibble::as_tibble(do.call(rbind, rows))
 }
+
+.sanitize_version <- function(raw) {
+  raw <- sub("^releases/", "", trimws(raw))
+  gsub("[^A-Za-z0-9._-]", "-", raw)
+}
+
+# Extract (version, ids) from OBO lines, keeping ids that match the pattern.
+.parse_obo <- function(lines, pattern) {
+  version <- NA_character_
+  dv <- grep("^data-version:", lines, value = TRUE)
+  if (length(dv)) {
+    version <- .sanitize_version(sub("^data-version:", "", dv[1]))
+  }
+  id_values <- sub("^id:\\s*", "", grep("^id:\\s", lines, value = TRUE))
+  ids <- sort(unique(id_values[.matches(pattern, id_values)]))
+  list(
+    version = if (is.na(version) || !nzchar(version)) NULL else version,
+    ids = ids
+  )
+}
+
+#' Download a snapshot for cache mode
+#'
+#' Fetches the source's OBO release, keeps the identifiers that match the source
+#' pattern, and writes them to the cache directory as a snapshot. The version
+#' defaults to the ontology's own data-version.
+#'
+#' @param source_db Source key, for example `"mondo"`.
+#' @param version Snapshot version label. Defaults to the ontology data-version.
+#' @param quiet Suppress progress messages.
+#' @return The path to the written snapshot, invisibly.
+#' @seealso [biogate_snapshots()], [check_id()].
+#' @export
+biogate_pull <- function(source_db, version = NULL, quiet = FALSE) {
+  source <- .get_source(source_db)
+  cache <- source$cache
+  if (is.null(cache) || !identical(cache$builder, "obo")) {
+    cli::cli_abort(
+      "No snapshot builder is available for {.val {source_db}}.",
+      class = "biogate_error_no_builder"
+    )
+  }
+  tmp <- tempfile(fileext = ".obo")
+  on.exit(unlink(tmp), add = TRUE)
+  if (!quiet) {
+    cli::cli_inform("Downloading {.url {cache$obo_url}} ...")
+  }
+  utils::download.file(
+    cache$obo_url,
+    tmp,
+    quiet = quiet,
+    mode = "wb",
+    headers = c(
+      "User-Agent" = "biogate/0.1 (+https://github.com/samuelbharti/biogate)"
+    )
+  )
+  parsed <- .parse_obo(
+    readLines(tmp, warn = FALSE, encoding = "UTF-8"),
+    source$pattern
+  )
+  version <- if (is.null(version)) parsed$version else as.character(version)
+  if (is.null(version) || !nzchar(version)) {
+    cli::cli_abort(
+      "Could not determine a version for {.val {source_db}}; pass {.arg version}.",
+      class = "biogate_error_missing_version"
+    )
+  }
+  dest_dir <- file.path(biogate_cache_dir(), source_db)
+  dir.create(dest_dir, recursive = TRUE, showWarnings = FALSE)
+  dest <- file.path(dest_dir, paste0(version, ".txt"))
+  writeLines(parsed$ids, dest)
+  if (!quiet) {
+    cli::cli_inform("Wrote {length(parsed$ids)} ids to {.file {dest}}.")
+  }
+  invisible(dest)
+}
