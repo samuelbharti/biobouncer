@@ -81,6 +81,20 @@ def _uniprot_active(body: dict | None) -> bool:
     return str((body or {}).get("entryType", "")).startswith("UniProtKB")
 
 
+def _normalize_obo(s: str | None) -> str | None:
+    """Normalize a successor reference to a colon obo_id.
+
+    Accepts a short form such as ``"GO_0006915"`` or a full IRI such as
+    ``"http://purl.obolibrary.org/obo/MONDO_0005016"``. Takes the substring after
+    the last slash, then turns the first underscore into a colon. A missing or
+    empty value returns None.
+    """
+    if not s:
+        return None
+    tail = s.rsplit("/", 1)[-1]
+    return tail.replace("_", ":", 1)
+
+
 def _species_taxon(species_block: dict, species) -> int | None:
     """Resolve ``species`` to a taxon id using the source species map.
 
@@ -128,7 +142,9 @@ class Resolver:
     ``RemoteError`` for an indeterminate status. ``cache_body`` reduces a
     response to the minimal body worth persisting. ``species_ok`` decides, for
     an id that exists, whether it belongs to the requested species; it reads the
-    id prefix, the response body, or neither depending on the source.
+    id prefix, the response body, or neither depending on the source. ``retired``
+    decides, for an id that exists, whether it is obsolete and returns
+    ``(is_retired, successor)`` with the successor as a colon obo_id or None.
     """
 
     name: str
@@ -137,6 +153,7 @@ class Resolver:
     exists: Callable[[int, dict | None], bool]
     cache_body: Callable[[int, dict | None], dict | None]
     species_ok: Callable[[Source, str, dict | None, object], bool]
+    retired: Callable[[Source, dict | None], tuple[bool, str | None]]
 
 
 def _ols_subkey(source: Source) -> str:
@@ -159,13 +176,35 @@ def _ols_exists(status: int, body: dict | None) -> bool:
 
 def _ols_cache_body(status: int, body: dict | None) -> dict | None:
     if status == 200:
-        return {"page": {"totalElements": _ols_count(body)}}
+        terms = ((body or {}).get("_embedded") or {}).get("terms")
+        term = (terms[0] if terms else None) or {}
+        return {
+            "page": {"totalElements": _ols_count(body)},
+            "_embedded": {
+                "terms": [
+                    {
+                        "is_obsolete": bool(term.get("is_obsolete")),
+                        "term_replaced_by": term.get("term_replaced_by"),
+                    }
+                ]
+            },
+        }
     return None
 
 
 def _ols_species_ok(source: Source, ident: str, body: dict | None, species) -> bool:
     # OLS terms are not species scoped; existence is the whole verdict.
     return True
+
+
+def _ols_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
+    terms = ((body or {}).get("_embedded") or {}).get("terms")
+    if not terms:
+        return False, None
+    term = terms[0] or {}
+    if term.get("is_obsolete"):
+        return True, _normalize_obo(term.get("term_replaced_by"))
+    return False, None
 
 
 def _ensembl_subkey(source: Source) -> str:
@@ -193,6 +232,11 @@ def _ensembl_cache_body(status: int, body: dict | None) -> dict | None:
 def _ensembl_species_ok(source: Source, ident: str, body: dict | None, species) -> bool:
     # Ensembl encodes species in the id prefix, so the offline check suffices.
     return _species_ok(source, ident, species)
+
+
+def _ensembl_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
+    # Ensembl existence has no obsolete-with-successor concept here.
+    return False, None
 
 
 def _uniprot_subkey(source: Source) -> str:
@@ -228,6 +272,11 @@ def _uniprot_species_ok_id(
     return _uniprot_species_ok(source, body, species)
 
 
+def _uniprot_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
+    # UniProt retirement is modeled as inactive existence, not a successor here.
+    return False, None
+
+
 _OLS = Resolver(
     name="ols",
     subkey=_ols_subkey,
@@ -235,6 +284,7 @@ _OLS = Resolver(
     exists=_ols_exists,
     cache_body=_ols_cache_body,
     species_ok=_ols_species_ok,
+    retired=_ols_retired,
 )
 _ENSEMBL = Resolver(
     name="ensembl",
@@ -243,6 +293,7 @@ _ENSEMBL = Resolver(
     exists=_ensembl_exists,
     cache_body=_ensembl_cache_body,
     species_ok=_ensembl_species_ok,
+    retired=_ensembl_retired,
 )
 _UNIPROT = Resolver(
     name="uniprot",
@@ -251,6 +302,7 @@ _UNIPROT = Resolver(
     exists=_uniprot_exists,
     cache_body=_uniprot_cache_body,
     species_ok=_uniprot_species_ok_id,
+    retired=_uniprot_retired,
 )
 
 _RESOLVERS = {"ols": _OLS, "ensembl": _ENSEMBL, "uniprot": _UNIPROT}
@@ -267,19 +319,35 @@ def _remote_cache_path(resolver_name: str, subkey: str, ident: str) -> Path:
     )
 
 
+def _post_existence(
+    resolver: Resolver, source: Source, ident: str, body: dict | None, species
+) -> tuple[bool, str | None]:
+    """Verdict for an id already confirmed to exist: species then retirement."""
+    if not resolver.species_ok(source, ident, body, species):
+        return False, None
+    is_retired, successor = resolver.retired(source, body)
+    if is_retired:
+        return False, successor
+    return True, None
+
+
 def _remote_lookup(
     resolver: Resolver,
     source: Source,
     ident: str,
     species=None,
     refresh: bool = False,
-) -> bool:
-    """Whether ``ident`` exists and matches ``species``, cache backed.
+) -> tuple[bool, str | None]:
+    """Return ``(valid, suggestion)`` for ``ident``, cache backed.
 
-    The cache is keyed by id only; species is compared at read time against the
-    cached body, so one cached response answers any species. An indeterminate
-    status raises before the cache is written, so a response that gives no
-    definite answer is never persisted.
+    An id that exists, matches ``species``, and is not obsolete is valid with no
+    suggestion. An id that exists but is obsolete is not valid and carries its
+    successor as the suggestion. An id that is absent or belongs to another
+    species is not valid with no suggestion. The cache is keyed by id only;
+    species is compared at read time against the cached body, so one cached
+    response answers any species. An indeterminate status raises before the
+    cache is written, so a response that gives no definite answer is never
+    persisted.
     """
     path = _remote_cache_path(resolver.name, resolver.subkey(source), ident)
     if not refresh and path.is_file():
@@ -290,8 +358,8 @@ def _remote_lookup(
             pass  # A corrupt or partial cache file is ignored and refetched.
         else:
             if not resolver.exists(status, body):
-                return False
-            return resolver.species_ok(source, ident, body, species)
+                return False, None
+            return _post_existence(resolver, source, ident, body, species)
     url = resolver.url(source, ident)
     status, body = _http_get(url)
     result = resolver.exists(status, body)
@@ -303,8 +371,8 @@ def _remote_lookup(
         encoding="utf-8",
     )
     if not result:
-        return False
-    return resolver.species_ok(source, ident, body, species)
+        return False, None
+    return _post_existence(resolver, source, ident, body, species)
 
 
 def _get_resolver(source: Source) -> Resolver:
@@ -317,8 +385,8 @@ def _get_resolver(source: Source) -> Resolver:
 
 def _resolve_ids(
     resolver: Resolver, source: Source, ids: list[str], species
-) -> dict[str, bool]:
-    """Resolve existence and species for a batch of ids through one resolver."""
+) -> dict[str, tuple[bool, str | None]]:
+    """Resolve validity and any successor for a batch of ids through one resolver."""
     return {ident: _remote_lookup(resolver, source, ident, species) for ident in ids}
 
 
@@ -327,11 +395,12 @@ def remote_verdicts(
 ) -> list[tuple[bool, str | None, str | None]]:
     """Return ``(valid, normalized, suggestion)`` per item via live existence.
 
-    Well-formed inputs are looked up directly. Malformed inputs offer a
-    suggestion only when a correction candidate exists remotely. When
-    ``species`` is given, an id that exists but belongs to a different species
-    is not valid. Existence is resolved for the whole batch in a single
-    resolver call.
+    Well-formed inputs are looked up directly; one that exists but is obsolete is
+    not valid and carries its successor as the suggestion. Malformed inputs offer
+    a suggestion only when a correction candidate exists remotely. When
+    ``species`` is given, an id that exists but belongs to a different species is
+    not valid. Existence is resolved for the whole batch in a single resolver
+    call.
     """
     resolver = _get_resolver(source)
     plans: list[tuple[bool, str | None]] = []
@@ -345,15 +414,16 @@ def remote_verdicts(
             plans.append((False, candidate))
             if candidate is not None:
                 need.add(candidate)
-    exists = _resolve_ids(resolver, source, sorted(need), species) if need else {}
+    resolved = _resolve_ids(resolver, source, sorted(need), species) if need else {}
     verdicts: list[tuple[bool, str | None, str | None]] = []
     for well_formed, value in plans:
+        valid, successor = resolved.get(value, (False, None))
         if well_formed:
-            if exists.get(value):
+            if valid:
                 verdicts.append((True, value, None))
             else:
-                verdicts.append((False, None, None))
-        elif value is not None and exists.get(value):
+                verdicts.append((False, None, successor))
+        elif value is not None and valid:
             verdicts.append((False, None, value))
         else:
             verdicts.append((False, None, None))
