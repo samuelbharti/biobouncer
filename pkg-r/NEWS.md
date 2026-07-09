@@ -1,5 +1,12 @@
 # biogate 0.0.0.9000
 
+* Adds an `hgvs` source that checks the syntax of HGVS sequence variant names,
+  for example `NM_004006.2:c.4375C>T` or `NP_003997.1:p.(Gly56Ala)`. This is a
+  grammar check in `pattern` mode: it covers substitutions, deletions,
+  duplications, insertions, deletion-insertions, inversions, and the common
+  protein forms including frameshifts, across the g, o, m, c, n, r, and p
+  coordinate types. It checks syntax only. It does not check coordinate order or
+  that a variant exists, and it requires a reference sequence.
 * Adds validation-framework adapters that wrap the core classifier:
   `assert_valid_id()`, `check_valid_id()`, and `test_valid_id()` in the checkmate
   style, `sv_biogate()`, a shinyvalidate rule, and `id_predicate()`, an
