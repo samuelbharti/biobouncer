@@ -11,8 +11,9 @@ is_valid_id(x, source_db, how = "pattern", species = NULL, version = NULL)
 
 \item{source_db}{Source key, for example \code{"mondo"}. See \code{\link[=sources]{sources()}}.}
 
-\item{how}{Checking mode: \code{"pattern"} (offline, shape only) or \code{"cache"}
-(offline existence against a snapshot).}
+\item{how}{Checking mode: \code{"pattern"} (offline, shape only), \code{"cache"}
+(offline existence against a snapshot), or \code{"remote"} (live existence
+against the source API).}
 
 \item{species}{Optional species context, echoed in the result. A name such as
 \code{"homo_sapiens"} or an NCBI taxon id such as \code{9606}.}
