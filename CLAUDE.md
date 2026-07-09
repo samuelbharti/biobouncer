@@ -6,7 +6,7 @@ digest. `PLAN.md` has the full architecture and the phased task list.
 ## What biogate is
 
 A cross-language validator for biological identifiers. One monorepo: the R
-package lives in `r/`, the Python package in `python/`, and the shared spec in
+package lives in `pkg-r/`, the Python package in `pkg-py/`, and the shared spec in
 `shared/`. R and Python must return the same verdict for the same input, which is
 enforced by the conformance corpus in `shared/corpus/`.
 
@@ -14,8 +14,8 @@ enforced by the conformance corpus in `shared/corpus/`.
 
 - Pure R and pure Python. No Rust and no compiled extensions. Vectorize instead.
 - Never hard-code an identifier pattern outside `shared/sources/`.
-- Never edit a vendored copy by hand (`r/inst/extdata/`,
-  `python/src/biogate/_data/`). Edit `shared/` and run
+- Never edit a vendored copy by hand (`pkg-r/inst/extdata/`,
+  `pkg-py/src/biogate/_data/`). Edit `shared/` and run
   `python tools/sync_shared.py`. The drift CI job enforces this.
 - Every extrinsic result (cache or remote mode) must carry its version or
   timestamp.

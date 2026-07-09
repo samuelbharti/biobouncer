@@ -3,9 +3,9 @@ name: R-CMD-check
 on:
   push:
     branches: [main]
-    paths: ["r/**", "shared/**", ".github/workflows/r.yml"]
+    paths: ["pkg-r/**", "shared/**", ".github/workflows/r.yml"]
   pull_request:
-    paths: ["r/**", "shared/**", ".github/workflows/r.yml"]
+    paths: ["pkg-r/**", "shared/**", ".github/workflows/r.yml"]
 
 permissions:
   contents: read
@@ -38,11 +38,11 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
-          working-directory: r
+          working-directory: pkg-r
 
       - uses: r-lib/actions/check-r-package@v2
         with:
-          working-directory: r
+          working-directory: pkg-r
           upload-snapshots: true
 
   lint-r:
@@ -61,11 +61,11 @@ jobs:
         with:
           extra-packages: any::lintr, local::.
           needs: lint
-          working-directory: r
+          working-directory: pkg-r
 
       - name: Lint
         run: lintr::lint_package()
         shell: Rscript {0}
-        working-directory: r
+        working-directory: pkg-r
         env:
           LINTR_ERROR_ON_LINT: true

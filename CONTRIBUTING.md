@@ -6,7 +6,7 @@ Thanks for helping. This guide covers the workflow and the local tooling.
 
 - `shared/` is the single source of truth: source definitions and the
   conformance corpus.
-- `r/` is the R package. `python/` is the Python package.
+- `pkg-r/` is the R package. `pkg-py/` is the Python package.
 - `tools/sync_shared.py` vendors `shared/` into each package.
 - `PLAN.md` has the architecture and the phased plan. `CLAUDE.md` is the short
   conventions digest.
@@ -41,8 +41,8 @@ ruff and pytest in CI.
 
 ## Editing the shared spec
 
-Edit files under `shared/`, never the vendored copies under `r/inst/extdata/` or
-`python/src/biogate/_data/`. After editing, run:
+Edit files under `shared/`, never the vendored copies under `pkg-r/inst/extdata/`
+or `pkg-py/src/biogate/_data/`. After editing, run:
 
 ```sh
 python tools/sync_shared.py
