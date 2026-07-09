@@ -1,0 +1,24 @@
+# Normalize line endings to LF in the repository. Working copies on Windows can
+# still use CRLF locally; this keeps what gets committed consistent.
+* text=auto eol=lf
+
+# Treat these as plain text with LF.
+*.R text eol=lf
+*.r text eol=lf
+*.Rd text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.toml text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.jsonl text eol=lf
+
+# Binary files: never touch line endings.
+*.rds binary
+*.RData binary
+*.png binary
+*.jpg binary
+*.gz binary
+*.zip binary
+*.parquet binary

@@ -1,0 +1,45 @@
+# Secrets and local config.
+# Ignore by category and directory so no individual sensitive filename ever needs
+# to be listed here. For a file whose name itself is sensitive, add it to
+# .git/info/exclude (never committed) instead. See SECURITY.md and CONTRIBUTING.md.
+.env
+.env.*
+!.env.example
+*.local
+*.key
+*.pem
+*.p12
+*.pfx
+credentials*
+secrets/
+.secrets/
+
+# R
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+.Renviron
+*.Rcheck/
+*.tar.gz
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.tox/
+build/
+dist/
+*.egg-info/
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/
+!.vscode/extensions.json
+.idea/
