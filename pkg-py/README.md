@@ -23,6 +23,7 @@ biogate.check_id("MONDO:0005148", source_db="mondo", how="cache", version="sampl
 # Snapshot management.
 biogate.snapshots()
 biogate.cache_dir()
+biogate.pull("go")  # download a full snapshot into the cache directory
 ```
 
 `check_id()` returns a list of `Result` records. The bundled `sample` snapshot is
