@@ -12,10 +12,10 @@ From the repository root:
 
 ```r
 # generate NAMESPACE and man pages
-roxygen2::roxygenise("r")
+roxygen2::roxygenise("pkg-r")
 
 # run the tests
-testthat::test_dir("r/tests/testthat")
+testthat::test_dir("pkg-r/tests/testthat")
 ```
 
 Shared source definitions and the conformance corpus live in `shared/` at the
