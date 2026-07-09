@@ -1,5 +1,9 @@
 # biogate 0.0.0.9000
 
+* `check_id()` gains live `remote` mode: existence checks against a source API.
+  The Ontology Lookup Service resolver covers mondo, efo, go, and chebi.
+  Responses are cached on disk, and a network failure raises an error rather
+  than returning a silent `FALSE`.
 * `check_id()` gains offline `cache` mode: existence checks against a pinned
   snapshot. A small `sample` snapshot for the ontology sources ships with the
   package, and `biogate_cache_dir()` and `biogate_snapshots()` manage snapshots.

@@ -12,6 +12,9 @@ curie:
 cache:
   builder: obo
   obo_url: http://purl.obolibrary.org/obo/mondo.obo
+remote:
+  resolver: ols
+  ols_ontology: mondo
 provenance:
   pattern_source: bioregistry
   homepage: https://mondo.monarchinitiative.org

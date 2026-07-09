@@ -10,6 +10,9 @@ curie:
 cache:
   builder: obo
   obo_url: http://purl.obolibrary.org/obo/go/go-basic.obo
+remote:
+  resolver: ols
+  ols_ontology: go
 provenance:
   pattern_source: bioregistry
   homepage: https://geneontology.org

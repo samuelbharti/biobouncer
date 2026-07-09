@@ -10,6 +10,9 @@ curie:
 cache:
   builder: obo
   obo_url: http://purl.obolibrary.org/obo/chebi/chebi_lite.obo
+remote:
+  resolver: ols
+  ols_ontology: chebi
 provenance:
   pattern_source: bioregistry
   homepage: https://www.ebi.ac.uk/chebi/

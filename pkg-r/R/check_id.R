@@ -12,7 +12,7 @@
 
 .assert_mode_supported <- function(how) {
   known <- c("pattern", "cache", "remote", "existence")
-  implemented <- c("pattern", "cache")
+  implemented <- c("pattern", "cache", "remote")
   if (!how %in% known) {
     cli::cli_abort(
       c(
@@ -37,12 +37,14 @@
 #'
 #' Validate a vector of identifiers against a source. `pattern` mode checks that
 #' each identifier is well-formed. `cache` mode also checks that it exists in a
-#' pinned local snapshot (see [biogate_snapshots()]).
+#' pinned local snapshot (see [biogate_snapshots()]). `remote` mode checks live
+#' existence against the source API.
 #'
 #' @param x A vector of identifiers. Coerced to character.
 #' @param source_db Source key, for example `"mondo"`. See [sources()].
-#' @param how Checking mode: `"pattern"` (offline, shape only) or `"cache"`
-#'   (offline existence against a snapshot).
+#' @param how Checking mode: `"pattern"` (offline, shape only), `"cache"`
+#'   (offline existence against a snapshot), or `"remote"` (live existence
+#'   against the source API).
 #' @param species Optional species context, echoed in the result. A name such as
 #'   `"homo_sapiens"` or an NCBI taxon id such as `9606`.
 #' @param version Snapshot version. Required for `cache` mode; ignored in
@@ -89,6 +91,9 @@ check_id <- function(
       .snapshot_set(source_db, version)
     )
     version_col <- version
+  } else if (identical(how, "remote")) {
+    verdicts <- .remote_verdicts(source, x, is_na)
+    version_col <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
   } else {
     verdicts <- .pattern_verdicts(source, x, is_na)
     version_col <- NA_character_

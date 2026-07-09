@@ -20,6 +20,7 @@ class Source:
     curie: dict | None
     normalize: dict | None
     cache: dict | None
+    remote: dict | None
 
 
 @functools.lru_cache(maxsize=1)
@@ -40,6 +41,7 @@ def _registry() -> dict[str, Source]:
             curie=spec.get("curie"),
             normalize=spec.get("normalize"),
             cache=spec.get("cache"),
+            remote=spec.get("remote"),
         )
     return out
 

@@ -1,0 +1,3 @@
+{"input": "CHEBI:15377", "source_db": "chebi", "how": "remote", "expect": {"valid": true, "normalized": "CHEBI:15377"}, "note": "well-formed and exists in the live ontology"}
+{"input": "CHEBI:99999999", "source_db": "chebi", "how": "remote", "expect": {"valid": false}, "note": "well-formed but does not exist"}
+{"input": "chebi:15377", "source_db": "chebi", "how": "remote", "expect": {"valid": false, "suggestion": "CHEBI:15377"}, "note": "malformed prefix case, and the corrected form exists remotely"}
