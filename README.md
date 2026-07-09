@@ -51,8 +51,8 @@ reach those tools.
 
 ## Installation
 
-`biogate` lives in a monorepo; the R package is in the `r/` subdirectory and the
-Python package in `python/`. Users never see that — just point the installer at
+`biogate` lives in a monorepo; the R package is in the `pkg-r/` subdirectory and
+the Python package in `pkg-py/`. Users never see that — just point the installer at
 the right subdirectory (or use a published channel).
 
 **R**
@@ -64,9 +64,9 @@ install.packages("biogate", repos = "https://YOURORG.r-universe.dev")
 # CRAN (once released)
 install.packages("biogate")
 
-# development version from GitHub (package is in the r/ subdirectory)
-pak::pak("YOURORG/biogate/r")
-# or: remotes::install_github("YOURORG/biogate", subdir = "r")
+# development version from GitHub (package is in the pkg-r/ subdirectory)
+pak::pak("YOURORG/biogate/pkg-r")
+# or: remotes::install_github("YOURORG/biogate", subdir = "pkg-r")
 ```
 
 **Python**
@@ -74,8 +74,8 @@ pak::pak("YOURORG/biogate/r")
 ```bash
 pip install biogate
 
-# development version from GitHub (package is in the python/ subdirectory)
-pip install "git+https://github.com/YOURORG/biogate.git#subdirectory=python"
+# development version from GitHub (package is in the pkg-py/ subdirectory)
+pip install "git+https://github.com/YOURORG/biogate.git#subdirectory=pkg-py"
 ```
 
 ## Quickstart

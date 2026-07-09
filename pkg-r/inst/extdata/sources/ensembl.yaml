@@ -1,0 +1,14 @@
+key: ensembl
+name: Ensembl
+description: Ensembl stable identifiers for genes, transcripts, proteins, and exons.
+# ENS, an optional species code, a feature letter, then 11 digits. This covers
+# the common stable id shapes (for example ENSG, ENST, ENSMUSG) without being a
+# full species catalogue.
+pattern: "ENS[A-Z]*[EFGPT][0-9]{11}"
+species_aware: true
+version_aware: true
+normalize:
+  case: upper
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.ensembl.org

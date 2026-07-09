@@ -1,0 +1,112 @@
+.assert_check_args <- function(x, source_db, how, species, version) {
+  checkmate::assert_atomic(x, .var.name = "x")
+  checkmate::assert_string(source_db, .var.name = "source_db")
+  checkmate::assert_string(how, .var.name = "how")
+  if (!is.null(species)) {
+    checkmate::assert_scalar(species, na.ok = FALSE, .var.name = "species")
+  }
+  if (!is.null(version)) {
+    checkmate::assert_scalar(version, na.ok = FALSE, .var.name = "version")
+  }
+}
+
+.assert_mode_supported <- function(how) {
+  known <- c("pattern", "cache", "remote", "existence")
+  if (!how %in% known) {
+    cli::cli_abort(
+      c(
+        "Invalid {.arg how} value {.val {how}}.",
+        i = "Choose one of {.val {known}}."
+      ),
+      class = "biogate_error_invalid_mode"
+    )
+  }
+  if (!identical(how, "pattern")) {
+    cli::cli_abort(
+      c(
+        "Mode {.val {how}} is not implemented yet.",
+        i = "Only {.val pattern} mode is available so far."
+      ),
+      class = "biogate_error_unimplemented_mode"
+    )
+  }
+}
+
+#' Check biological identifiers
+#'
+#' Validate a vector of identifiers against a source. Only offline `pattern`
+#' mode is implemented so far.
+#'
+#' @param x A vector of identifiers. Coerced to character.
+#' @param source_db Source key, for example `"mondo"`. See [sources()].
+#' @param how Checking mode. Only `"pattern"` is implemented.
+#' @param species Optional species context, echoed in the result. A name such as
+#'   `"homo_sapiens"` or an NCBI taxon id such as `9606`.
+#' @param version Optional version context. Ignored in `pattern` mode.
+#' @return A [tibble][tibble::tibble] with one row per element of `x` and the
+#'   columns `input`, `valid`, `normalized`, `suggestion`, `source_db`,
+#'   `version`, `species`, and `how`.
+#' @seealso [is_valid_id()], [sources()], [source_info()].
+#' @examples
+#' check_id(c("MONDO:0005148", "mondo:5148"), source_db = "mondo")
+#' @export
+check_id <- function(
+  x,
+  source_db,
+  how = "pattern",
+  species = NULL,
+  version = NULL
+) {
+  .assert_check_args(x, source_db, how, species, version)
+  .assert_mode_supported(how)
+  source <- .get_source(source_db)
+
+  x <- as.character(x)
+  n <- length(x)
+  is_na <- is.na(x)
+  valid <- rep(NA, n)
+  valid[!is_na] <- .matches(source$pattern, x[!is_na])
+  normalized <- ifelse(!is_na & valid, x, NA_character_)
+  suggestion <- rep(NA_character_, n)
+  for (i in which(!is_na & !valid)) {
+    suggestion[i] <- .suggest_one(source, x[i])
+  }
+  species_val <- if (is.null(species)) NA_character_ else as.character(species)
+
+  tibble::tibble(
+    input = x,
+    valid = valid,
+    normalized = normalized,
+    suggestion = suggestion,
+    source_db = rep(source_db, n),
+    version = rep(NA_character_, n),
+    species = rep(species_val, n),
+    how = rep(how, n)
+  )
+}
+
+#' Test biological identifiers
+#'
+#' A convenience wrapper over [check_id()] that returns only the verdict.
+#'
+#' @inheritParams check_id
+#' @return A logical vector, one element per element of `x`.
+#' @seealso [check_id()].
+#' @examples
+#' is_valid_id(c("MONDO:0005148", "mondo:5148"), source_db = "mondo")
+#' @export
+is_valid_id <- function(
+  x,
+  source_db,
+  how = "pattern",
+  species = NULL,
+  version = NULL
+) {
+  check_id(
+    x,
+    source_db = source_db,
+    how = how,
+    species = species,
+    version = version
+  )$valid
+}

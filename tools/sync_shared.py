@@ -29,25 +29,31 @@ SUBDIRS = {
 # Package directory -> vendored data root. The package directory must exist for
 # its target to be written.
 TARGETS = {
-    "r": ROOT / "r" / "inst" / "extdata",
-    "python": ROOT / "python" / "src" / "biogate" / "_data",
+    "pkg-r": ROOT / "pkg-r" / "inst" / "extdata",
+    "pkg-py": ROOT / "pkg-py" / "src" / "biogate" / "_data",
 }
 
 
 def vendor_into(dest_root: Path) -> None:
-    """Mirror the shared data subdirectories into dest_root."""
+    """Mirror the shared data subdirectories into dest_root.
+
+    Stale files are removed and current files are overwritten in place. The
+    destination directory itself is never removed, which avoids a Windows file
+    lock (for example from a synced folder) failing the whole sync.
+    """
     for subdir, pattern in SUBDIRS.items():
         src_dir = SHARED / subdir
         dest_dir = dest_root / subdir
-        # Start clean so files removed from shared/ also disappear downstream.
-        if dest_dir.exists():
-            shutil.rmtree(dest_dir)
         files = sorted(src_dir.glob(pattern)) if src_dir.is_dir() else []
-        if not files:
-            continue
-        dest_dir.mkdir(parents=True, exist_ok=True)
-        for f in files:
-            shutil.copy2(f, dest_dir / f.name)
+        wanted = {f.name for f in files}
+        if dest_dir.exists():
+            for existing in dest_dir.iterdir():
+                if existing.is_file() and existing.name not in wanted:
+                    existing.unlink()
+        if files:
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            for f in files:
+                shutil.copy2(f, dest_dir / f.name)
 
 
 def main() -> None:

@@ -74,7 +74,7 @@ biogate/                             # ONE monorepo
 │   ├── r.yml
 │   ├── python.yml
 │   └── drift.yml
-├── python/                          # biogate (PyPI)
+├── pkg-py/                         # biogate (PyPI)
 │   ├── src/biogate/
 │   │   ├── core.py                  # check_id / is_valid_id, result model
 │   │   ├── registry.py              # loads vendored sources
@@ -85,7 +85,7 @@ biogate/                             # ONE monorepo
 │   │   ├── snapshots.py
 │   │   └── _data/                   # ← vendored copy of shared/ (generated)
 │   └── tests/
-└── r/                               # biogate (CRAN / R-universe)
+└── pkg-r/                           # biogate (CRAN / R-universe)
     ├── R/
     │   ├── check_id.R
     │   ├── registry.R
@@ -102,20 +102,20 @@ truth. Neither language hard-codes a pattern that isn't in a source file.
 
 ### 3.1 Vendoring the shared spec (why and how)
 
-An R build only packages files under `r/`, and a Python wheel only ships files
-under `python/`; neither can reach a sibling `shared/` folder at install time.
+An R build only packages files under `pkg-r/`, and a Python wheel only ships files
+under `pkg-py/`; neither can reach a sibling `shared/` folder at install time.
 So `shared/` must be **copied into each package before build**:
 
-- `tools/sync_shared.py` copies `shared/` → `r/inst/extdata/` and
-  `python/src/biogate/_data/`. Run it in the build/release step of both
+- `tools/sync_shared.py` copies `shared/` → `pkg-r/inst/extdata/` and
+  `pkg-py/src/biogate/_data/`. Run it in the build/release step of both
   packages so the vendored copy is always present and current.
 - At runtime, packages read the vendored copy (`system.file("extdata", ...)` in
   R; `importlib.resources` in Python), never `../shared`.
 - A **drift check** in CI (`drift.yml`) runs `sync_shared.py` and fails if it
   produces any diff — i.e. someone edited a vendored copy directly, or forgot to
   re-sync after editing `shared/`. This keeps R and Python provably in lockstep.
-- **Path-filtered CI:** `r.yml` triggers on `r/**` + `shared/**`, `python.yml`
-  on `python/**` + `shared/**`; any `shared/**` change runs both (so the
+- **Path-filtered CI:** `r.yml` triggers on `pkg-r/**` + `shared/**`, `python.yml`
+  on `pkg-py/**` + `shared/**`; any `shared/**` change runs both (so the
   conformance corpus is enforced on every spec edit).
 
 ---
@@ -248,10 +248,10 @@ The mechanism that guarantees R and Python agree.
 ## 8. Phased delivery
 
 ### Phase 0 — Scaffolding
-- Create the monorepo layout (§3): `shared/`, `r/`, `python/`, `tools/`,
+- Create the monorepo layout (§3): `shared/`, `pkg-r/`, `pkg-py/`, `tools/`,
   `.github/workflows/`.
-- Implement `tools/sync_shared.py` (vendors `shared/` into `r/inst/extdata/` and
-  `python/src/biogate/_data/`) and wire it into both build steps.
+- Implement `tools/sync_shared.py` (vendors `shared/` into `pkg-r/inst/extdata/`
+  and `pkg-py/src/biogate/_data/`) and wire it into both build steps.
 - Add path-filtered CI (`r.yml`, `python.yml`) plus the drift check (`drift.yml`)
   from §3.1; add linting/formatting for both languages.
 - Reserve names: confirm `biogate` is free on **PyPI** and **CRAN**, create the
@@ -264,14 +264,14 @@ The mechanism that guarantees R and Python agree.
 
 ```json
 [
-  { "package": "biogate", "url": "https://github.com/YOURORG/biogate", "subdir": "r" }
+  { "package": "biogate", "url": "https://github.com/YOURORG/biogate", "subdir": "pkg-r" }
 ]
 ```
 
 Install the R-universe GitHub app on the account; the `subdir` field points the
-builder at `r/`. R-universe then builds Windows/macOS binaries kept in sync with
-source. (After biogate reaches CRAN, opt out of duplicate auto-indexing with
-`Config/runiverse/noindex: true` in `r/DESCRIPTION` if desired.)
+builder at `pkg-r/`. R-universe then builds Windows/macOS binaries kept in sync
+with source. (After biogate reaches CRAN, opt out of duplicate auto-indexing with
+`Config/runiverse/noindex: true` in `pkg-r/DESCRIPTION` if desired.)
 
 **Install commands to verify in CI**
 
@@ -279,12 +279,12 @@ source. (After biogate reaches CRAN, opt out of duplicate auto-indexing with
 # R — published channel
 install.packages("biogate", repos = "https://YOURACCOUNT.r-universe.dev")
 # R — dev from the monorepo subdirectory
-pak::pak("YOURORG/biogate/r")
-remotes::install_github("YOURORG/biogate", subdir = "r")
+pak::pak("YOURORG/biogate/pkg-r")
+remotes::install_github("YOURORG/biogate", subdir = "pkg-r")
 ```
 ```bash
 # Python — dev from the monorepo subdirectory
-pip install "git+https://github.com/YOURORG/biogate.git#subdirectory=python"
+pip install "git+https://github.com/YOURORG/biogate.git#subdirectory=pkg-py"
 ```
 
 ### Phase 1 — Core + pattern mode
@@ -376,9 +376,9 @@ pip install "git+https://github.com/YOURORG/biogate.git#subdirectory=python"
 ## 11. Conventions (source for CLAUDE.md)
 
 - Pure R and pure Python. No Rust, no compiled extensions.
-- One monorepo; the R package is in `r/`, the Python package in `python/`.
+- One monorepo; the R package is in `pkg-r/`, the Python package in `pkg-py/`.
 - Never hard-code a pattern outside `shared/sources/`.
-- Never edit a vendored copy (`r/inst/extdata/`, `python/src/biogate/_data/`)
+- Never edit a vendored copy (`pkg-r/inst/extdata/`, `pkg-py/src/biogate/_data/`)
   by hand — edit `shared/` and re-run `tools/sync_shared.py`. CI drift check
   enforces this.
 - Every extrinsic result must carry its `version`/timestamp.

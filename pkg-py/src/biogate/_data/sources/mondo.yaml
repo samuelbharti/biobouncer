@@ -1,0 +1,14 @@
+key: mondo
+name: MONDO Disease Ontology
+description: Monarch Disease Ontology terms.
+# Unanchored core pattern using ASCII classes so R (PCRE) and Python (re) agree.
+pattern: "MONDO:[0-9]{7}"
+species_aware: false
+version_aware: true
+# CURIE sources support prefix-case and zero-pad suggestions.
+curie:
+  prefix: MONDO
+  pad_to: 7
+provenance:
+  pattern_source: bioregistry
+  homepage: https://mondo.monarchinitiative.org
