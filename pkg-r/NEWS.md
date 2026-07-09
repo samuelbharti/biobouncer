@@ -1,5 +1,8 @@
 # biogate 0.0.0.9000
 
+* Adds validation-framework adapters that wrap the core classifier:
+  `assert_valid_id()`, `check_valid_id()`, and `test_valid_id()` in the checkmate
+  style, and `sv_biogate()`, a shinyvalidate rule.
 * Adds an `hgnc` source for HUGO gene symbols. `cache` mode checks a symbol
   against the approved-symbol snapshot, and a withdrawn or previous symbol
   resolves to its approved successor through the retired-map (for example `MLL`
