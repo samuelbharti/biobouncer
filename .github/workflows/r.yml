@@ -12,9 +12,6 @@ permissions:
 
 jobs:
   R-CMD-check:
-    # Runs once the R package exists. Until then the job is skipped, which keeps
-    # PRs that only touch shared/ green.
-    if: hashFiles('r/DESCRIPTION') != ''
     runs-on: ${{ matrix.config.os }}
     name: R-CMD-check (${{ matrix.config.os }})
     strategy:
@@ -49,7 +46,6 @@ jobs:
           upload-snapshots: true
 
   lint-r:
-    if: hashFiles('r/DESCRIPTION') != ''
     runs-on: ubuntu-latest
     name: lint-r
     env:
