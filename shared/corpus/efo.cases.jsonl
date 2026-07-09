@@ -1,0 +1,4 @@
+{"input": "EFO:0000400", "source_db": "efo", "how": "pattern", "expect": {"valid": true, "normalized": "EFO:0000400"}, "note": "canonical (diabetes mellitus)"}
+{"input": "efo:0000400", "source_db": "efo", "how": "pattern", "expect": {"valid": false, "suggestion": "EFO:0000400"}, "note": "lowercase prefix"}
+{"input": "EFO:400", "source_db": "efo", "how": "pattern", "expect": {"valid": false, "suggestion": "EFO:0000400"}, "note": "short local id"}
+{"input": "EFO:00004000", "source_db": "efo", "how": "pattern", "expect": {"valid": false}, "note": "too many digits"}
