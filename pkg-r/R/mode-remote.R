@@ -47,21 +47,14 @@
   )
 }
 
-.remote_cache_path <- function(onto, id) {
+# Cache path for a resolved id, keyed by resolver and its subdirectory.
+.remote_cache_path <- function(resolver, subkey, id) {
   file.path(
     biogate_cache_dir(),
     "remote",
-    "ols",
-    onto,
+    resolver,
+    subkey,
     paste0(gsub(":", "_", id), ".json")
-  )
-}
-
-.ols_url <- function(onto, id) {
-  sprintf(
-    "https://www.ebi.ac.uk/ols4/api/ontologies/%s/terms?obo_id=%s",
-    onto,
-    id
   )
 }
 
@@ -78,68 +71,105 @@
   }
 }
 
-# On-disk response cache. Only 200 and 404 responses are cached, and a corrupt
-# cache file is ignored and refetched.
-.ols_request <- function(onto, id, refresh = FALSE) {
-  path <- .remote_cache_path(onto, id)
-  if (!refresh && file.exists(path)) {
-    cached <- tryCatch(
-      jsonlite::fromJSON(path, simplifyVector = FALSE),
-      error = function(e) NULL
-    )
-    if (!is.null(cached)) {
-      return(list(status = cached$status, body = cached$body))
-    }
-  }
-  url <- .ols_url(onto, id)
-  resp <- .remote_http_get(url)
-  if (resp$status == 200 || resp$status == 404) {
-    stored <- if (resp$status == 200) {
-      list(page = list(totalElements = .ols_count(resp$body)))
-    } else {
-      NULL
-    }
-    dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
-    writeLines(
-      jsonlite::toJSON(
-        list(status = resp$status, body = stored, url = url),
-        auto_unbox = TRUE,
-        null = "null"
-      ),
-      path
-    )
-  }
-  resp
-}
-
-.ols_exists <- function(onto, id) {
-  resp <- .ols_request(onto, id)
-  if (resp$status == 200) {
-    return(isTRUE(.ols_count(resp$body) >= 1L))
-  }
-  if (resp$status == 404) {
+# Whether a UniProtKB entry is active. A retired accession returns 200 with an
+# "Inactive" entryType, which is not valid. A NULL, missing, or non-character
+# entryType is treated as inactive.
+.uniprot_active <- function(body) {
+  entry <- body$entryType
+  if (!is.character(entry) || length(entry) != 1L) {
     return(FALSE)
   }
+  startsWith(entry, "UniProtKB")
+}
+
+# Raise for a status that cannot decide existence. Fetches never cache such a
+# response, so a later run retries it.
+.remote_abort_status <- function(status) {
   cli::cli_abort(
     c(
-      "Unexpected remote status {.val {resp$status}} for {.val {id}}.",
+      "Unexpected remote status {.val {status}}.",
       i = "Existence could not be determined."
     ),
     class = "biogate_error_remote"
   )
 }
 
-# Resolvers map a source and a set of ids to a named logical existence vector.
+# Resolver definitions. Each maps a source and id to a URL, decides existence
+# from a status and body, and names the minimal body to persist. A resolver is
+# selected by source$remote$resolver and names its cache and fixture subtree.
 .remote_resolvers <- list(
-  ols = function(source, ids) {
-    onto <- source$remote$ols_ontology
-    vapply(
-      ids,
-      function(id) .ols_exists(onto, id),
-      logical(1),
-      USE.NAMES = TRUE
-    )
-  }
+  ols = list(
+    name = "ols",
+    subkey = function(source) source$remote$ols_ontology,
+    url = function(source, id) {
+      sprintf(
+        "https://www.ebi.ac.uk/ols4/api/ontologies/%s/terms?obo_id=%s",
+        source$remote$ols_ontology,
+        id
+      )
+    },
+    exists = function(status, body) {
+      if (status == 200) {
+        return(isTRUE(.ols_count(body) >= 1L))
+      }
+      if (status == 404) {
+        return(FALSE)
+      }
+      .remote_abort_status(status)
+    },
+    cache_body = function(status, body) {
+      if (status == 200) {
+        list(page = list(totalElements = .ols_count(body)))
+      } else {
+        NULL
+      }
+    }
+  ),
+  ensembl = list(
+    name = "ensembl",
+    subkey = function(source) "id",
+    url = function(source, id) {
+      sprintf(
+        "https://rest.ensembl.org/lookup/id/%s?content-type=application/json",
+        id
+      )
+    },
+    # Ensembl answers 400 for a well-formed but unknown id; a 404 is treated as
+    # absent too.
+    exists = function(status, body) {
+      if (status == 200) {
+        return(TRUE)
+      }
+      if (status == 400 || status == 404) {
+        return(FALSE)
+      }
+      .remote_abort_status(status)
+    },
+    cache_body = function(status, body) NULL
+  ),
+  uniprot = list(
+    name = "uniprot",
+    subkey = function(source) "uniprotkb",
+    url = function(source, id) {
+      sprintf("https://rest.uniprot.org/uniprotkb/%s.json", id)
+    },
+    exists = function(status, body) {
+      if (status == 200) {
+        return(.uniprot_active(body))
+      }
+      if (status == 404) {
+        return(FALSE)
+      }
+      .remote_abort_status(status)
+    },
+    cache_body = function(status, body) {
+      if (status == 200) {
+        list(entryType = body$entryType)
+      } else {
+        NULL
+      }
+    }
+  )
 )
 
 .get_resolver <- function(source) {
@@ -160,8 +190,52 @@
   .remote_resolvers[[remote$resolver]]
 }
 
+# Resolve one id, reading an on-disk cached response when present and definitive.
+# exists() raises for an indeterminate status, so it runs before the cache write
+# and such a response is never cached. A corrupt cache file is ignored and
+# refetched.
+.remote_lookup <- function(resolver, source, id, refresh = FALSE) {
+  path <- .remote_cache_path(resolver$name, resolver$subkey(source), id)
+  if (!refresh && file.exists(path)) {
+    cached <- tryCatch(
+      jsonlite::fromJSON(path, simplifyVector = FALSE),
+      error = function(e) NULL
+    )
+    if (!is.null(cached) && !is.null(cached$status)) {
+      return(resolver$exists(cached$status, cached$body))
+    }
+  }
+  url <- resolver$url(source, id)
+  resp <- .remote_http_get(url)
+  result <- resolver$exists(resp$status, resp$body)
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  writeLines(
+    jsonlite::toJSON(
+      list(
+        status = resp$status,
+        body = resolver$cache_body(resp$status, resp$body),
+        url = url
+      ),
+      auto_unbox = TRUE,
+      null = "null"
+    ),
+    path
+  )
+  result
+}
+
+# Batch a resolver over a set of ids, returning a named logical existence vector.
+.resolve_ids <- function(resolver, source, ids) {
+  vapply(
+    ids,
+    function(id) .remote_lookup(resolver, source, id),
+    logical(1),
+    USE.NAMES = TRUE
+  )
+}
+
 # Live existence verdicts. Mirrors .cache_verdicts, batching lookups into one
-# resolver call over the unique ids that need checking.
+# resolver pass over the unique ids that need checking.
 .remote_verdicts <- function(source, x, is_na) {
   resolver <- .get_resolver(source)
   n <- length(x)
@@ -181,7 +255,7 @@
     candidate[!is.na(candidate)]
   ))
   exists_map <- if (length(need)) {
-    resolver(source, need)
+    .resolve_ids(resolver, source, need)
   } else {
     logical(0)
   }

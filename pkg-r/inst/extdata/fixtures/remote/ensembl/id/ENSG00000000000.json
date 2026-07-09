@@ -1,0 +1,7 @@
+{
+  "resolver": "ensembl",
+  "url": "https://rest.ensembl.org/lookup/id/ENSG00000000000?content-type=application/json",
+  "recorded": "2026-07-09",
+  "status": 400,
+  "body": null
+}

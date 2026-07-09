@@ -14,7 +14,9 @@ import pytest
 import biogate
 import biogate._remote as remote
 
-_URL_RE = re.compile(r"ontologies/([^/]+)/terms\?obo_id=(.+)$")
+_OLS_RE = re.compile(r"ontologies/([^/]+)/terms\?obo_id=(.+)$")
+_ENSEMBL_RE = re.compile(r"lookup/id/([^?]+)")
+_UNIPROT_RE = re.compile(r"uniprotkb/([^.?/]+)")
 
 
 def _load_cases():
@@ -34,23 +36,34 @@ CASES = _load_cases()
 _IDS = [f"{c['source_db']}-{c['input']}" for c in CASES]
 
 
+def _resolve_fixture(url):
+    """Map any resolver URL to ``(resolver, subkey, ident)`` or fail loudly."""
+    match = _OLS_RE.search(url)
+    if match:
+        return "ols", match.group(1), match.group(2)
+    match = _ENSEMBL_RE.search(url)
+    if match:
+        return "ensembl", "id", match.group(1)
+    match = _UNIPROT_RE.search(url)
+    if match:
+        return "uniprot", "uniprotkb", match.group(1)
+    raise AssertionError(f"could not parse remote url: {url!r}")
+
+
 def _fixture_http_get(url, timeout=30):
-    """Serve a recorded fixture for an OLS existence URL, or fail loudly."""
-    match = _URL_RE.search(url)
-    if match is None:
-        raise AssertionError(f"could not parse OLS url: {url!r}")
-    onto, ident = match.group(1), match.group(2)
+    """Serve a recorded fixture for a resolver existence URL, or fail loudly."""
+    resolver, subkey, ident = _resolve_fixture(url)
     path = (
         files("biogate")
         / "_data"
         / "fixtures"
         / "remote"
-        / "ols"
-        / onto
+        / resolver
+        / subkey
         / f"{ident.replace(':', '_')}.json"
     )
     if not path.is_file():
-        raise AssertionError(f"missing fixture for {onto}/{ident}: {path}")
+        raise AssertionError(f"missing fixture for {resolver}/{subkey}/{ident}: {path}")
     fx = json.loads(path.read_text(encoding="utf-8"))
     return fx["status"], fx["body"]
 
