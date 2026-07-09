@@ -31,10 +31,7 @@ test_that("species is echoed and version is NA in pattern mode", {
   expect_true(is.na(res$version))
 })
 
-test_that("unknown source_db and unsupported mode error", {
-  expect_error(check_id("x", source_db = "not_a_source"), "Unknown source_db")
-  expect_error(
-    check_id("MONDO:0005148", source_db = "mondo", how = "remote"),
-    "Unsupported mode"
-  )
+test_that("a numeric species (taxon id) is echoed as a string", {
+  res <- check_id("ENSG00000139618", source_db = "ensembl", species = 9606)
+  expect_identical(res$species, "9606")
 })

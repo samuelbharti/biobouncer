@@ -20,6 +20,7 @@
 #' List available source databases
 #'
 #' @return A character vector of source keys, sorted.
+#' @seealso [source_info()] for a table with more detail.
 #' @examples
 #' sources()
 #' @export
@@ -27,16 +28,48 @@ sources <- function() {
   sort(names(.load_sources()))
 }
 
+#' Describe the available sources
+#'
+#' @return A [tibble][tibble::tibble] with one row per source and the columns
+#'   `key`, `name`, `species_aware`, and `version_aware`.
+#' @examples
+#' source_info()
+#' @export
+source_info <- function() {
+  reg <- .load_sources()
+  keys <- sort(names(reg))
+  tibble::tibble(
+    key = keys,
+    name = vapply(
+      keys,
+      function(k) reg[[k]]$name,
+      character(1),
+      USE.NAMES = FALSE
+    ),
+    species_aware = vapply(
+      keys,
+      function(k) isTRUE(reg[[k]]$species_aware),
+      logical(1),
+      USE.NAMES = FALSE
+    ),
+    version_aware = vapply(
+      keys,
+      function(k) isTRUE(reg[[k]]$version_aware),
+      logical(1),
+      USE.NAMES = FALSE
+    )
+  )
+}
+
 .get_source <- function(source_db) {
   reg <- .load_sources()
   if (!source_db %in% names(reg)) {
-    stop(
-      sprintf(
-        "Unknown source_db '%s'. Available: %s.",
-        source_db,
-        paste(sources(), collapse = ", ")
+    cli::cli_abort(
+      c(
+        "Unknown {.arg source_db} {.val {source_db}}.",
+        i = "Available sources: {.val {sources()}}."
       ),
-      call. = FALSE
+      class = "biogate_error_unknown_source"
     )
   }
   reg[[source_db]]
