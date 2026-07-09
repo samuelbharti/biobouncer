@@ -1,5 +1,10 @@
 # biogate 0.0.0.9000
 
+* Retired identifiers are detected with a successor suggestion. In `remote` mode
+  an OLS term that exists but is obsolete is invalid and suggests its
+  `replaced_by` successor. In `cache` mode a snapshot can carry a
+  `<version>.retired.tsv` sidecar; an id retired in that version is invalid and
+  suggests its successor. A cross-ontology successor is suggested as-is.
 * `remote` mode is species-aware. An id that exists but belongs to a different
   species than requested is invalid: Ensembl is checked from its id prefix and
   UniProt from the entry's organism taxon id.
