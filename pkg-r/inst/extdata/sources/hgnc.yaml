@@ -1,0 +1,13 @@
+key: hgnc
+name: HGNC gene symbols
+description: Approved HUGO Gene Nomenclature Committee gene symbols.
+# Gene symbols have no strict shape, so pattern mode is only a loose token check
+# using ASCII classes so R and Python agree. Existence is checked in cache mode
+# against the approved-symbol snapshot; a withdrawn or previous symbol resolves
+# to its approved successor through the snapshot's retired-map sidecar.
+pattern: "[A-Za-z0-9][A-Za-z0-9._@-]*"
+species_aware: false
+version_aware: true
+provenance:
+  pattern_source: hgnc
+  homepage: https://www.genenames.org

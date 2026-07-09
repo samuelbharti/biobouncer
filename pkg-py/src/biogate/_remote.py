@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from ._cache import cache_dir
-from ._pattern import _suggest, matches
+from ._pattern import _species_ok, _suggest, matches
 from ._registry import Source
 
 _USER_AGENT = "biogate/0.1 (+https://github.com/samuelbharti/biogate)"
@@ -81,6 +81,57 @@ def _uniprot_active(body: dict | None) -> bool:
     return str((body or {}).get("entryType", "")).startswith("UniProtKB")
 
 
+def _normalize_obo(s: str | None) -> str | None:
+    """Normalize a successor reference to a colon obo_id.
+
+    Accepts a short form such as ``"GO_0006915"`` or a full IRI such as
+    ``"http://purl.obolibrary.org/obo/MONDO_0005016"``. Takes the substring after
+    the last slash, then turns the first underscore into a colon. A missing or
+    empty value returns None.
+    """
+    if not s:
+        return None
+    tail = s.rsplit("/", 1)[-1]
+    return tail.replace("_", ":", 1)
+
+
+def _species_taxon(species_block: dict, species) -> int | None:
+    """Resolve ``species`` to a taxon id using the source species map.
+
+    A name in the map resolves to its taxon. A species given directly as a
+    number (an int or float that is not a bool, or an all-digit string) is
+    taken as the taxon id itself. Anything else is unknown and returns None.
+    """
+    for entry in species_block.get("map", []):
+        if str(entry.get("name")) == str(species):
+            return entry.get("taxon")
+    numeric = isinstance(species, (int, float)) and not isinstance(species, bool)
+    if numeric or str(species).isdigit():
+        return int(species)
+    return None
+
+
+def _uniprot_species_ok(source: Source, body: dict | None, species) -> bool:
+    """Whether a UniProt entry's organism matches the requested ``species``.
+
+    Lenient: a missing species, a source without the organism scheme, a species
+    outside the map, or a body with no organism taxon id all pass. Otherwise the
+    entry's organism taxon id must equal the requested taxon.
+    """
+    if species is None:
+        return True
+    block = source.species
+    if not block or block.get("scheme") != "uniprot_organism":
+        return True
+    expected = _species_taxon(block, species)
+    if expected is None:
+        return True
+    body_taxon = ((body or {}).get("organism") or {}).get("taxonId")
+    if body_taxon is None:
+        return True
+    return int(body_taxon) == int(expected)
+
+
 @dataclass(frozen=True)
 class Resolver:
     """One remote API: how to address it and how to read its answers.
@@ -89,7 +140,11 @@ class Resolver:
     ontology for OLS, a fixed endpoint name otherwise). ``url`` builds the
     lookup URL. ``exists`` turns ``(status, body)`` into a verdict and raises
     ``RemoteError`` for an indeterminate status. ``cache_body`` reduces a
-    response to the minimal body worth persisting.
+    response to the minimal body worth persisting. ``species_ok`` decides, for
+    an id that exists, whether it belongs to the requested species; it reads the
+    id prefix, the response body, or neither depending on the source. ``retired``
+    decides, for an id that exists, whether it is obsolete and returns
+    ``(is_retired, successor)`` with the successor as a colon obo_id or None.
     """
 
     name: str
@@ -97,6 +152,8 @@ class Resolver:
     url: Callable[[Source, str], str]
     exists: Callable[[int, dict | None], bool]
     cache_body: Callable[[int, dict | None], dict | None]
+    species_ok: Callable[[Source, str, dict | None, object], bool]
+    retired: Callable[[Source, dict | None], tuple[bool, str | None]]
 
 
 def _ols_subkey(source: Source) -> str:
@@ -119,8 +176,35 @@ def _ols_exists(status: int, body: dict | None) -> bool:
 
 def _ols_cache_body(status: int, body: dict | None) -> dict | None:
     if status == 200:
-        return {"page": {"totalElements": _ols_count(body)}}
+        terms = ((body or {}).get("_embedded") or {}).get("terms")
+        term = (terms[0] if terms else None) or {}
+        return {
+            "page": {"totalElements": _ols_count(body)},
+            "_embedded": {
+                "terms": [
+                    {
+                        "is_obsolete": bool(term.get("is_obsolete")),
+                        "term_replaced_by": term.get("term_replaced_by"),
+                    }
+                ]
+            },
+        }
     return None
+
+
+def _ols_species_ok(source: Source, ident: str, body: dict | None, species) -> bool:
+    # OLS terms are not species scoped; existence is the whole verdict.
+    return True
+
+
+def _ols_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
+    terms = ((body or {}).get("_embedded") or {}).get("terms")
+    if not terms:
+        return False, None
+    term = terms[0] or {}
+    if term.get("is_obsolete"):
+        return True, _normalize_obo(term.get("term_replaced_by"))
+    return False, None
 
 
 def _ensembl_subkey(source: Source) -> str:
@@ -145,6 +229,16 @@ def _ensembl_cache_body(status: int, body: dict | None) -> dict | None:
     return None
 
 
+def _ensembl_species_ok(source: Source, ident: str, body: dict | None, species) -> bool:
+    # Ensembl encodes species in the id prefix, so the offline check suffices.
+    return _species_ok(source, ident, species)
+
+
+def _ensembl_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
+    # Ensembl existence has no obsolete-with-successor concept here.
+    return False, None
+
+
 def _uniprot_subkey(source: Source) -> str:
     return "uniprotkb"
 
@@ -163,8 +257,24 @@ def _uniprot_exists(status: int, body: dict | None) -> bool:
 
 def _uniprot_cache_body(status: int, body: dict | None) -> dict | None:
     if status == 200:
-        return {"entryType": (body or {}).get("entryType")}
+        taxon = ((body or {}).get("organism") or {}).get("taxonId")
+        return {
+            "entryType": (body or {}).get("entryType"),
+            "organism": {"taxonId": taxon},
+        }
     return None
+
+
+def _uniprot_species_ok_id(
+    source: Source, ident: str, body: dict | None, species
+) -> bool:
+    # A UniProt accession does not encode species, so read it from the body.
+    return _uniprot_species_ok(source, body, species)
+
+
+def _uniprot_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
+    # UniProt retirement is modeled as inactive existence, not a successor here.
+    return False, None
 
 
 _OLS = Resolver(
@@ -173,6 +283,8 @@ _OLS = Resolver(
     url=_ols_url,
     exists=_ols_exists,
     cache_body=_ols_cache_body,
+    species_ok=_ols_species_ok,
+    retired=_ols_retired,
 )
 _ENSEMBL = Resolver(
     name="ensembl",
@@ -180,6 +292,8 @@ _ENSEMBL = Resolver(
     url=_ensembl_url,
     exists=_ensembl_exists,
     cache_body=_ensembl_cache_body,
+    species_ok=_ensembl_species_ok,
+    retired=_ensembl_retired,
 )
 _UNIPROT = Resolver(
     name="uniprot",
@@ -187,6 +301,8 @@ _UNIPROT = Resolver(
     url=_uniprot_url,
     exists=_uniprot_exists,
     cache_body=_uniprot_cache_body,
+    species_ok=_uniprot_species_ok_id,
+    retired=_uniprot_retired,
 )
 
 _RESOLVERS = {"ols": _OLS, "ensembl": _ENSEMBL, "uniprot": _UNIPROT}
@@ -203,21 +319,47 @@ def _remote_cache_path(resolver_name: str, subkey: str, ident: str) -> Path:
     )
 
 
-def _remote_lookup(
-    resolver: Resolver, source: Source, ident: str, refresh: bool = False
-) -> bool:
-    """Whether ``ident`` exists, backed by an on-disk response cache.
+def _post_existence(
+    resolver: Resolver, source: Source, ident: str, body: dict | None, species
+) -> tuple[bool, str | None]:
+    """Verdict for an id already confirmed to exist: species then retirement."""
+    if not resolver.species_ok(source, ident, body, species):
+        return False, None
+    is_retired, successor = resolver.retired(source, body)
+    if is_retired:
+        return False, successor
+    return True, None
 
-    An indeterminate status raises before the cache is written, so a response
-    that gives no definite answer is never persisted.
+
+def _remote_lookup(
+    resolver: Resolver,
+    source: Source,
+    ident: str,
+    species=None,
+    refresh: bool = False,
+) -> tuple[bool, str | None]:
+    """Return ``(valid, suggestion)`` for ``ident``, cache backed.
+
+    An id that exists, matches ``species``, and is not obsolete is valid with no
+    suggestion. An id that exists but is obsolete is not valid and carries its
+    successor as the suggestion. An id that is absent or belongs to another
+    species is not valid with no suggestion. The cache is keyed by id only;
+    species is compared at read time against the cached body, so one cached
+    response answers any species. An indeterminate status raises before the
+    cache is written, so a response that gives no definite answer is never
+    persisted.
     """
     path = _remote_cache_path(resolver.name, resolver.subkey(source), ident)
     if not refresh and path.is_file():
         try:
             cached = json.loads(path.read_text(encoding="utf-8"))
-            return resolver.exists(cached["status"], cached.get("body"))
+            status, body = cached["status"], cached.get("body")
         except (json.JSONDecodeError, KeyError, OSError):
             pass  # A corrupt or partial cache file is ignored and refetched.
+        else:
+            if not resolver.exists(status, body):
+                return False, None
+            return _post_existence(resolver, source, ident, body, species)
     url = resolver.url(source, ident)
     status, body = _http_get(url)
     result = resolver.exists(status, body)
@@ -228,7 +370,9 @@ def _remote_lookup(
         ),
         encoding="utf-8",
     )
-    return result
+    if not result:
+        return False, None
+    return _post_existence(resolver, source, ident, body, species)
 
 
 def _get_resolver(source: Source) -> Resolver:
@@ -239,19 +383,24 @@ def _get_resolver(source: Source) -> Resolver:
     return _RESOLVERS[remote["resolver"]]
 
 
-def _resolve_ids(resolver: Resolver, source: Source, ids: list[str]) -> dict[str, bool]:
-    """Resolve existence for a batch of ids through one resolver."""
-    return {ident: _remote_lookup(resolver, source, ident) for ident in ids}
+def _resolve_ids(
+    resolver: Resolver, source: Source, ids: list[str], species
+) -> dict[str, tuple[bool, str | None]]:
+    """Resolve validity and any successor for a batch of ids through one resolver."""
+    return {ident: _remote_lookup(resolver, source, ident, species) for ident in ids}
 
 
 def remote_verdicts(
-    source: Source, items: list[str]
+    source: Source, items: list[str], species=None
 ) -> list[tuple[bool, str | None, str | None]]:
     """Return ``(valid, normalized, suggestion)`` per item via live existence.
 
-    Well-formed inputs are looked up directly. Malformed inputs offer a
-    suggestion only when a correction candidate exists remotely. Existence is
-    resolved for the whole batch in a single resolver call.
+    Well-formed inputs are looked up directly; one that exists but is obsolete is
+    not valid and carries its successor as the suggestion. Malformed inputs offer
+    a suggestion only when a correction candidate exists remotely. When
+    ``species`` is given, an id that exists but belongs to a different species is
+    not valid. Existence is resolved for the whole batch in a single resolver
+    call.
     """
     resolver = _get_resolver(source)
     plans: list[tuple[bool, str | None]] = []
@@ -265,15 +414,16 @@ def remote_verdicts(
             plans.append((False, candidate))
             if candidate is not None:
                 need.add(candidate)
-    exists = _resolve_ids(resolver, source, sorted(need)) if need else {}
+    resolved = _resolve_ids(resolver, source, sorted(need), species) if need else {}
     verdicts: list[tuple[bool, str | None, str | None]] = []
     for well_formed, value in plans:
+        valid, successor = resolved.get(value, (False, None))
         if well_formed:
-            if exists.get(value):
+            if valid:
                 verdicts.append((True, value, None))
             else:
-                verdicts.append((False, None, None))
-        elif value is not None and exists.get(value):
+                verdicts.append((False, None, successor))
+        elif value is not None and valid:
             verdicts.append((False, None, value))
         else:
             verdicts.append((False, None, None))

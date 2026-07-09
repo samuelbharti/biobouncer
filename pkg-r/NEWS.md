@@ -3,6 +3,18 @@
 * Adds validation-framework adapters that wrap the core classifier:
   `assert_valid_id()`, `check_valid_id()`, and `test_valid_id()` in the checkmate
   style, and `sv_biogate()`, a shinyvalidate rule.
+* Adds an `hgnc` source for HUGO gene symbols. `cache` mode checks a symbol
+  against the approved-symbol snapshot, and a withdrawn or previous symbol
+  resolves to its approved successor through the retired-map (for example `MLL`
+  suggests `KMT2A`). Symbols are case-sensitive.
+* Retired identifiers are detected with a successor suggestion. In `remote` mode
+  an OLS term that exists but is obsolete is invalid and suggests its
+  `replaced_by` successor. In `cache` mode a snapshot can carry a
+  `<version>.retired.tsv` sidecar; an id retired in that version is invalid and
+  suggests its successor. A cross-ontology successor is suggested as-is.
+* `remote` mode is species-aware. An id that exists but belongs to a different
+  species than requested is invalid: Ensembl is checked from its id prefix and
+  UniProt from the entry's organism taxon id.
 * `pattern` mode is species-aware for Ensembl. When `species` is given, a
   well-formed id whose encoded species does not match is invalid, and a
   malformed id is only suggested when the correction matches the species. A

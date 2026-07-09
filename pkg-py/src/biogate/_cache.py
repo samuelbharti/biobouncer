@@ -51,6 +51,35 @@ def _snapshot_text(source_db: str, version: str) -> str | None:
     return None
 
 
+def _retired_text(source_db: str, version: str) -> str | None:
+    user = cache_dir() / source_db / f"{version}.retired.tsv"
+    if user.is_file():
+        return user.read_text(encoding="utf-8")
+    bundled = _bundled_root() / source_db / f"{version}.retired.tsv"
+    if bundled.is_file():
+        return bundled.read_text(encoding="utf-8")
+    return None
+
+
+def _snapshot_retired(source_db: str, version: str) -> dict[str, str]:
+    """Map retired id to successor from the ``<version>.retired.tsv`` sidecar.
+
+    Each non-blank line is a retired id and its successor separated by a tab. A
+    line with no successor maps to an empty string. No sidecar yields an empty
+    map.
+    """
+    text = _retired_text(source_db, version)
+    if text is None:
+        return {}
+    mapping: dict[str, str] = {}
+    for line in text.splitlines():
+        if not line.strip():
+            continue
+        fields = line.split("\t")
+        mapping[fields[0]] = fields[1] if len(fields) > 1 else ""
+    return mapping
+
+
 def _snapshot_versions(source_db: str) -> list[str]:
     versions: set[str] = set()
     user = cache_dir() / source_db
@@ -79,12 +108,20 @@ def snapshot_set(source_db: str, version: str) -> set[str]:
 
 
 def cache_check(
-    source: Source, s: str, ids: set[str]
+    source: Source, s: str, ids: set[str], retired: dict[str, str] | None = None
 ) -> tuple[bool, str | None, str | None]:
-    """Return ``(valid, normalized, suggestion)`` for a single input."""
+    """Return ``(valid, normalized, suggestion)`` for a single input.
+
+    A well-formed id absent from ``ids`` but present in ``retired`` with a
+    non-empty successor is invalid and suggests that successor.
+    """
+    retired = retired or {}
     if matches(source.pattern, s):
         if s in ids:
             return True, s, None
+        successor = retired.get(s)
+        if successor:
+            return False, None, successor
         return False, None, None
     suggestion = _suggest(source, s)
     if suggestion is not None and suggestion in ids:

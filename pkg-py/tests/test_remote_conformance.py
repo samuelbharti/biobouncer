@@ -75,9 +75,12 @@ def _isolate_cache(tmp_path, monkeypatch):
 
 def _assert_case(case):
     expect = case["expect"]
-    result = biogate.check_id(case["input"], source_db=case["source_db"], how="remote")[
-        0
-    ]
+    result = biogate.check_id(
+        case["input"],
+        source_db=case["source_db"],
+        how="remote",
+        species=case.get("species"),
+    )[0]
     assert result.valid == expect["valid"]
     assert result.normalized == expect.get("normalized")
     assert result.suggestion == expect.get("suggestion")
