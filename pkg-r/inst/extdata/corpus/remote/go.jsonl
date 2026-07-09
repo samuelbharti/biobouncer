@@ -1,0 +1,3 @@
+{"input": "GO:0008150", "source_db": "go", "how": "remote", "expect": {"valid": true, "normalized": "GO:0008150"}, "note": "well-formed and exists in the live ontology"}
+{"input": "GO:9999999", "source_db": "go", "how": "remote", "expect": {"valid": false}, "note": "well-formed but does not exist"}
+{"input": "go:8150", "source_db": "go", "how": "remote", "expect": {"valid": false, "suggestion": "GO:0008150"}, "note": "malformed, and the corrected form exists remotely"}
