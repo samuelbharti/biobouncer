@@ -1,0 +1,47 @@
+# prek / pre-commit hooks for biogate.
+# Verify locally with `prek run --all-files`.
+# Install the git hooks once with:
+#   prek install --install-hooks
+#   prek install --hook-type commit-msg
+default_install_hook_types: [pre-commit, commit-msg]
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: mixed-line-ending
+        args: [--fix=lf]
+      - id: detect-private-key
+      - id: detect-aws-credentials
+        args: [--allow-missing-credentials]
+      - id: no-commit-to-branch
+        args: [--branch, main]
+
+  # R formatting (Posit air). The hook is a Python wheel that bundles the air
+  # binary, so it needs no separate toolchain.
+  - repo: https://github.com/posit-dev/air-pre-commit
+    rev: 0.10.0
+    hooks:
+      - id: air-format
+
+  # Python lint and format.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.20
+    hooks:
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+
+  # Enforce Conventional Commit messages.
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
