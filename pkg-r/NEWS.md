@@ -1,5 +1,8 @@
 # biogate 0.0.0.9000
 
+* Adds validation-framework adapters that wrap the core classifier:
+  `assert_valid_id()`, `check_valid_id()`, and `test_valid_id()` in the checkmate
+  style, and `sv_biogate()`, a shinyvalidate rule.
 * `pattern` mode is species-aware for Ensembl. When `species` is given, a
   well-formed id whose encoded species does not match is invalid, and a
   malformed id is only suggested when the correction matches the species. A
