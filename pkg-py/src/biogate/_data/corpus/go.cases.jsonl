@@ -5,3 +5,4 @@
 {"input": "GO:0006915", "source_db": "go", "how": "cache", "version": "sample", "expect": {"valid": true, "normalized": "GO:0006915"}, "note": "exists in the sample snapshot"}
 {"input": "GO:0000001", "source_db": "go", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "well-formed but not in the snapshot"}
 {"input": "go:6915", "source_db": "go", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "GO:0006915"}, "note": "suggested form exists in the snapshot"}
+{"input": "GO:0006917", "source_db": "go", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "GO:0006915"}, "note": "well-formed but retired in this snapshot version, replaced by GO:0006915"}
