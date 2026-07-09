@@ -48,11 +48,6 @@ def test_unknown_source_raises():
         biogate.check_id("x", source_db="not_a_source")
 
 
-def test_unimplemented_mode_raises():
-    with pytest.raises(ValueError, match="not implemented"):
-        biogate.check_id("MONDO:0005148", source_db="mondo", how="existence")
-
-
 def test_invalid_mode_raises():
     with pytest.raises(ValueError, match="Invalid mode"):
         biogate.check_id("MONDO:0005148", source_db="mondo", how="bogus")
