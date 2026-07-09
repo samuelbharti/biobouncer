@@ -24,7 +24,11 @@ Existence is decided per resolver:
 - `ensembl`: present is `status` 200; absent is `status` 400. The body is not read.
 - `uniprot`: a present entry is `status` 200 with `body.entryType` starting with
   `UniProtKB`; a retired entry is `status` 200 with `entryType` `Inactive`. A
-  `status` 404 is treated as absent.
+  `status` 404 is treated as absent. `body.organism.taxonId` is used for the
+  remote species check.
+
+When a `species` is requested, remote mode also checks it: Ensembl from the id
+prefix (offline), UniProt from the entry's organism taxon id.
 
 Both packages load these through the same transport seam they use for live
 requests, so a fixture exercises the real existence logic. Live requests are

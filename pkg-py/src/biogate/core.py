@@ -74,7 +74,7 @@ def check_id(
         ids = snapshot_set(source_db, version)
         result_version = version
     elif how == "remote":
-        remote_out = remote_verdicts(source, items)
+        remote_out = remote_verdicts(source, items, species)
         result_version = _utc_stamp()
     elif how == "existence":
         # Cache-then-remote fallback: answer from a pinned snapshot when one is
@@ -89,7 +89,7 @@ def check_id(
             ids = snapshot
             result_version = version
         else:
-            remote_out = remote_verdicts(source, items)
+            remote_out = remote_verdicts(source, items, species)
             result_version = _utc_stamp()
 
     results = []
