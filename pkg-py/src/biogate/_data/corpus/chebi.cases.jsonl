@@ -1,3 +1,6 @@
 {"input": "CHEBI:15377", "source_db": "chebi", "how": "pattern", "expect": {"valid": true, "normalized": "CHEBI:15377"}, "note": "canonical (water)"}
 {"input": "chebi:15377", "source_db": "chebi", "how": "pattern", "expect": {"valid": false, "suggestion": "CHEBI:15377"}, "note": "lowercase prefix, no padding since width is not fixed"}
 {"input": "CHEBI:abc", "source_db": "chebi", "how": "pattern", "expect": {"valid": false}, "note": "non-numeric local id"}
+{"input": "CHEBI:15377", "source_db": "chebi", "how": "cache", "version": "sample", "expect": {"valid": true, "normalized": "CHEBI:15377"}, "note": "exists in the sample snapshot"}
+{"input": "CHEBI:99999999", "source_db": "chebi", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "well-formed but not in the snapshot"}
+{"input": "chebi:15377", "source_db": "chebi", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "CHEBI:15377"}, "note": "suggested form exists in the snapshot"}
