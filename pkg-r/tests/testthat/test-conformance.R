@@ -17,6 +17,7 @@ test_that("cross-language conformance corpus passes", {
         case$input,
         source_db = case$source_db,
         how = case$how,
+        species = case$species,
         version = case$version
       )
       exp <- case$expect

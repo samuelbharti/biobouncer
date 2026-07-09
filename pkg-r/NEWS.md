@@ -1,5 +1,9 @@
 # biogate 0.0.0.9000
 
+* `pattern` mode is species-aware for Ensembl. When `species` is given, a
+  well-formed id whose encoded species does not match is invalid, and a
+  malformed id is only suggested when the correction matches the species. A
+  species outside the source map is not checked.
 * `check_id()` gains `existence` mode: it answers from a pinned snapshot when one
   is available for the requested `version` and otherwise falls back to `remote`.
 * `check_id()` gains live `remote` mode: existence checks against a source API.

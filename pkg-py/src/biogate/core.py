@@ -99,7 +99,7 @@ def check_id(
         elif remote_out is not None:
             valid, normalized, suggestion = remote_out[idx]
         else:
-            valid, normalized, suggestion = check_one(source, s)
+            valid, normalized, suggestion = check_one(source, s, species)
         results.append(
             Result(
                 input=s,

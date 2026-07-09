@@ -21,6 +21,7 @@ class Source:
     normalize: dict | None
     cache: dict | None
     remote: dict | None
+    species: dict | None = None
 
 
 @functools.lru_cache(maxsize=1)
@@ -42,6 +43,7 @@ def _registry() -> dict[str, Source]:
             normalize=spec.get("normalize"),
             cache=spec.get("cache"),
             remote=spec.get("remote"),
+            species=spec.get("species"),
         )
     return out
 

@@ -57,15 +57,72 @@
   NA_character_
 }
 
-# Shape-only verdicts: valid when the string is well-formed for the source.
-.pattern_verdicts <- function(source, x, is_na) {
+# Species code between ENS and the feature letter for an Ensembl stable id, or
+# NA when the string is not an Ensembl stable id. Human ids yield "".
+.ensembl_id_prefix <- function(id) {
+  m <- regmatches(id, regexec("^ENS([A-Z]*)[EFGPT][0-9]{11}$", id))[[1]]
+  if (length(m) == 2L) m[2L] else NA_character_
+}
+
+# Expected species prefix for the requested species, or NULL when the species
+# is not in the map. Matches by name or by NCBI taxon id.
+.ensembl_species_prefix <- function(species_block, species) {
+  for (entry in species_block$map) {
+    if (
+      identical(as.character(entry$name), as.character(species)) ||
+        isTRUE(entry$taxon == species)
+    ) {
+      return(entry$prefix)
+    }
+  }
+  NULL
+}
+
+# TRUE unless the source is species-aware, the id is an Ensembl stable id, the
+# requested species is in the map, and the id's species code does not match.
+.species_ok <- function(source, id, species) {
+  if (is.null(species) || is.na(id)) {
+    return(TRUE)
+  }
+  # Use [[ ]] to avoid partial matching against a "species_aware" key.
+  species_block <- source[["species"]]
+  if (
+    is.null(species_block) ||
+      !identical(species_block$scheme, "ensembl_prefix")
+  ) {
+    return(TRUE)
+  }
+  expected <- .ensembl_species_prefix(species_block, species)
+  if (is.null(expected)) {
+    return(TRUE)
+  }
+  id_prefix <- .ensembl_id_prefix(id)
+  if (is.na(id_prefix)) {
+    return(TRUE)
+  }
+  identical(id_prefix, expected)
+}
+
+# Shape-only verdicts: valid when the string is well-formed for the source. When
+# a species is given, a well-formed id whose species does not match is invalid.
+.pattern_verdicts <- function(source, x, is_na, species = NULL) {
   n <- length(x)
-  valid <- rep(NA, n)
-  valid[!is_na] <- .matches(source$pattern, x[!is_na])
+  base_match <- rep(NA, n)
+  base_match[!is_na] <- .matches(source$pattern, x[!is_na])
+  species_ok <- rep(TRUE, n)
+  if (!is.null(species)) {
+    for (i in which(!is_na)) {
+      species_ok[i] <- .species_ok(source, x[i], species)
+    }
+  }
+  valid <- base_match & species_ok
   normalized <- ifelse(!is_na & valid, x, NA_character_)
   suggestion <- rep(NA_character_, n)
-  for (i in which(!is_na & !valid)) {
-    suggestion[i] <- .suggest_one(source, x[i])
+  for (i in which(!is_na & !base_match)) {
+    candidate <- .suggest_one(source, x[i])
+    if (!is.na(candidate) && .species_ok(source, candidate, species)) {
+      suggestion[i] <- candidate
+    }
   }
   list(valid = valid, normalized = normalized, suggestion = suggestion)
 }
