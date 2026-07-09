@@ -71,6 +71,18 @@
   }
 }
 
+# Normalize an OBO reference to a colon obo_id. Accepts a short form such as
+# "GO_0006915", a full IRI such as ".../MONDO_0005016", or NULL/empty. Takes the
+# substring after the last slash, then turns the first underscore into a colon.
+# Returns NULL for a NULL or empty input.
+.normalize_obo <- function(s) {
+  if (is.null(s) || length(s) != 1L || !nzchar(s)) {
+    return(NULL)
+  }
+  tail <- sub(".*/", "", s)
+  sub("_", ":", tail)
+}
+
 # Whether a UniProtKB entry is active. A retired accession returns 200 with an
 # "Inactive" entryType, which is not valid. A NULL, missing, or non-character
 # entryType is treated as inactive.
@@ -152,12 +164,38 @@
     },
     cache_body = function(status, body) {
       if (status == 200) {
-        list(page = list(totalElements = .ols_count(body)))
+        term <- tryCatch(
+          body$"_embedded"$terms[[1]],
+          error = function(e) NULL
+        )
+        list(
+          page = list(totalElements = .ols_count(body)),
+          "_embedded" = list(
+            terms = list(list(
+              is_obsolete = isTRUE(term$is_obsolete),
+              term_replaced_by = term$term_replaced_by
+            ))
+          )
+        )
       } else {
         NULL
       }
     },
-    species_ok = function(source, id, body, species) TRUE
+    species_ok = function(source, id, body, species) TRUE,
+    retired = function(source, body) {
+      term <- tryCatch(
+        body$"_embedded"$terms[[1]],
+        error = function(e) NULL
+      )
+      if (isTRUE(term$is_obsolete)) {
+        list(
+          retired = TRUE,
+          successor = .normalize_obo(term$term_replaced_by)
+        )
+      } else {
+        list(retired = FALSE, successor = NULL)
+      }
+    }
   ),
   ensembl = list(
     name = "ensembl",
@@ -182,7 +220,8 @@
     cache_body = function(status, body) NULL,
     species_ok = function(source, id, body, species) {
       .species_ok(source, id, species)
-    }
+    },
+    retired = function(source, body) list(retired = FALSE, successor = NULL)
   ),
   uniprot = list(
     name = "uniprot",
@@ -212,7 +251,8 @@
     },
     species_ok = function(source, id, body, species) {
       .uniprot_species_ok(source, body, species)
-    }
+    },
+    retired = function(source, body) list(retired = FALSE, successor = NULL)
   )
 )
 
@@ -278,20 +318,28 @@
     exists <- resolver$exists(resp$status, resp$body)
   }
   if (!isTRUE(exists)) {
-    return(FALSE)
+    return(list(valid = FALSE, suggestion = NULL))
   }
-  resolver$species_ok(source, id, resp$body, species)
+  if (!isTRUE(resolver$species_ok(source, id, resp$body, species))) {
+    return(list(valid = FALSE, suggestion = NULL))
+  }
+  ret <- resolver$retired(source, resp$body)
+  if (isTRUE(ret$retired)) {
+    return(list(valid = FALSE, suggestion = ret$successor))
+  }
+  list(valid = TRUE, suggestion = NULL)
 }
 
-# Batch a resolver over a set of ids, returning a named logical vector that is
-# TRUE only when the id exists and matches the requested species.
+# Batch a resolver over a set of ids, returning a named list of the per-id
+# list(valid, suggestion) results. valid is TRUE only when the id exists and
+# matches the requested species; suggestion carries an obsolete term's successor.
 .resolve_ids <- function(resolver, source, ids, species) {
-  vapply(
+  results <- lapply(
     ids,
-    function(id) .remote_lookup(resolver, source, id, species),
-    logical(1),
-    USE.NAMES = TRUE
+    function(id) .remote_lookup(resolver, source, id, species)
   )
+  names(results) <- ids
+  results
 }
 
 # Live existence verdicts. Mirrors .cache_verdicts, batching lookups into one
@@ -315,10 +363,10 @@
     x[which(!is_na & wellformed)],
     candidate[!is.na(candidate)]
   ))
-  exists_map <- if (length(need)) {
+  results <- if (length(need)) {
     .resolve_ids(resolver, source, need, species)
   } else {
-    logical(0)
+    list()
   }
 
   for (i in seq_len(n)) {
@@ -326,16 +374,20 @@
       next
     }
     if (isTRUE(wellformed[i])) {
-      if (isTRUE(exists_map[[x[i]]])) {
+      res <- results[[x[i]]]
+      if (isTRUE(res$valid)) {
         valid[i] <- TRUE
         normalized[i] <- x[i]
       } else {
         valid[i] <- FALSE
+        if (!is.null(res$suggestion)) {
+          suggestion[i] <- res$suggestion
+        }
       }
     } else {
       valid[i] <- FALSE
       cand <- candidate[i]
-      if (!is.na(cand) && isTRUE(exists_map[[cand]])) {
+      if (!is.na(cand) && isTRUE(results[[cand]]$valid)) {
         suggestion[i] <- cand
       }
     }

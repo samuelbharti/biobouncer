@@ -24,6 +24,29 @@
   NA_character_
 }
 
+.retired_file <- function(source_db, version) {
+  user <- file.path(
+    biogate_cache_dir(),
+    source_db,
+    paste0(version, ".retired.tsv")
+  )
+  if (file.exists(user)) {
+    return(user)
+  }
+  bundled_root <- .bundled_snapshots_dir()
+  if (nzchar(bundled_root)) {
+    bundled <- file.path(
+      bundled_root,
+      source_db,
+      paste0(version, ".retired.tsv")
+    )
+    if (file.exists(bundled)) {
+      return(bundled)
+    }
+  }
+  NA_character_
+}
+
 .snapshot_versions <- function(source_db) {
   dirs <- c(
     file.path(biogate_cache_dir(), source_db),
@@ -63,7 +86,34 @@
   .read_ids(path)
 }
 
-.cache_verdicts <- function(source, x, is_na, ids) {
+# Retired-id map for a snapshot version, read from the "<version>.retired.tsv"
+# sidecar. Each non-blank line is "retired<TAB>successor"; the successor is the
+# second tab field, or "" when absent. Returns a named character vector mapping
+# retired id to successor, empty when the source has no sidecar.
+.snapshot_retired <- function(source_db, version) {
+  path <- .retired_file(source_db, version)
+  empty <- character(0)
+  names(empty) <- character(0)
+  if (is.na(path)) {
+    return(empty)
+  }
+  lines <- trimws(readLines(path, warn = FALSE, encoding = "UTF-8"))
+  lines <- lines[nzchar(lines)]
+  if (!length(lines)) {
+    return(empty)
+  }
+  keys <- character(length(lines))
+  successors <- character(length(lines))
+  for (i in seq_along(lines)) {
+    fields <- strsplit(lines[i], "\t", fixed = TRUE)[[1]]
+    keys[i] <- fields[1]
+    successors[i] <- if (length(fields) >= 2L) fields[2] else ""
+  }
+  names(successors) <- keys
+  successors
+}
+
+.cache_verdicts <- function(source, x, is_na, ids, retired = character(0)) {
   n <- length(x)
   valid <- rep(NA, n)
   normalized <- rep(NA_character_, n)
@@ -80,6 +130,12 @@
         normalized[i] <- x[i]
       } else {
         valid[i] <- FALSE
+        if (x[i] %in% names(retired)) {
+          succ <- retired[[x[i]]]
+          if (nzchar(succ)) {
+            suggestion[i] <- succ
+          }
+        }
       }
     } else {
       valid[i] <- FALSE

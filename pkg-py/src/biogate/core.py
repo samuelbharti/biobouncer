@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from ._cache import (
     MissingVersionError,
     _ids_from_text,
+    _snapshot_retired,
     _snapshot_text,
     cache_check,
     snapshot_set,
@@ -62,6 +63,7 @@ def check_id(
     # the live path (remote, or existence with no usable snapshot); neither means
     # pure pattern.
     ids = None
+    retired = {}
     remote_out = None
     result_version = None
 
@@ -72,6 +74,7 @@ def check_id(
             )
         version = str(version)
         ids = snapshot_set(source_db, version)
+        retired = _snapshot_retired(source_db, version)
         result_version = version
     elif how == "remote":
         remote_out = remote_verdicts(source, items, species)
@@ -87,6 +90,7 @@ def check_id(
                 snapshot = _ids_from_text(text)
         if snapshot is not None:
             ids = snapshot
+            retired = _snapshot_retired(source_db, version)
             result_version = version
         else:
             remote_out = remote_verdicts(source, items, species)
@@ -95,7 +99,7 @@ def check_id(
     results = []
     for idx, s in enumerate(items):
         if ids is not None:
-            valid, normalized, suggestion = cache_check(source, s, ids)
+            valid, normalized, suggestion = cache_check(source, s, ids, retired)
         elif remote_out is not None:
             valid, normalized, suggestion = remote_out[idx]
         else:

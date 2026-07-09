@@ -20,7 +20,10 @@ Each file is a distilled transport response. Only `status` and `body` are read;
 Existence is decided per resolver:
 
 - `ols`: present is `status` 200 with `body.page.totalElements` at least 1;
-  absent is `status` 404.
+  absent is `status` 404. A present term that is obsolete has
+  `body._embedded.terms[0].is_obsolete` true, and its successor (when any) is in
+  `term_replaced_by` as a short form or a full IRI; such a term is invalid with
+  the successor as its suggestion.
 - `ensembl`: present is `status` 200; absent is `status` 400. The body is not read.
 - `uniprot`: a present entry is `status` 200 with `body.entryType` starting with
   `UniProtKB`; a retired entry is `status` 200 with `entryType` `Inactive`. A

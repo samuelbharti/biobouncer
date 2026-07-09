@@ -83,7 +83,8 @@ check_id <- function(
       source,
       x,
       is_na,
-      .snapshot_set(source_db, version)
+      .snapshot_set(source_db, version),
+      .snapshot_retired(source_db, version)
     )
     version_col <- version
   } else if (identical(how, "remote")) {
@@ -107,7 +108,8 @@ check_id <- function(
         source,
         x,
         is_na,
-        .snapshot_set(source_db, snap_version)
+        .snapshot_set(source_db, snap_version),
+        .snapshot_retired(source_db, snap_version)
       )
       version_col <- snap_version
     } else {
