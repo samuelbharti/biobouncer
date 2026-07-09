@@ -1,0 +1,10 @@
+version: 2
+updates:
+  # GitHub Actions used in workflows. Python (uv) and R entries can be added once
+  # those package manifests exist.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: ci

@@ -1,0 +1,18 @@
+name: Feature request
+description: Suggest an idea or a new source to support
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do that biogate does not support yet
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: What you would like biogate to do
+    validations:
+      required: false
