@@ -12,7 +12,6 @@
 
 .assert_mode_supported <- function(how) {
   known <- c("pattern", "cache", "remote", "existence")
-  implemented <- c("pattern", "cache", "remote")
   if (!how %in% known) {
     cli::cli_abort(
       c(
@@ -22,15 +21,6 @@
       class = "biogate_error_invalid_mode"
     )
   }
-  if (!how %in% implemented) {
-    cli::cli_abort(
-      c(
-        "Mode {.val {how}} is not implemented yet.",
-        i = "Implemented modes: {.val {implemented}}."
-      ),
-      class = "biogate_error_unimplemented_mode"
-    )
-  }
 }
 
 #' Check biological identifiers
@@ -38,17 +28,19 @@
 #' Validate a vector of identifiers against a source. `pattern` mode checks that
 #' each identifier is well-formed. `cache` mode also checks that it exists in a
 #' pinned local snapshot (see [biogate_snapshots()]). `remote` mode checks live
-#' existence against the source API.
+#' existence against the source API. `existence` mode uses a snapshot when one is
+#' available for `version` and otherwise falls back to `remote`.
 #'
 #' @param x A vector of identifiers. Coerced to character.
 #' @param source_db Source key, for example `"mondo"`. See [sources()].
 #' @param how Checking mode: `"pattern"` (offline, shape only), `"cache"`
-#'   (offline existence against a snapshot), or `"remote"` (live existence
-#'   against the source API).
+#'   (offline existence against a snapshot), `"remote"` (live existence against
+#'   the source API), or `"existence"` (cache when a snapshot is available for
+#'   `version`, otherwise remote).
 #' @param species Optional species context, echoed in the result. A name such as
 #'   `"homo_sapiens"` or an NCBI taxon id such as `9606`.
-#' @param version Snapshot version. Required for `cache` mode; ignored in
-#'   `pattern` mode.
+#' @param version Snapshot version. Required for `cache` mode; selects the
+#'   snapshot for `existence` mode; ignored in `pattern` and `remote` modes.
 #' @return A [tibble][tibble::tibble] with one row per element of `x` and the
 #'   columns `input`, `valid`, `normalized`, `suggestion`, `source_db`,
 #'   `version`, `species`, and `how`.
@@ -94,6 +86,31 @@ check_id <- function(
   } else if (identical(how, "remote")) {
     verdicts <- .remote_verdicts(source, x, is_na)
     version_col <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+  } else if (identical(how, "existence")) {
+    # Cache-then-remote fallback: answer from a pinned snapshot when one is
+    # available for the requested version, otherwise check live.
+    snap_version <- if (is.null(version)) {
+      NA_character_
+    } else {
+      as.character(version)
+    }
+    snap_path <- if (is.na(snap_version)) {
+      NA_character_
+    } else {
+      .snapshot_file(source_db, snap_version)
+    }
+    if (!is.na(snap_path)) {
+      verdicts <- .cache_verdicts(
+        source,
+        x,
+        is_na,
+        .snapshot_set(source_db, snap_version)
+      )
+      version_col <- snap_version
+    } else {
+      verdicts <- .remote_verdicts(source, x, is_na)
+      version_col <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+    }
   } else {
     verdicts <- .pattern_verdicts(source, x, is_na)
     version_col <- NA_character_

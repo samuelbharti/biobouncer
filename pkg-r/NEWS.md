@@ -1,5 +1,7 @@
 # biogate 0.0.0.9000
 
+* `check_id()` gains `existence` mode: it answers from a pinned snapshot when one
+  is available for the requested `version` and otherwise falls back to `remote`.
 * `check_id()` gains live `remote` mode: existence checks against a source API.
   The Ontology Lookup Service resolver covers mondo, efo, go, and chebi.
   Responses are cached on disk, and a network failure raises an error rather
