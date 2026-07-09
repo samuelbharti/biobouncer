@@ -49,5 +49,10 @@ def test_unknown_source_raises():
 
 
 def test_unimplemented_mode_raises():
-    with pytest.raises(ValueError, match="Unsupported mode"):
+    with pytest.raises(ValueError, match="not implemented"):
         biogate.check_id("MONDO:0005148", source_db="mondo", how="remote")
+
+
+def test_invalid_mode_raises():
+    with pytest.raises(ValueError, match="Invalid mode"):
+        biogate.check_id("MONDO:0005148", source_db="mondo", how="bogus")
