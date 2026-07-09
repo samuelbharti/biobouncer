@@ -7,13 +7,14 @@
 is_valid_id(x, source_db, how = "pattern", species = NULL, version = NULL)
 }
 \arguments{
-\item{x}{A character vector of identifiers.}
+\item{x}{A vector of identifiers. Coerced to character.}
 
 \item{source_db}{Source key, for example \code{"mondo"}. See \code{\link[=sources]{sources()}}.}
 
 \item{how}{Checking mode. Only \code{"pattern"} is implemented.}
 
-\item{species}{Optional species context, echoed in the result.}
+\item{species}{Optional species context, echoed in the result. A name such as
+\code{"homo_sapiens"} or an NCBI taxon id such as \code{9606}.}
 
 \item{version}{Optional version context. Ignored in \code{pattern} mode.}
 }
@@ -25,4 +26,7 @@ A convenience wrapper over \code{\link[=check_id]{check_id()}} that returns only
 }
 \examples{
 is_valid_id(c("MONDO:0005148", "mondo:5148"), source_db = "mondo")
+}
+\seealso{
+\code{\link[=check_id]{check_id()}}.
 }

@@ -15,3 +15,6 @@ List available source databases
 \examples{
 sources()
 }
+\seealso{
+\code{\link[=source_info]{source_info()}} for a table with more detail.
+}

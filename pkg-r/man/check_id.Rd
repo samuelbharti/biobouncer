@@ -7,20 +7,21 @@
 check_id(x, source_db, how = "pattern", species = NULL, version = NULL)
 }
 \arguments{
-\item{x}{A character vector of identifiers.}
+\item{x}{A vector of identifiers. Coerced to character.}
 
 \item{source_db}{Source key, for example \code{"mondo"}. See \code{\link[=sources]{sources()}}.}
 
 \item{how}{Checking mode. Only \code{"pattern"} is implemented.}
 
-\item{species}{Optional species context, echoed in the result.}
+\item{species}{Optional species context, echoed in the result. A name such as
+\code{"homo_sapiens"} or an NCBI taxon id such as \code{9606}.}
 
 \item{version}{Optional version context. Ignored in \code{pattern} mode.}
 }
 \value{
-A data frame with one row per element of \code{x} and columns \code{input},
-\code{valid}, \code{normalized}, \code{suggestion}, \code{source_db}, \code{version}, \code{species},
-and \code{how}.
+A \link[tibble:tibble]{tibble} with one row per element of \code{x} and the
+columns \code{input}, \code{valid}, \code{normalized}, \code{suggestion}, \code{source_db},
+\code{version}, \code{species}, and \code{how}.
 }
 \description{
 Validate a vector of identifiers against a source. Only offline \code{pattern}
@@ -28,4 +29,7 @@ mode is implemented so far.
 }
 \examples{
 check_id(c("MONDO:0005148", "mondo:5148"), source_db = "mondo")
+}
+\seealso{
+\code{\link[=is_valid_id]{is_valid_id()}}, \code{\link[=sources]{sources()}}, \code{\link[=source_info]{source_info()}}.
 }

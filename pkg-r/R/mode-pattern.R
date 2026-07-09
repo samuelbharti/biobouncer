@@ -18,6 +18,9 @@
 }
 
 .suggest_one <- function(source, s) {
+  if (is.na(s)) {
+    return(NA_character_)
+  }
   curie <- source$curie
   if (!is.null(curie)) {
     prefix <- curie$prefix
