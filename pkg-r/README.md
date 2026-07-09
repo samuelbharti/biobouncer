@@ -3,8 +3,8 @@
 This directory holds the R package for biogate. See the repository root
 `README.md` for what biogate does and `PLAN.md` for the architecture.
 
-The package is in early development. Offline `pattern` mode works for an initial
-set of sources. `cache` and `remote` modes are not implemented yet.
+The package is in early development. Offline `pattern` and `cache` modes work for
+an initial set of sources. `remote` mode is not implemented yet.
 
 ## Usage
 
@@ -15,8 +15,16 @@ library(biogate)
 sources()
 source_info()
 
-# Check a vector of identifiers.
+# pattern mode: is the string well-formed?
 check_id(c("MONDO:0005148", "mondo:5148", "GO:0006915"), source_db = "mondo")
+
+# cache mode: does the id exist in a pinned snapshot?
+check_id("MONDO:0005148", source_db = "mondo", how = "cache", version = "sample")
+
+# Snapshot management.
+biogate_snapshots()
+biogate_cache_dir()
+biogate_pull("go") # download a full snapshot into the cache directory
 
 # Just the verdict.
 is_valid_id("P04637", source_db = "uniprot")
