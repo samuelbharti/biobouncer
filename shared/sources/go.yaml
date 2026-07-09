@@ -7,6 +7,9 @@ version_aware: true
 curie:
   prefix: GO
   pad_to: 7
+cache:
+  builder: obo
+  obo_url: http://purl.obolibrary.org/obo/go/go-basic.obo
 provenance:
   pattern_source: bioregistry
   homepage: https://geneontology.org

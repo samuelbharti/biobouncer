@@ -24,6 +24,7 @@ check_id("MONDO:0005148", source_db = "mondo", how = "cache", version = "sample"
 # Snapshot management.
 biogate_snapshots()
 biogate_cache_dir()
+biogate_pull("go") # download a full snapshot into the cache directory
 
 # Just the verdict.
 is_valid_id("P04637", source_db = "uniprot")

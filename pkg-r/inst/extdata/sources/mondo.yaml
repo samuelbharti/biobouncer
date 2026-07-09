@@ -9,6 +9,9 @@ version_aware: true
 curie:
   prefix: MONDO
   pad_to: 7
+cache:
+  builder: obo
+  obo_url: http://purl.obolibrary.org/obo/mondo.obo
 provenance:
   pattern_source: bioregistry
   homepage: https://mondo.monarchinitiative.org
