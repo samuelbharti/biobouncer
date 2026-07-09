@@ -29,29 +29,41 @@
   expect_gt(n_cases, 0)
 }
 
-# Serve recorded fixtures in place of the live API. A missing fixture must fail
-# loudly rather than silently reach the network.
-.fixture_transport <- function(url, timeout) {
-  m <- regmatches(
+# Map a request url to the resolver, subkey, and id that name its fixture.
+.fixture_route <- function(url) {
+  ols <- regmatches(
     url,
     regexec("ontologies/([^/]+)/terms\\?obo_id=(.+)$", url)
   )[[1]]
-  if (length(m) != 3L) {
-    stop("could not parse ontology and id from url: ", url)
+  if (length(ols) == 3L) {
+    return(list(resolver = "ols", subkey = ols[2], id = ols[3]))
   }
-  onto <- m[2]
-  id <- m[3]
+  ens <- regmatches(url, regexec("lookup/id/([^?]+)", url))[[1]]
+  if (length(ens) == 2L) {
+    return(list(resolver = "ensembl", subkey = "id", id = ens[2]))
+  }
+  uni <- regmatches(url, regexec("uniprotkb/([^.?/]+)", url))[[1]]
+  if (length(uni) == 2L) {
+    return(list(resolver = "uniprot", subkey = "uniprotkb", id = uni[2]))
+  }
+  stop("could not parse resolver and id from url: ", url)
+}
+
+# Serve recorded fixtures in place of the live API. A missing fixture must fail
+# loudly rather than silently reach the network.
+.fixture_transport <- function(url, timeout) {
+  route <- .fixture_route(url)
   fx_path <- system.file(
     "extdata",
     "fixtures",
     "remote",
-    "ols",
-    onto,
-    paste0(gsub(":", "_", id), ".json"),
+    route$resolver,
+    route$subkey,
+    paste0(gsub(":", "_", route$id), ".json"),
     package = "biogate"
   )
   if (!nzchar(fx_path) || !file.exists(fx_path)) {
-    stop("missing fixture for ", onto, " ", id)
+    stop("missing fixture for ", route$resolver, " ", route$id)
   }
   fx <- jsonlite::fromJSON(fx_path, simplifyVector = FALSE)
   list(status = fx$status, body = fx$body)
