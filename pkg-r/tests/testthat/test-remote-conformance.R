@@ -15,7 +15,12 @@
     lines <- lines[nzchar(trimws(lines))]
     for (line in lines) {
       case <- jsonlite::fromJSON(line, simplifyVector = FALSE)
-      res <- check_id(case$input, source_db = case$source_db, how = "remote")
+      res <- check_id(
+        case$input,
+        source_db = case$source_db,
+        how = "remote",
+        species = case$species
+      )
       exp <- case$expect
       exp_norm <- if (is.null(exp$normalized)) NA_character_ else exp$normalized
       exp_sugg <- if (is.null(exp$suggestion)) NA_character_ else exp$suggestion

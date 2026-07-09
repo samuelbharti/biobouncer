@@ -1,5 +1,8 @@
 # biogate 0.0.0.9000
 
+* `remote` mode is species-aware. An id that exists but belongs to a different
+  species than requested is invalid: Ensembl is checked from its id prefix and
+  UniProt from the entry's organism taxon id.
 * `pattern` mode is species-aware for Ensembl. When `species` is given, a
   well-formed id whose encoded species does not match is invalid, and a
   malformed id is only suggested when the correction matches the species. A

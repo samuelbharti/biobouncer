@@ -94,6 +94,39 @@
   )
 }
 
+# Taxon id for the requested species. Matches a map entry by name, otherwise
+# accepts a bare taxon number, otherwise NULL for a species outside the map.
+.species_taxon <- function(species_block, species) {
+  for (entry in species_block$map) {
+    if (identical(as.character(entry$name), as.character(species))) {
+      return(entry$taxon)
+    }
+  }
+  if (grepl("^[0-9]+$", as.character(species))) {
+    return(as.integer(species))
+  }
+  NULL
+}
+
+# TRUE unless the source is species-aware for UniProt, the requested species is
+# known, the entry's organism taxon is known, and the two do not match. Lenient
+# when any of those inputs is missing.
+.uniprot_species_ok <- function(source, body, species) {
+  if (is.null(species)) {
+    return(TRUE)
+  }
+  # Use [[ ]] to avoid partial matching against a "species_aware" key.
+  block <- source[["species"]]
+  if (is.null(block) || !identical(block$scheme, "uniprot_organism")) {
+    return(TRUE)
+  }
+  taxon <- .species_taxon(block, species)
+  if (is.null(taxon) || is.null(body$organism$taxonId)) {
+    return(TRUE)
+  }
+  isTRUE(as.integer(body$organism$taxonId) == as.integer(taxon))
+}
+
 # Resolver definitions. Each maps a source and id to a URL, decides existence
 # from a status and body, and names the minimal body to persist. A resolver is
 # selected by source$remote$resolver and names its cache and fixture subtree.
@@ -123,7 +156,8 @@
       } else {
         NULL
       }
-    }
+    },
+    species_ok = function(source, id, body, species) TRUE
   ),
   ensembl = list(
     name = "ensembl",
@@ -145,7 +179,10 @@
       }
       .remote_abort_status(status)
     },
-    cache_body = function(status, body) NULL
+    cache_body = function(status, body) NULL,
+    species_ok = function(source, id, body, species) {
+      .species_ok(source, id, species)
+    }
   ),
   uniprot = list(
     name = "uniprot",
@@ -164,10 +201,17 @@
     },
     cache_body = function(status, body) {
       if (status == 200) {
-        list(entryType = body$entryType)
+        taxon <- tryCatch(body$organism$taxonId, error = function(e) NULL)
+        list(
+          entryType = body$entryType,
+          organism = list(taxonId = taxon)
+        )
       } else {
         NULL
       }
+    },
+    species_ok = function(source, id, body, species) {
+      .uniprot_species_ok(source, body, species)
     }
   )
 )
@@ -193,50 +237,67 @@
 # Resolve one id, reading an on-disk cached response when present and definitive.
 # exists() raises for an indeterminate status, so it runs before the cache write
 # and such a response is never cached. A corrupt cache file is ignored and
-# refetched.
-.remote_lookup <- function(resolver, source, id, refresh = FALSE) {
+# refetched. The cache is keyed only by id; species is compared at read time
+# against the cached body, so a mismatch is a FALSE verdict, not a miss.
+.remote_lookup <- function(
+  resolver,
+  source,
+  id,
+  species = NULL,
+  refresh = FALSE
+) {
   path <- .remote_cache_path(resolver$name, resolver$subkey(source), id)
+  resp <- NULL
   if (!refresh && file.exists(path)) {
     cached <- tryCatch(
       jsonlite::fromJSON(path, simplifyVector = FALSE),
       error = function(e) NULL
     )
     if (!is.null(cached) && !is.null(cached$status)) {
-      return(resolver$exists(cached$status, cached$body))
+      resp <- list(status = cached$status, body = cached$body)
     }
   }
-  url <- resolver$url(source, id)
-  resp <- .remote_http_get(url)
-  result <- resolver$exists(resp$status, resp$body)
-  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
-  writeLines(
-    jsonlite::toJSON(
-      list(
-        status = resp$status,
-        body = resolver$cache_body(resp$status, resp$body),
-        url = url
+  if (is.null(resp)) {
+    url <- resolver$url(source, id)
+    resp <- .remote_http_get(url)
+    exists <- resolver$exists(resp$status, resp$body)
+    dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+    writeLines(
+      jsonlite::toJSON(
+        list(
+          status = resp$status,
+          body = resolver$cache_body(resp$status, resp$body),
+          url = url
+        ),
+        auto_unbox = TRUE,
+        null = "null"
       ),
-      auto_unbox = TRUE,
-      null = "null"
-    ),
-    path
-  )
-  result
+      path
+    )
+  } else {
+    exists <- resolver$exists(resp$status, resp$body)
+  }
+  if (!isTRUE(exists)) {
+    return(FALSE)
+  }
+  resolver$species_ok(source, id, resp$body, species)
 }
 
-# Batch a resolver over a set of ids, returning a named logical existence vector.
-.resolve_ids <- function(resolver, source, ids) {
+# Batch a resolver over a set of ids, returning a named logical vector that is
+# TRUE only when the id exists and matches the requested species.
+.resolve_ids <- function(resolver, source, ids, species) {
   vapply(
     ids,
-    function(id) .remote_lookup(resolver, source, id),
+    function(id) .remote_lookup(resolver, source, id, species),
     logical(1),
     USE.NAMES = TRUE
   )
 }
 
 # Live existence verdicts. Mirrors .cache_verdicts, batching lookups into one
-# resolver pass over the unique ids that need checking.
-.remote_verdicts <- function(source, x, is_na) {
+# resolver pass over the unique ids that need checking. When a species is given,
+# a map value is TRUE only when the id exists and matches that species.
+.remote_verdicts <- function(source, x, is_na, species = NULL) {
   resolver <- .get_resolver(source)
   n <- length(x)
   valid <- rep(NA, n)
@@ -255,7 +316,7 @@
     candidate[!is.na(candidate)]
   ))
   exists_map <- if (length(need)) {
-    .resolve_ids(resolver, source, need)
+    .resolve_ids(resolver, source, need, species)
   } else {
     logical(0)
   }
