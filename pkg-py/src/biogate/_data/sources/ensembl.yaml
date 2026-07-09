@@ -9,6 +9,8 @@ species_aware: true
 version_aware: true
 normalize:
   case: upper
+remote:
+  resolver: ensembl
 provenance:
   pattern_source: bioregistry
   homepage: https://www.ensembl.org

@@ -1,0 +1,3 @@
+{"input": "P01308", "source_db": "uniprot", "how": "remote", "expect": {"valid": true, "normalized": "P01308"}, "note": "well-formed and an active entry (insulin)"}
+{"input": "O99999", "source_db": "uniprot", "how": "remote", "expect": {"valid": false}, "note": "well-formed and real, but a deleted (inactive) accession, so not valid"}
+{"input": "p01308", "source_db": "uniprot", "how": "remote", "expect": {"valid": false, "suggestion": "P01308"}, "note": "malformed case, and the corrected form is an active entry"}
