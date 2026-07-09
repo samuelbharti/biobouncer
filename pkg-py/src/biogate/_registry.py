@@ -19,6 +19,7 @@ class Source:
     version_aware: bool
     curie: dict | None
     normalize: dict | None
+    cache: dict | None
 
 
 @functools.lru_cache(maxsize=1)
@@ -38,6 +39,7 @@ def _registry() -> dict[str, Source]:
             version_aware=bool(spec.get("version_aware", False)),
             curie=spec.get("curie"),
             normalize=spec.get("normalize"),
+            cache=spec.get("cache"),
         )
     return out
 

@@ -7,7 +7,14 @@ implemented; ``cache`` mode looks up existence in a pinned snapshot.
 
 from __future__ import annotations
 
-from ._cache import MissingSnapshotError, MissingVersionError, cache_dir, snapshots
+from ._cache import (
+    MissingSnapshotError,
+    MissingVersionError,
+    NoBuilderError,
+    cache_dir,
+    pull,
+    snapshots,
+)
 from ._registry import sources
 from ._result import Result
 from .core import check_id, is_valid_id
@@ -17,10 +24,12 @@ __version__ = "0.1.0.dev0"
 __all__ = [
     "MissingSnapshotError",
     "MissingVersionError",
+    "NoBuilderError",
     "Result",
     "cache_dir",
     "check_id",
     "is_valid_id",
+    "pull",
     "snapshots",
     "sources",
     "__version__",

@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import os
+import re
+import urllib.request
 from importlib.resources import files
 from pathlib import Path
 
 import platformdirs
 
 from ._pattern import _suggest, matches
-from ._registry import Source
+from ._registry import Source, get_source
 
 
 class MissingVersionError(ValueError):
@@ -125,3 +127,63 @@ def snapshots() -> list[dict]:
                     }
                 )
     return rows
+
+
+_USER_AGENT = "biogate/0.1 (+https://github.com/samuelbharti/biogate)"
+
+
+class NoBuilderError(ValueError):
+    """Raised when a source has no snapshot builder."""
+
+
+def _sanitize_version(raw: str) -> str:
+    raw = raw.strip().removeprefix("releases/")
+    return re.sub(r"[^A-Za-z0-9._-]", "-", raw)
+
+
+def parse_obo(text: str, pattern: str) -> tuple[str | None, list[str]]:
+    """Extract (version, ids) from OBO text, keeping ids that match the pattern."""
+    version: str | None = None
+    ids: set[str] = set()
+    for line in text.splitlines():
+        if version is None and line.startswith("data-version:"):
+            version = _sanitize_version(line[len("data-version:") :]) or None
+        elif line.startswith("id:"):
+            value = line[len("id:") :].strip()
+            if matches(pattern, value):
+                ids.add(value)
+    return version, sorted(ids)
+
+
+def pull(
+    source_db: str, version: str | None = None, quiet: bool = False, timeout: int = 120
+) -> Path:
+    """Download a full snapshot for cache mode into the cache directory.
+
+    Fetches the source's OBO release, keeps the identifiers that match the source
+    pattern, and writes them to ``cache_dir()/<source>/<version>.txt``. The
+    version defaults to the ontology's own data-version.
+    """
+    source = get_source(source_db)
+    cache = source.cache
+    if not cache or cache.get("builder") != "obo":
+        raise NoBuilderError(f"No snapshot builder is available for {source_db!r}.")
+    url = cache["obo_url"]
+    if not quiet:
+        print(f"Downloading {url} ...")
+    request = urllib.request.Request(url, headers={"User-Agent": _USER_AGENT})
+    with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
+        text = response.read().decode("utf-8", errors="replace")
+    parsed_version, ids = parse_obo(text, source.pattern)
+    version = str(version) if version is not None else parsed_version
+    if not version:
+        raise MissingVersionError(
+            f"Could not determine a version for {source_db!r}; pass version."
+        )
+    dest_dir = cache_dir() / source_db
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest = dest_dir / f"{version}.txt"
+    dest.write_text("\n".join(ids) + "\n", encoding="utf-8")
+    if not quiet:
+        print(f"Wrote {len(ids)} ids to {dest}")
+    return dest
