@@ -8,6 +8,6 @@ defined here.
 The schema for a source file is described in `PLAN.md`, section 5. No source
 files are added yet.
 
-Do not edit the vendored copies under `r/inst/extdata/` or
-`python/src/biogate/_data/` by hand. Edit files here and run
+Do not edit the vendored copies under `pkg-r/inst/extdata/` or
+`pkg-py/src/biogate/_data/` by hand. Edit files here and run
 `python tools/sync_shared.py`.
