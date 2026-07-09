@@ -29,8 +29,8 @@ SUBDIRS = {
 # Package directory -> vendored data root. The package directory must exist for
 # its target to be written.
 TARGETS = {
-    "r": ROOT / "r" / "inst" / "extdata",
-    "python": ROOT / "python" / "src" / "biogate" / "_data",
+    "pkg-r": ROOT / "pkg-r" / "inst" / "extdata",
+    "pkg-py": ROOT / "pkg-py" / "src" / "biogate" / "_data",
 }
 
 

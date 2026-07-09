@@ -3,16 +3,16 @@ name: python
 on:
   push:
     branches: [main]
-    paths: ["python/**", "shared/**", ".github/workflows/python.yml"]
+    paths: ["pkg-py/**", "shared/**", ".github/workflows/python.yml"]
   pull_request:
-    paths: ["python/**", "shared/**", ".github/workflows/python.yml"]
+    paths: ["pkg-py/**", "shared/**", ".github/workflows/python.yml"]
 
 permissions:
   contents: read
 
 defaults:
   run:
-    working-directory: python
+    working-directory: pkg-py
 
 jobs:
   python:
