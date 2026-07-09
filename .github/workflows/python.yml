@@ -16,8 +16,6 @@ defaults:
 
 jobs:
   python:
-    # Runs once the Python package exists. Until then the job is skipped.
-    if: hashFiles('python/pyproject.toml') != ''
     runs-on: ${{ matrix.os }}
     name: python (${{ matrix.os }})
     strategy:
