@@ -38,7 +38,9 @@
 #'   the source API), or `"existence"` (cache when a snapshot is available for
 #'   `version`, otherwise remote).
 #' @param species Optional species context, echoed in the result. A name such as
-#'   `"homo_sapiens"` or an NCBI taxon id such as `9606`.
+#'   `"homo_sapiens"` or an NCBI taxon id such as `9606`. In `pattern` mode a
+#'   well-formed Ensembl id whose encoded species does not match is invalid. A
+#'   species outside the source map is not checked.
 #' @param version Snapshot version. Required for `cache` mode; selects the
 #'   snapshot for `existence` mode; ignored in `pattern` and `remote` modes.
 #' @return A [tibble][tibble::tibble] with one row per element of `x` and the
@@ -112,7 +114,7 @@ check_id <- function(
       version_col <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
     }
   } else {
-    verdicts <- .pattern_verdicts(source, x, is_na)
+    verdicts <- .pattern_verdicts(source, x, is_na, species)
     version_col <- NA_character_
   }
 
