@@ -1,0 +1,10 @@
+{"input": "TP53", "source_db": "hgnc", "how": "pattern", "expect": {"valid": true, "normalized": "TP53"}, "note": "well-formed symbol shape"}
+{"input": "C9orf72", "source_db": "hgnc", "how": "pattern", "expect": {"valid": true, "normalized": "C9orf72"}, "note": "mixed-case symbol is a valid shape"}
+{"input": "TP 53", "source_db": "hgnc", "how": "pattern", "expect": {"valid": false}, "note": "a space is not part of a symbol token"}
+{"input": "TP53", "source_db": "hgnc", "how": "cache", "version": "sample", "expect": {"valid": true, "normalized": "TP53"}, "note": "approved symbol in the sample"}
+{"input": "C9orf72", "source_db": "hgnc", "how": "cache", "version": "sample", "expect": {"valid": true, "normalized": "C9orf72"}, "note": "mixed-case approved symbol"}
+{"input": "MLL", "source_db": "hgnc", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "KMT2A"}, "note": "withdrawn previous symbol, approved is KMT2A"}
+{"input": "MLL2", "source_db": "hgnc", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "KMT2D"}, "note": "previous symbol, approved is KMT2D"}
+{"input": "CARS", "source_db": "hgnc", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "CARS1"}, "note": "previous symbol, approved is CARS1"}
+{"input": "C9ORF72", "source_db": "hgnc", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "symbols are case-sensitive; the approved form is C9orf72, and the all-caps form is not a known previous symbol"}
+{"input": "NOTAGENE", "source_db": "hgnc", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "well-formed shape but not an approved or previous symbol"}

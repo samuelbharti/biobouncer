@@ -1,5 +1,9 @@
 # biogate 0.0.0.9000
 
+* Adds an `hgnc` source for HUGO gene symbols. `cache` mode checks a symbol
+  against the approved-symbol snapshot, and a withdrawn or previous symbol
+  resolves to its approved successor through the retired-map (for example `MLL`
+  suggests `KMT2A`). Symbols are case-sensitive.
 * Retired identifiers are detected with a successor suggestion. In `remote` mode
   an OLS term that exists but is obsolete is invalid and suggests its
   `replaced_by` successor. In `cache` mode a snapshot can carry a
