@@ -7,6 +7,28 @@ species_aware: true
 version_aware: true
 normalize:
   case: upper
+# A UniProt accession does not encode species, so species is checked in remote
+# mode against the entry's organism taxon id. Taxon ids verified against the
+# UniProt REST API. A species outside this map is not checked.
+species:
+  scheme: uniprot_organism
+  map:
+    - name: homo_sapiens
+      taxon: 9606
+    - name: mus_musculus
+      taxon: 10090
+    - name: rattus_norvegicus
+      taxon: 10116
+    - name: danio_rerio
+      taxon: 7955
+    - name: gallus_gallus
+      taxon: 9031
+    - name: bos_taurus
+      taxon: 9913
+    - name: sus_scrofa
+      taxon: 9823
+    - name: canis_lupus_familiaris
+      taxon: 9615
 remote:
   resolver: uniprot
 provenance:
