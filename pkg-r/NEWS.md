@@ -1,5 +1,10 @@
 # biogate (development version)
 
+* `refseq` gains `remote` mode. An accession is checked for existence against
+  NCBI E-utilities, routed to the nucleotide or protein database by its molecule
+  prefix. The summary endpoint returns an empty result for an unknown accession.
+  This is an existence check only; a suppressed accession is not distinguished
+  from a current one.
 * `rfam`, `uniparc`, `complexportal`, and `wikipathways` gain `remote` mode. Each
   checks existence against its source: the Rfam API, the UniProt UniParc
   endpoint, the EBI Complex Portal web service, and the published WikiPathways

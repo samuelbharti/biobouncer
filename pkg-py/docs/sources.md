@@ -73,7 +73,7 @@ bg.is_valid_id("UBERON:0002107", source_db="uberon")
 |---|---|---|---|---|
 | HGNC gene symbols. Approved symbols. A withdrawn symbol maps to its successor. | `hgnc` | `TP53` | pattern | no |
 | Ensembl. Ensembl gene, transcript, and protein ids. Species-aware. | `ensembl` | `ENSG00000139618` | pattern, remote | yes |
-| RefSeq. NCBI RefSeq accessions, with an optional version. | `refseq` | `NM_000546.6` | pattern | no |
+| RefSeq. NCBI RefSeq accessions, with an optional version. | `refseq` | `NM_000546.6` | pattern, remote | no |
 
 Check any id in the group the same way:
 
