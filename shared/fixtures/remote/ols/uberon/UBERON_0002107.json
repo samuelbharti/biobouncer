@@ -1,0 +1,11 @@
+{
+  "resolver": "ols",
+  "url": "https://www.ebi.ac.uk/ols4/api/ontologies/uberon/terms?obo_id=UBERON:0002107",
+  "recorded": "2026-07-09",
+  "status": 200,
+  "body": {
+    "page": {
+      "totalElements": 1
+    }
+  }
+}
