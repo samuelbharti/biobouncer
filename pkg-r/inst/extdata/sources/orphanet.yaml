@@ -1,0 +1,11 @@
+key: orphanet
+name: Orphanet
+description: Orphanet identifiers for rare diseases.
+# ORPHA, a colon, and digits. Ids are uppercase; a lowercase input is
+# suggested in its canonical case.
+pattern: 'ORPHA:[0-9]+'
+normalize:
+  case: upper
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.orpha.net

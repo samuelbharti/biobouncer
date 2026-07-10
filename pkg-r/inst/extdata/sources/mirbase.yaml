@@ -1,0 +1,11 @@
+key: mirbase
+name: miRBase
+description: miRBase accession numbers for mature microRNAs.
+# MIMAT and exactly seven digits. Ids are uppercase; a lowercase input
+# is suggested in its canonical case.
+pattern: 'MIMAT[0-9]{7}'
+normalize:
+  case: upper
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.mirbase.org
