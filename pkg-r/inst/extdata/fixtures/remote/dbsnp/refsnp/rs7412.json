@@ -1,0 +1,7 @@
+{
+  "resolver": "dbsnp",
+  "url": "https://api.ncbi.nlm.nih.gov/variation/v0/refsnp/7412",
+  "recorded": "2026-07-09",
+  "status": 200,
+  "body": null
+}
