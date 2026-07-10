@@ -1,5 +1,10 @@
 # biogate (development version)
 
+* `interpro` and `pfam` gain `remote` mode. An accession is checked for existence
+  against the EBI InterPro API, which hosts both databases, so one resolver
+  serves the two sources. The entry endpoint answers 204 for a well-formed
+  accession that is not a current entry. This is an existence check only; a
+  deleted accession is reported as absent, not with a successor.
 * `chembl` gains `remote` mode. A ChEMBL id is checked for existence against the
   ChEMBL id-lookup endpoint, which resolves an id of any entity type, so one
   lookup covers compounds, targets, assays, and documents alike. This is an
