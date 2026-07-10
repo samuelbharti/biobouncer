@@ -191,10 +191,22 @@ def _ols_subkey(source: Source) -> str:
     return source.remote["ols_ontology"]
 
 
+def _ols_obo_id(source: Source, ident: str) -> str:
+    """The obo_id to query OLS with.
+
+    Most ontology sources use the id as-is. A source may set ``obo_prefix`` to
+    rewrite the id's prefix for OLS, for example ``ORPHA:558`` becomes
+    ``Orphanet:558`` for the ordo ontology.
+    """
+    prefix = source.remote.get("obo_prefix")
+    if prefix:
+        return f"{prefix}:{ident.split(':', 1)[-1]}"
+    return ident
+
+
 def _ols_url(source: Source, ident: str) -> str:
-    return (
-        f"{_OLS_BASE}/ontologies/{source.remote['ols_ontology']}/terms?obo_id={ident}"
-    )
+    obo = _ols_obo_id(source, ident)
+    return f"{_OLS_BASE}/ontologies/{source.remote['ols_ontology']}/terms?obo_id={obo}"
 
 
 def _ols_exists(status: int, body: dict | None) -> bool:

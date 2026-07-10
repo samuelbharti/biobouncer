@@ -207,10 +207,17 @@
     name = "ols",
     subkey = function(source) source$remote$ols_ontology,
     url = function(source, id) {
+      # A source may set obo_prefix to rewrite the id's prefix for OLS, for
+      # example ORPHA:558 becomes Orphanet:558 for the ordo ontology.
+      obo <- if (!is.null(source$remote$obo_prefix)) {
+        paste0(source$remote$obo_prefix, ":", sub("^[^:]*:", "", id))
+      } else {
+        id
+      }
       sprintf(
         "https://www.ebi.ac.uk/ols4/api/ontologies/%s/terms?obo_id=%s",
         source$remote$ols_ontology,
-        id
+        obo
       )
     },
     exists = function(status, body) {
