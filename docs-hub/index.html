@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>biogate</title>
+    <meta
+      name="description"
+      content="Validate biological identifiers and inputs the same way in R and Python."
+    />
+    <style>
+      :root {
+        --bg: #ffffff;
+        --fg: #1b1b1b;
+        --muted: #5a5a5a;
+        --accent: #1a6b54;
+        --card: #f5f7f6;
+        --border: #e2e6e4;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0f1512;
+          --fg: #e8ece9;
+          --muted: #9aa5a0;
+          --accent: #4fd0a6;
+          --card: #17201c;
+          --border: #263029;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family:
+          system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+          sans-serif;
+        background: var(--bg);
+        color: var(--fg);
+        line-height: 1.6;
+      }
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 4rem 1.5rem 3rem;
+      }
+      h1 {
+        font-size: 2.75rem;
+        margin: 0 0 0.25rem;
+        letter-spacing: -0.02em;
+      }
+      .tagline {
+        font-size: 1.2rem;
+        color: var(--muted);
+        margin: 0 0 2.5rem;
+      }
+      .cards {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+      }
+      @media (max-width: 560px) {
+        .cards {
+          grid-template-columns: 1fr;
+        }
+      }
+      a.card {
+        display: block;
+        padding: 1.5rem;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--card);
+        text-decoration: none;
+        color: inherit;
+        transition:
+          border-color 0.15s ease,
+          transform 0.15s ease;
+      }
+      a.card:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+      }
+      a.card h2 {
+        margin: 0 0 0.35rem;
+        font-size: 1.25rem;
+        color: var(--accent);
+      }
+      a.card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+      .foot {
+        margin-top: 2.5rem;
+        font-size: 0.95rem;
+        color: var(--muted);
+      }
+      .foot a {
+        color: var(--accent);
+      }
+      code {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 5px;
+        padding: 0.1rem 0.35rem;
+        font-size: 0.9em;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>biogate</h1>
+      <p class="tagline">
+        Validate biological identifiers and inputs the same way in R and Python.
+      </p>
+
+      <p>
+        One small API answers "is this a valid identifier?" for gene symbols,
+        ontology terms, variant formats, and database accessions. R and Python
+        return the same verdict for the same input, enforced by a shared
+        conformance corpus. Choose an offline shape check, an offline existence
+        check against a pinned snapshot, or a live check against the source.
+      </p>
+
+      <div class="cards">
+        <a class="card" href="r/">
+          <h2>R package &rarr;</h2>
+          <p>Function reference and the getting-started vignette (pkgdown).</p>
+        </a>
+        <a class="card" href="py/">
+          <h2>Python package &rarr;</h2>
+          <p>Guide and API reference (MkDocs).</p>
+        </a>
+      </div>
+
+      <p class="foot">
+        Source and issues on
+        <a href="https://github.com/samuelbharti/biogate">GitHub</a>. Install with
+        <code>install.packages("biogate")</code> or
+        <code>pip install biogate</code>.
+      </p>
+    </main>
+  </body>
+</html>

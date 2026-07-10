@@ -1,5 +1,9 @@
 # biogate 0.0.0.9000
 
+* Adds a documentation website. The R reference and the getting-started vignette
+  are built with pkgdown, the Python guide and API reference with MkDocs, and a
+  shared landing page links the two. A `docs` workflow builds both on every pull
+  request and publishes them to GitHub Pages from `main`.
 * Adds the OBO ontology sources `pato`, `mp`, and `bto` for qualities
   (`PATO:0000001`), mammalian phenotypes (`MP:0001262`), and tissues
   (`BTO:0000759`), each with `pattern` and live OLS `remote` modes.

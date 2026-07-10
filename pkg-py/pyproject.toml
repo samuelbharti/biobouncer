@@ -30,6 +30,10 @@ Issues = "https://github.com/samuelbharti/biogate/issues"
 
 [dependency-groups]
 dev = ["pytest>=8", "ruff>=0.15", "pydantic>=2", "pandera[pandas]>=0.20"]
+docs = [
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.26",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/biogate"]

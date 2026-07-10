@@ -30,7 +30,7 @@ def _utc_stamp() -> str:
 
 
 def check_id(
-    x,
+    x: str | Iterable[str],
     source_db: str,
     how: str = "pattern",
     species: str | None = None,
@@ -120,12 +120,12 @@ def check_id(
 
 
 def is_valid_id(
-    x,
+    x: str | Iterable[str],
     source_db: str,
     how: str = "pattern",
     species: str | None = None,
     version: str | None = None,
-):
+) -> bool | list[bool]:
     """Return just the validity verdict.
 
     Returns a single bool for a scalar input, or a list of bool for an iterable,

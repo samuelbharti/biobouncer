@@ -1,0 +1,60 @@
+url: https://samuelbharti.github.io/biogate/r
+
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#1a6b54"
+
+home:
+  title: biogate
+  description: >
+    Validate biological identifiers and inputs the same way in R and Python.
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [python, github]
+  components:
+    python:
+      text: Python docs
+      href: https://samuelbharti.github.io/biogate/py/
+    github:
+      icon: fab fa-github
+      href: https://github.com/samuelbharti/biogate
+
+reference:
+  - title: Check identifiers
+    desc: The core entry points. One returns a table, the other a logical vector.
+    contents:
+      - check_id
+      - is_valid_id
+  - title: What can be checked
+    desc: List the source databases and read their metadata.
+    contents:
+      - sources
+      - source_info
+  - title: Snapshots and cache
+    desc: Manage the offline snapshots that back cache mode.
+    contents:
+      - biogate_pull
+      - biogate_snapshots
+      - biogate_cache_dir
+  - title: Validation framework adapters
+    desc: >
+      Thin wrappers over the core classifier for checkmate, shinyvalidate, and
+      assertr or validate.
+    contents:
+      - assert_valid_id
+      - check_valid_id
+      - test_valid_id
+      - sv_biogate
+      - id_predicate
+  - title: Package
+    contents:
+      - biogate-package
+
+articles:
+  - title: Get started
+    navbar: ~
+    contents:
+      - biogate
