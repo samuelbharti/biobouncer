@@ -1,0 +1,6 @@
+{"input": "VCV000012345", "source_db": "clinvar", "how": "pattern", "expect": {"valid": true, "normalized": "VCV000012345"}, "note": "variation accession"}
+{"input": "RCV000012345.2", "source_db": "clinvar", "how": "pattern", "expect": {"valid": true, "normalized": "RCV000012345.2"}, "note": "RCV accession with a version"}
+{"input": "SCV000012345", "source_db": "clinvar", "how": "pattern", "expect": {"valid": true, "normalized": "SCV000012345"}, "note": "submitted record accession"}
+{"input": "vcv000012345", "source_db": "clinvar", "how": "pattern", "expect": {"valid": false, "suggestion": "VCV000012345"}, "note": "lowercase is suggestible"}
+{"input": "VCV12345", "source_db": "clinvar", "how": "pattern", "expect": {"valid": false}, "note": "not nine digits"}
+{"input": "ABC000012345", "source_db": "clinvar", "how": "pattern", "expect": {"valid": false}, "note": "unknown prefix"}
