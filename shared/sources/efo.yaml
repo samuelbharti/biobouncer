@@ -10,6 +10,9 @@ curie:
 cache:
   builder: obo
   obo_url: http://www.ebi.ac.uk/efo/efo.obo
+remote:
+  resolver: ols
+  ols_ontology: efo
 provenance:
   pattern_source: bioregistry
   homepage: https://www.ebi.ac.uk/efo/

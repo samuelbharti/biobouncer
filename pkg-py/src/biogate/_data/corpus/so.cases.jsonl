@@ -1,0 +1,5 @@
+{"input": "SO:0000704", "source_db": "so", "how": "pattern", "expect": {"valid": true, "normalized": "SO:0000704"}, "note": "a real term"}
+{"input": "SO:9999999", "source_db": "so", "how": "pattern", "expect": {"valid": true, "normalized": "SO:9999999"}, "note": "well-formed even if it does not exist; shape only"}
+{"input": "so:704", "source_db": "so", "how": "pattern", "expect": {"valid": false, "suggestion": "SO:0000704"}, "note": "lowercase prefix and short number are suggestible"}
+{"input": "MONDO:0005148", "source_db": "so", "how": "pattern", "expect": {"valid": false}, "note": "wrong prefix for this source"}
+{"input": "SO:12345678", "source_db": "so", "how": "pattern", "expect": {"valid": false}, "note": "too many digits"}

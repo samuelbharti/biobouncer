@@ -1,0 +1,4 @@
+{"input": "RF00001", "source_db": "rfam", "how": "pattern", "expect": {"valid": true, "normalized": "RF00001"}, "note": "5S ribosomal RNA family"}
+{"input": "RF00005", "source_db": "rfam", "how": "pattern", "expect": {"valid": true, "normalized": "RF00005"}, "note": "tRNA family"}
+{"input": "rf00001", "source_db": "rfam", "how": "pattern", "expect": {"valid": false, "suggestion": "RF00001"}, "note": "lowercase is suggestible to uppercase"}
+{"input": "RF001", "source_db": "rfam", "how": "pattern", "expect": {"valid": false}, "note": "three digits, too short"}

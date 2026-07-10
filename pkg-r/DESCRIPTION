@@ -8,7 +8,7 @@ Description: A gate for biological inputs. Validate gene symbols, ontology
     using offline pattern and cache checks or live remote checks. Results are
     designed to match the companion Python package for the same inputs.
 License: MIT + file LICENSE
-URL: https://github.com/samuelbharti/biogate
+URL: https://github.com/samuelbharti/biogate, https://samuelbharti.github.io/biogate/r/
 BugReports: https://github.com/samuelbharti/biogate/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -16,10 +16,14 @@ RoxygenNote: 7.3.3
 Imports:
     checkmate,
     cli,
+    curl,
+    jsonlite,
     tibble,
     yaml
 Suggests:
-    jsonlite,
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0),
     withr
 Config/testthat/edition: 3
+VignetteBuilder: knitr

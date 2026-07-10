@@ -11,14 +11,19 @@ check_id(x, source_db, how = "pattern", species = NULL, version = NULL)
 
 \item{source_db}{Source key, for example \code{"mondo"}. See \code{\link[=sources]{sources()}}.}
 
-\item{how}{Checking mode: \code{"pattern"} (offline, shape only) or \code{"cache"}
-(offline existence against a snapshot).}
+\item{how}{Checking mode: \code{"pattern"} (offline, shape only), \code{"cache"}
+(offline existence against a snapshot), \code{"remote"} (live existence against
+the source API), or \code{"existence"} (cache when a snapshot is available for
+\code{version}, otherwise remote).}
 
 \item{species}{Optional species context, echoed in the result. A name such as
-\code{"homo_sapiens"} or an NCBI taxon id such as \code{9606}.}
+\code{"homo_sapiens"} or an NCBI taxon id such as \code{9606}. When given, an id of a
+different species is invalid: Ensembl is checked from its id prefix (in
+\code{pattern} and \code{remote} modes), and UniProt from the entry's organism in
+\code{remote} mode. A species outside the source map is not checked.}
 
-\item{version}{Snapshot version. Required for \code{cache} mode; ignored in
-\code{pattern} mode.}
+\item{version}{Snapshot version. Required for \code{cache} mode; selects the
+snapshot for \code{existence} mode; ignored in \code{pattern} and \code{remote} modes.}
 }
 \value{
 A \link[tibble:tibble]{tibble} with one row per element of \code{x} and the
@@ -28,7 +33,9 @@ columns \code{input}, \code{valid}, \code{normalized}, \code{suggestion}, \code{
 \description{
 Validate a vector of identifiers against a source. \code{pattern} mode checks that
 each identifier is well-formed. \code{cache} mode also checks that it exists in a
-pinned local snapshot (see \code{\link[=biogate_snapshots]{biogate_snapshots()}}).
+pinned local snapshot (see \code{\link[=biogate_snapshots]{biogate_snapshots()}}). \code{remote} mode checks live
+existence against the source API. \code{existence} mode uses a snapshot when one is
+available for \code{version} and otherwise falls back to \code{remote}.
 }
 \examples{
 check_id(c("MONDO:0005148", "mondo:5148"), source_db = "mondo")

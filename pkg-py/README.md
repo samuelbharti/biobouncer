@@ -3,8 +3,9 @@
 This directory holds the Python package for biogate. See the repository root
 `README.md` for what biogate does and `PLAN.md` for the architecture.
 
-The package is in early development. Offline `pattern` and `cache` modes work for
-an initial set of sources. `remote` mode is not implemented yet.
+The package is in early development. Offline `pattern` and `cache` modes, live
+`remote` mode, and `existence` mode (snapshot first, then remote) work for an
+initial set of sources.
 
 ## Usage
 

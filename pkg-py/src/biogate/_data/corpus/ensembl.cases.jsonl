@@ -2,3 +2,11 @@
 {"input": "ENSMUSG00000059552", "source_db": "ensembl", "how": "pattern", "expect": {"valid": true, "normalized": "ENSMUSG00000059552"}, "note": "mouse gene Trp53"}
 {"input": "ensg00000139618", "source_db": "ensembl", "how": "pattern", "expect": {"valid": false, "suggestion": "ENSG00000139618"}, "note": "lowercase is suggestible"}
 {"input": "ENSG139618", "source_db": "ensembl", "how": "pattern", "expect": {"valid": false}, "note": "too few digits"}
+{"input": "ENSG00000139618", "source_db": "ensembl", "how": "pattern", "species": "homo_sapiens", "expect": {"valid": true, "normalized": "ENSG00000139618"}, "note": "human id, human requested"}
+{"input": "ENSG00000139618", "source_db": "ensembl", "how": "pattern", "species": 9606, "expect": {"valid": true, "normalized": "ENSG00000139618"}, "note": "species as an NCBI taxon id"}
+{"input": "ENSMUSG00000059552", "source_db": "ensembl", "how": "pattern", "species": "mus_musculus", "expect": {"valid": true, "normalized": "ENSMUSG00000059552"}, "note": "mouse id, mouse requested"}
+{"input": "ENSMUSG00000059552", "source_db": "ensembl", "how": "pattern", "species": "homo_sapiens", "expect": {"valid": false}, "note": "mouse id but human requested is a species mismatch"}
+{"input": "ENSG00000139618", "source_db": "ensembl", "how": "pattern", "species": "mus_musculus", "expect": {"valid": false}, "note": "human id but mouse requested is a species mismatch"}
+{"input": "ensmusg00000059552", "source_db": "ensembl", "how": "pattern", "species": "mus_musculus", "expect": {"valid": false, "suggestion": "ENSMUSG00000059552"}, "note": "malformed case; the corrected id matches the requested species"}
+{"input": "ensmusg00000059552", "source_db": "ensembl", "how": "pattern", "species": "homo_sapiens", "expect": {"valid": false}, "note": "malformed case; the corrected id is mouse, not human, so no suggestion"}
+{"input": "ENSG00000139618", "source_db": "ensembl", "how": "pattern", "species": "platypus", "expect": {"valid": true, "normalized": "ENSG00000139618"}, "note": "a species outside the map is not checked, so shape decides"}

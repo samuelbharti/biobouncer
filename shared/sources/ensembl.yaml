@@ -9,6 +9,39 @@ species_aware: true
 version_aware: true
 normalize:
   case: upper
+# Ensembl encodes the species in the letters between ENS and the feature letter
+# (empty for human). When a species is given, an id whose code does not match is
+# a species mismatch. Prefixes and taxon ids verified against the Ensembl REST
+# API. A species outside this map is not checked.
+species:
+  scheme: ensembl_prefix
+  map:
+    - name: homo_sapiens
+      taxon: 9606
+      prefix: ""
+    - name: mus_musculus
+      taxon: 10090
+      prefix: MUS
+    - name: rattus_norvegicus
+      taxon: 10116
+      prefix: RNO
+    - name: danio_rerio
+      taxon: 7955
+      prefix: DAR
+    - name: gallus_gallus
+      taxon: 9031
+      prefix: GAL
+    - name: bos_taurus
+      taxon: 9913
+      prefix: BTA
+    - name: sus_scrofa
+      taxon: 9823
+      prefix: SSC
+    - name: canis_lupus_familiaris
+      taxon: 9615
+      prefix: CAF
+remote:
+  resolver: ensembl
 provenance:
   pattern_source: bioregistry
   homepage: https://www.ensembl.org

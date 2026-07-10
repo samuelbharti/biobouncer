@@ -46,10 +46,6 @@ test_that("mode and source errors carry a condition class", {
     class = "biogate_error_invalid_mode"
   )
   expect_error(
-    check_id("x", source_db = "mondo", how = "remote"),
-    class = "biogate_error_unimplemented_mode"
-  )
-  expect_error(
     check_id("x", source_db = "not_a_source"),
     class = "biogate_error_unknown_source"
   )

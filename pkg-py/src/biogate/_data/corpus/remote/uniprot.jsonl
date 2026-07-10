@@ -1,0 +1,7 @@
+{"input": "P01308", "source_db": "uniprot", "how": "remote", "expect": {"valid": true, "normalized": "P01308"}, "note": "well-formed and an active entry (insulin)"}
+{"input": "O99999", "source_db": "uniprot", "how": "remote", "expect": {"valid": false}, "note": "well-formed and real, but a deleted (inactive) accession, so not valid"}
+{"input": "p01308", "source_db": "uniprot", "how": "remote", "expect": {"valid": false, "suggestion": "P01308"}, "note": "malformed case, and the corrected form is an active entry"}
+{"input": "P01308", "source_db": "uniprot", "how": "remote", "species": "homo_sapiens", "expect": {"valid": true, "normalized": "P01308"}, "note": "human accession, active, and matches the requested species"}
+{"input": "P01308", "source_db": "uniprot", "how": "remote", "species": "mus_musculus", "expect": {"valid": false}, "note": "human accession but the requested species is mouse"}
+{"input": "P04925", "source_db": "uniprot", "how": "remote", "species": "mus_musculus", "expect": {"valid": true, "normalized": "P04925"}, "note": "mouse accession matches the requested species"}
+{"input": "P04925", "source_db": "uniprot", "how": "remote", "species": 9606, "expect": {"valid": false}, "note": "mouse accession but the requested taxon is human"}

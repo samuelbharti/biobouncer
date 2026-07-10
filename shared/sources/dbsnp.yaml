@@ -1,0 +1,15 @@
+key: dbsnp
+name: dbSNP
+description: NCBI dbSNP reference SNP identifiers.
+# A lowercase rs prefix and digits, with no version. A different case is
+# suggested as lowercase.
+pattern: 'rs[0-9]+'
+normalize:
+  case: lower
+# remote mode checks existence against the NCBI dbSNP RefSNP API. An rsID that
+# was merged into another is not valid and suggests the current (primary) id.
+remote:
+  resolver: dbsnp
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.ncbi.nlm.nih.gov/snp

@@ -1,0 +1,53 @@
+{"input": "NM_004006.2:c.4375C>T", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:c.4375C>T"}, "note": "coding substitution"}
+{"input": "NC_000023.11:g.32317682G>A", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NC_000023.11:g.32317682G>A"}, "note": "genomic substitution"}
+{"input": "NM_004006.2:c.88+1G>T", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:c.88+1G>T"}, "note": "intronic (+ offset) substitution"}
+{"input": "NM_004006.2:c.89-2A>C", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:c.89-2A>C"}, "note": "intronic (- offset) substitution"}
+{"input": "NM_004006.2:c.-14G>C", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:c.-14G>C"}, "note": "5' UTR substitution"}
+{"input": "NM_004006.2:c.*46T>A", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:c.*46T>A"}, "note": "3' UTR substitution"}
+{"input": "NR_003286.2:n.601G>A", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NR_003286.2:n.601G>A"}, "note": "non-coding RNA substitution"}
+{"input": "NC_012920.1:m.8993T>G", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NC_012920.1:m.8993T>G"}, "note": "mitochondrial substitution"}
+{"input": "ENST00000357033.8:c.123A>G", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "ENST00000357033.8:c.123A>G"}, "note": "Ensembl transcript reference"}
+{"input": "NM_004006.2:r.76a>u", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:r.76a>u"}, "note": "RNA level, lowercase bases"}
+{"input": "NC_000023.11:g.32867861_32867862del", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NC_000023.11:g.32867861_32867862del"}, "note": "genomic range deletion"}
+{"input": "NM_004006.2:c.76delA", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:c.76delA"}, "note": "deletion with base"}
+{"input": "NM_004006.2:c.76_78del", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:c.76_78del"}, "note": "range deletion"}
+{"input": "NM_004006.2:c.76dup", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:c.76dup"}, "note": "duplication"}
+{"input": "NM_004006.2:c.76_78dup", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:c.76_78dup"}, "note": "range duplication"}
+{"input": "NM_004006.2:c.76_77insG", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:c.76_77insG"}, "note": "insertion"}
+{"input": "NM_004006.2:c.76_77insACGT", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:c.76_77insACGT"}, "note": "multi-base insertion"}
+{"input": "NM_004006.2:c.112_117delinsTG", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:c.112_117delinsTG"}, "note": "delins"}
+{"input": "NM_004006.2:c.76_78inv", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:c.76_78inv"}, "note": "inversion"}
+{"input": "LRG_199t1:c.79_80delinsTT", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "LRG_199t1:c.79_80delinsTT"}, "note": "LRG transcript reference"}
+{"input": "NG_012232.1(NM_004006.2):c.93+1G>T", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NG_012232.1(NM_004006.2):c.93+1G>T"}, "note": "reference with gene in parens"}
+{"input": "NM_004006.2:c.=", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:c.="}, "note": "coding sequence unchanged"}
+{"input": "NM_004006.2:c.123=", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006.2:c.123="}, "note": "single position unchanged"}
+{"input": "NP_003997.1:p.(Gly56Ala)", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.(Gly56Ala)"}, "note": "predicted protein substitution"}
+{"input": "NP_003997.1:p.Gly56Ala", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.Gly56Ala"}, "note": "protein substitution"}
+{"input": "NP_003997.1:p.Trp26Ter", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.Trp26Ter"}, "note": "stop gain (Ter)"}
+{"input": "NP_003997.1:p.Trp26*", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.Trp26*"}, "note": "stop gain (*)"}
+{"input": "NP_003997.1:p.Met1?", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.Met1?"}, "note": "unknown start consequence"}
+{"input": "NP_003997.1:p.Gln16del", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.Gln16del"}, "note": "protein deletion"}
+{"input": "NP_003997.1:p.Ala3_Ser5del", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.Ala3_Ser5del"}, "note": "protein range deletion"}
+{"input": "NP_003997.1:p.Lys23_Val25dup", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.Lys23_Val25dup"}, "note": "protein duplication"}
+{"input": "NP_003997.1:p.Arg78_Gly79insSer", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.Arg78_Gly79insSer"}, "note": "protein insertion"}
+{"input": "NP_003997.1:p.Cys28_Lys29delinsTrp", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.Cys28_Lys29delinsTrp"}, "note": "protein delins"}
+{"input": "NP_003997.1:p.Arg97ProfsTer23", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.Arg97ProfsTer23"}, "note": "frameshift with Ter count"}
+{"input": "NP_003997.1:p.Arg97Profs*23", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.Arg97Profs*23"}, "note": "frameshift with * count"}
+{"input": "NP_003997.1:p.Ile327fs", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.Ile327fs"}, "note": "short frameshift"}
+{"input": "NP_003997.1:p.Leu54=", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.Leu54="}, "note": "silent protein change"}
+{"input": "NP_003997.1:p.(=)", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.(=)"}, "note": "predicted no change"}
+{"input": "NP_003997.1:p.=", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.="}, "note": "no change"}
+{"input": "NP_003997.1:p.0", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.0"}, "note": "no protein produced"}
+{"input": "NP_003997.1:p.?", "source_db": "hgvs", "how": "pattern", "expect": {"valid": true, "normalized": "NP_003997.1:p.?"}, "note": "unknown protein consequence"}
+{"input": "c.4375C>T", "source_db": "hgvs", "how": "pattern", "expect": {"valid": false}, "note": "no reference sequence"}
+{"input": "NM_004006.2:c.4375C>", "source_db": "hgvs", "how": "pattern", "expect": {"valid": false}, "note": "missing alternate base"}
+{"input": "NM_004006.2:c.4375C>>T", "source_db": "hgvs", "how": "pattern", "expect": {"valid": false}, "note": "double >"}
+{"input": "NM_004006.2:x.123A>T", "source_db": "hgvs", "how": "pattern", "expect": {"valid": false}, "note": "unknown coordinate type"}
+{"input": "NM_004006.2:c.76insG", "source_db": "hgvs", "how": "pattern", "expect": {"valid": false}, "note": "insertion needs a range"}
+{"input": "NM_004006.2:g.123", "source_db": "hgvs", "how": "pattern", "expect": {"valid": false}, "note": "position but no edit"}
+{"input": "NM_004006.2:c.100_200", "source_db": "hgvs", "how": "pattern", "expect": {"valid": false}, "note": "range but no edit"}
+{"input": "NM_004006.2:p.Gly56Xyz", "source_db": "hgvs", "how": "pattern", "expect": {"valid": false}, "note": "unknown amino acid code"}
+{"input": "NM_004006.2c.76A>T", "source_db": "hgvs", "how": "pattern", "expect": {"valid": false}, "note": "missing colon"}
+{"input": "NM_004006.2:c.", "source_db": "hgvs", "how": "pattern", "expect": {"valid": false}, "note": "type but no change"}
+{"input": "just some text", "source_db": "hgvs", "how": "pattern", "expect": {"valid": false}, "note": "not an HGVS string"}
+{"input": "", "source_db": "hgvs", "how": "pattern", "expect": {"valid": false}, "note": "empty string"}

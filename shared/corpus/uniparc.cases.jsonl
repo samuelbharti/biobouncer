@@ -1,0 +1,4 @@
+{"input": "UPI0000000001", "source_db": "uniparc", "how": "pattern", "expect": {"valid": true, "normalized": "UPI0000000001"}, "note": "a unique sequence identifier"}
+{"input": "UPI00000ABCDE", "source_db": "uniparc", "how": "pattern", "expect": {"valid": true, "normalized": "UPI00000ABCDE"}, "note": "identifier with hexadecimal letters"}
+{"input": "upi0000000001", "source_db": "uniparc", "how": "pattern", "expect": {"valid": false, "suggestion": "UPI0000000001"}, "note": "lowercase is suggestible"}
+{"input": "UPI123", "source_db": "uniparc", "how": "pattern", "expect": {"valid": false}, "note": "too short"}

@@ -1,0 +1,7 @@
+{"input": "rs7412", "source_db": "dbsnp", "how": "pattern", "expect": {"valid": true, "normalized": "rs7412"}, "note": "canonical rsID (APOE)"}
+{"input": "rs334", "source_db": "dbsnp", "how": "pattern", "expect": {"valid": true, "normalized": "rs334"}, "note": "canonical rsID (HBB, sickle cell)"}
+{"input": "RS7412", "source_db": "dbsnp", "how": "pattern", "expect": {"valid": false, "suggestion": "rs7412"}, "note": "uppercase prefix is suggestible to lowercase"}
+{"input": "rs7412.1", "source_db": "dbsnp", "how": "pattern", "expect": {"valid": false}, "note": "an rsID carries no version suffix"}
+{"input": "rs", "source_db": "dbsnp", "how": "pattern", "expect": {"valid": false}, "note": "prefix without digits"}
+{"input": "7412", "source_db": "dbsnp", "how": "pattern", "expect": {"valid": false}, "note": "digits without the rs prefix"}
+{"input": "ss12345", "source_db": "dbsnp", "how": "pattern", "expect": {"valid": false}, "note": "a submitted-SNP id is not a reference SNP id"}

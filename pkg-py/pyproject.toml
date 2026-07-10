@@ -20,12 +20,20 @@ classifiers = [
 ]
 dependencies = ["platformdirs>=3", "pyyaml>=6"]
 
+[project.optional-dependencies]
+# Framework adapters. Install with: pip install biogate[adapters]
+adapters = ["pydantic>=2", "pandera[pandas]>=0.20"]
+
 [project.urls]
 Homepage = "https://github.com/samuelbharti/biogate"
 Issues = "https://github.com/samuelbharti/biogate/issues"
 
 [dependency-groups]
-dev = ["pytest>=8", "ruff>=0.15"]
+dev = ["pytest>=8", "ruff>=0.15", "pydantic>=2", "pandera[pandas]>=0.20"]
+docs = [
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.26",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/biogate"]

@@ -1,0 +1,18 @@
+key: doid
+name: Human Disease Ontology
+description: Human Disease Ontology terms.
+# CURIE core pattern in ASCII classes so R (PCRE) and Python (re) agree.
+pattern: "DOID:[0-9]+"
+species_aware: false
+version_aware: true
+curie:
+  prefix: DOID
+cache:
+  builder: obo
+  obo_url: http://purl.obolibrary.org/obo/doid.obo
+remote:
+  resolver: ols
+  ols_ontology: doid
+provenance:
+  pattern_source: bioregistry
+  homepage: https://disease-ontology.org

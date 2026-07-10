@@ -1,0 +1,40 @@
+key: hgvs
+name: HGVS
+description: Human Genome Variation Society sequence variant nomenclature.
+# HGVS names a sequence variant as "reference:description", for example
+# NM_004006.2:c.4375C>T. This validator checks syntax only (v1). It does not
+# check that coordinates are ordered, that a reference and coordinate type
+# agree, or that a variant exists. A reference sequence is required.
+#
+# The one regex below is assembled from these parts:
+#   reference : a RefSeq (NM_, NC_, NP_, ...), LRG, Ensembl, or GenBank
+#               accession, an optional .version, and an optional (gene) in
+#               parentheses.
+#   ":"       : separates the reference from the description.
+#   nucleotide description ([gomcnr].): a position or range then one edit,
+#               covering substitution (76A>T), deletion (76_78del),
+#               duplication (76dup), insertion (76_77insACGT),
+#               deletion-insertion (76delinsTG), inversion (76_78inv), and
+#               "unchanged" (=). Positions allow UTR (-14, *46) and intronic
+#               (88+1, 89-2) offsets. Bases are matched in either case.
+#   protein description (p.): a residue and position then one edit, covering
+#               substitution (Gly56Ala, Trp26Ter, Trp26*), deletion, duplication,
+#               insertion, deletion-insertion, frameshift (Arg97ProfsTer23),
+#               silent (Leu54=), unknown (Met1?, p.?), and no-protein (p.0).
+#               Predicted forms may be wrapped in parentheses, p.(Gly56Ala).
+#
+# Deferred to a later phase: coordinate ordering, allele and multi-variant
+# lists ([...];[...]), conversions, repeated sequences (GGC[21]), uncertain
+# positions ((?_-1)), and reference-less descriptions.
+pattern: '(?:[NX][CGMRWTPZ]_[0-9]{6,}|LRG_[0-9]+(?:[tp][0-9]+)?|ENS[A-Z]*[GTP][0-9]{11}|[A-Za-z]{1,4}[0-9]{5,8})(?:\.[0-9]+)?(?:\([A-Za-z0-9_.-]+\))?:(?:[gomcnr]\.(?:[-*]?[0-9]+(?:[+-][0-9]+)?[ACGTUNacgtun]>[ACGTUNacgtun]|[-*]?[0-9]+(?:[+-][0-9]+)?(?:_[-*]?[0-9]+(?:[+-][0-9]+)?)?del[ACGTUNacgtun]*|[-*]?[0-9]+(?:[+-][0-9]+)?(?:_[-*]?[0-9]+(?:[+-][0-9]+)?)?dup[ACGTUNacgtun]*|[-*]?[0-9]+(?:[+-][0-9]+)?_[-*]?[0-9]+(?:[+-][0-9]+)?ins[ACGTUNacgtun]+|[-*]?[0-9]+(?:[+-][0-9]+)?(?:_[-*]?[0-9]+(?:[+-][0-9]+)?)?delins[ACGTUNacgtun]+|[-*]?[0-9]+(?:[+-][0-9]+)?_[-*]?[0-9]+(?:[+-][0-9]+)?inv[ACGTUNacgtun]*|[-*]?[0-9]+(?:[+-][0-9]+)?(?:_[-*]?[0-9]+(?:[+-][0-9]+)?)?=|=)|p\.(?:(?:(?:Ala|Arg|Asn|Asp|Cys|Gln|Glu|Gly|His|Ile|Leu|Lys|Met|Phe|Pro|Ser|Thr|Trp|Tyr|Val|Sec|Pyl|Ter)[0-9]+(?:(?:(?:Ala|Arg|Asn|Asp|Cys|Gln|Glu|Gly|His|Ile|Leu|Lys|Met|Phe|Pro|Ser|Thr|Trp|Tyr|Val|Sec|Pyl|Ter)|\*)|\?|=|(?:(?:Ala|Arg|Asn|Asp|Cys|Gln|Glu|Gly|His|Ile|Leu|Lys|Met|Phe|Pro|Ser|Thr|Trp|Tyr|Val|Sec|Pyl|Ter))?fs(?:(?:Ter|\*)(?:[0-9]+|\?))?|(?:_(?:Ala|Arg|Asn|Asp|Cys|Gln|Glu|Gly|His|Ile|Leu|Lys|Met|Phe|Pro|Ser|Thr|Trp|Tyr|Val|Sec|Pyl|Ter)[0-9]+)?(?:del|dup|delins(?:(?:Ala|Arg|Asn|Asp|Cys|Gln|Glu|Gly|His|Ile|Leu|Lys|Met|Phe|Pro|Ser|Thr|Trp|Tyr|Val|Sec|Pyl|Ter))+)|_(?:Ala|Arg|Asn|Asp|Cys|Gln|Glu|Gly|His|Ile|Leu|Lys|Met|Phe|Pro|Ser|Thr|Trp|Tyr|Val|Sec|Pyl|Ter)[0-9]+ins(?:(?:Ala|Arg|Asn|Asp|Cys|Gln|Glu|Gly|His|Ile|Leu|Lys|Met|Phe|Pro|Ser|Thr|Trp|Tyr|Val|Sec|Pyl|Ter))+)|0\??|=|\?)|\((?:(?:Ala|Arg|Asn|Asp|Cys|Gln|Glu|Gly|His|Ile|Leu|Lys|Met|Phe|Pro|Ser|Thr|Trp|Tyr|Val|Sec|Pyl|Ter)[0-9]+(?:(?:(?:Ala|Arg|Asn|Asp|Cys|Gln|Glu|Gly|His|Ile|Leu|Lys|Met|Phe|Pro|Ser|Thr|Trp|Tyr|Val|Sec|Pyl|Ter)|\*)|\?|=|(?:(?:Ala|Arg|Asn|Asp|Cys|Gln|Glu|Gly|His|Ile|Leu|Lys|Met|Phe|Pro|Ser|Thr|Trp|Tyr|Val|Sec|Pyl|Ter))?fs(?:(?:Ter|\*)(?:[0-9]+|\?))?|(?:_(?:Ala|Arg|Asn|Asp|Cys|Gln|Glu|Gly|His|Ile|Leu|Lys|Met|Phe|Pro|Ser|Thr|Trp|Tyr|Val|Sec|Pyl|Ter)[0-9]+)?(?:del|dup|delins(?:(?:Ala|Arg|Asn|Asp|Cys|Gln|Glu|Gly|His|Ile|Leu|Lys|Met|Phe|Pro|Ser|Thr|Trp|Tyr|Val|Sec|Pyl|Ter))+)|_(?:Ala|Arg|Asn|Asp|Cys|Gln|Glu|Gly|His|Ile|Leu|Lys|Met|Phe|Pro|Ser|Thr|Trp|Tyr|Val|Sec|Pyl|Ter)[0-9]+ins(?:(?:Ala|Arg|Asn|Asp|Cys|Gln|Glu|Gly|His|Ile|Leu|Lys|Met|Phe|Pro|Ser|Thr|Trp|Tyr|Val|Sec|Pyl|Ter))+)|0\??|=|\?)\)))'
+species_aware: false
+version_aware: false
+# remote mode checks a variant against the Mutalyzer normalizer, which confirms
+# the reference sequence exists and the change is consistent with it (the stated
+# reference base, and coordinates in range). This goes beyond the offline syntax
+# check. Only inputs that pass the offline grammar are looked up.
+remote:
+  resolver: mutalyzer
+provenance:
+  pattern_source: hgvs-nomenclature
+  homepage: https://hgvs-nomenclature.org

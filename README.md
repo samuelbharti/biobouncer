@@ -14,6 +14,10 @@
 > **Status: early development.** The API described below is the intended public
 > surface and may change before the first tagged release.
 
+**Documentation:** [R package](https://samuelbharti.github.io/biogate/r/) (pkgdown)
+and [Python package](https://samuelbharti.github.io/biogate/py/) (MkDocs), from
+one [landing page](https://samuelbharti.github.io/biogate/).
+
 ---
 
 ## Why biogate
@@ -59,14 +63,14 @@ the right subdirectory (or use a published channel).
 
 ```r
 # R-universe — binary installs, recommended before the first CRAN release
-install.packages("biogate", repos = "https://YOURORG.r-universe.dev")
+install.packages("biogate", repos = "https://samuelbharti.r-universe.dev")
 
 # CRAN (once released)
 install.packages("biogate")
 
 # development version from GitHub (package is in the pkg-r/ subdirectory)
-pak::pak("YOURORG/biogate/pkg-r")
-# or: remotes::install_github("YOURORG/biogate", subdir = "pkg-r")
+pak::pak("samuelbharti/biogate/pkg-r")
+# or: remotes::install_github("samuelbharti/biogate", subdir = "pkg-r")
 ```
 
 **Python**
@@ -75,7 +79,7 @@ pak::pak("YOURORG/biogate/pkg-r")
 pip install biogate
 
 # development version from GitHub (package is in the pkg-py/ subdirectory)
-pip install "git+https://github.com/YOURORG/biogate.git#subdirectory=pkg-py"
+pip install "git+https://github.com/samuelbharti/biogate.git#subdirectory=pkg-py"
 ```
 
 ## Quickstart

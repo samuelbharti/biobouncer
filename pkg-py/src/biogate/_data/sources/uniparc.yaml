@@ -1,0 +1,11 @@
+key: uniparc
+name: UniParc
+description: UniParc identifiers for unique protein sequences.
+# UPI and ten uppercase hexadecimal characters. A lowercase input is
+# suggested in its canonical case.
+pattern: 'UPI[0-9A-F]{10}'
+normalize:
+  case: upper
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.uniprot.org/uniparc

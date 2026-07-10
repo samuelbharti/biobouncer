@@ -1,0 +1,19 @@
+key: cl
+name: Cell Ontology
+description: Cell Ontology terms for cell types.
+# CURIE core pattern in ASCII classes so R (PCRE) and Python (re) agree.
+pattern: "CL:[0-9]{7}"
+species_aware: false
+version_aware: true
+curie:
+  prefix: CL
+  pad_to: 7
+cache:
+  builder: obo
+  obo_url: http://purl.obolibrary.org/obo/cl.obo
+remote:
+  resolver: ols
+  ols_ontology: cl
+provenance:
+  pattern_source: bioregistry
+  homepage: https://obophenotype.github.io/cell-ontology

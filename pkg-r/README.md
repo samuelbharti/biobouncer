@@ -3,8 +3,9 @@
 This directory holds the R package for biogate. See the repository root
 `README.md` for what biogate does and `PLAN.md` for the architecture.
 
-The package is in early development. Offline `pattern` and `cache` modes work for
-an initial set of sources. `remote` mode is not implemented yet.
+The package is in early development. Offline `pattern` and `cache` modes, live
+`remote` mode, and `existence` mode (snapshot first, then remote) work for an
+initial set of sources.
 
 ## Usage
 
@@ -33,6 +34,32 @@ is_valid_id("P04637", source_db = "uniprot")
 `check_id()` returns a tibble with one row per input and the columns `input`,
 `valid`, `normalized`, `suggestion`, `source_db`, `version`, `species`, and
 `how`.
+
+## Validation frameworks
+
+Adapters wrap the core classifier so it plugs into common validation
+frameworks. They never reimplement any checks.
+
+```r
+# checkmate style: check, assert, or test.
+check_valid_id(c("MONDO:0005148", "mondo:5148"), "mondo")
+assert_valid_id("MONDO:0005148", "mondo")
+test_valid_id("MONDO:0005148", "mondo")
+
+# shinyvalidate rule.
+iv <- shinyvalidate::InputValidator$new()
+iv$add_rule("term", sv_biogate("mondo"))
+
+# Data-frame validation. id_predicate() returns an elementwise predicate.
+is_mondo <- id_predicate("mondo")
+
+# assertr:
+df |> assertr::assert(is_mondo, term)
+
+# validate:
+rules <- validate::validator(good_terms = is_mondo(term))
+validate::confront(df, rules)
+```
 
 ## Development
 

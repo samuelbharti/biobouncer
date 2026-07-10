@@ -1,0 +1,11 @@
+key: cosmic
+name: COSMIC
+description: COSMIC identifiers for somatic mutations.
+# COSM (legacy) or COSV (current) and digits. A lowercase input is
+# suggested in its canonical case.
+pattern: 'COS[MV][0-9]+'
+normalize:
+  case: upper
+provenance:
+  pattern_source: bioregistry
+  homepage: https://cancer.sanger.ac.uk/cosmic
