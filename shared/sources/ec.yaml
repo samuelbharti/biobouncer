@@ -1,0 +1,9 @@
+key: ec
+name: EC number
+description: Enzyme Commission numbers for enzyme-catalysed reactions.
+# Four dot-separated fields. The last may be a dash for an incomplete
+# classification. No prefix is part of the number itself.
+pattern: '[0-9]+\.[0-9]+\.[0-9]+\.(?:[0-9]+|-)'
+provenance:
+  pattern_source: bioregistry
+  homepage: https://enzyme.expasy.org

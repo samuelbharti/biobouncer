@@ -1,0 +1,11 @@
+key: drugbank
+name: DrugBank
+description: DrugBank accession numbers for drugs.
+# DB and exactly five digits. Ids are uppercase; a lowercase input is
+# suggested in its canonical case.
+pattern: 'DB[0-9]{5}'
+normalize:
+  case: upper
+provenance:
+  pattern_source: bioregistry
+  homepage: https://go.drugbank.com
