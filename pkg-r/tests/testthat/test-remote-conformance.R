@@ -59,6 +59,14 @@
       id = utils::URLdecode(mut[2])
     ))
   }
+  snp <- regmatches(url, regexec("refsnp/([0-9]+)", url))[[1]]
+  if (length(snp) == 2L) {
+    return(list(
+      resolver = "dbsnp",
+      subkey = "refsnp",
+      id = paste0("rs", snp[2])
+    ))
+  }
   stop("could not parse resolver and id from url: ", url)
 }
 

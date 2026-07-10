@@ -147,6 +147,19 @@
   isTRUE(as.integer(body$organism$taxonId) == as.integer(taxon))
 }
 
+# The primary rsID number a merged RefSNP record points to, or NULL for a
+# primary record.
+.dbsnp_merged_into <- function(body) {
+  merged <- tryCatch(
+    body$merged_snapshot_data$merged_into,
+    error = function(e) NULL
+  )
+  if (is.null(merged) || length(merged) == 0L) {
+    return(NULL)
+  }
+  as.character(merged[[1]])
+}
+
 # Resolver definitions. Each maps a source and id to a URL, decides existence
 # from a status and body, and names the minimal body to persist. A resolver is
 # selected by source$remote$resolver and names its cache and fixture subtree.
@@ -288,6 +301,45 @@
     # An HGVS variant is named against a specific reference, not a species map.
     species_ok = function(source, id, body, species) TRUE,
     retired = function(source, body) list(retired = FALSE, successor = NULL)
+  ),
+  dbsnp = list(
+    name = "dbsnp",
+    subkey = function(source) "refsnp",
+    url = function(source, id) {
+      number <- if (startsWith(tolower(id), "rs")) substring(id, 3) else id
+      paste0("https://api.ncbi.nlm.nih.gov/variation/v0/refsnp/", number)
+    },
+    exists = function(status, body) {
+      if (status == 200) {
+        return(TRUE)
+      }
+      if (status == 404) {
+        return(FALSE)
+      }
+      .remote_abort_status(status)
+    },
+    # Persist only the merge pointer; a primary record needs no body.
+    cache_body = function(status, body) {
+      if (status == 200) {
+        target <- .dbsnp_merged_into(body)
+        if (!is.null(target)) {
+          return(list(
+            merged_snapshot_data = list(merged_into = list(target))
+          ))
+        }
+      }
+      NULL
+    },
+    species_ok = function(source, id, body, species) TRUE,
+    # A merged rsID still resolves but is not current; suggest the primary id.
+    retired = function(source, body) {
+      target <- .dbsnp_merged_into(body)
+      if (!is.null(target)) {
+        list(retired = TRUE, successor = paste0("rs", target))
+      } else {
+        list(retired = FALSE, successor = NULL)
+      }
+    }
   )
 )
 
