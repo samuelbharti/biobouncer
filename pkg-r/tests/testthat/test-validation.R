@@ -55,9 +55,24 @@ test_that("source_info returns a tibble of metadata", {
   info <- source_info()
   expect_s3_class(info, "tbl_df")
   expect_true(all(
-    c("key", "name", "species_aware", "version_aware") %in% names(info)
+    c("key", "name", "example", "modes", "species_aware", "version_aware") %in%
+      names(info)
   ))
   expect_true("mondo" %in% info$key)
   expect_true(info$species_aware[info$key == "ensembl"])
   expect_false(info$species_aware[info$key == "mondo"])
+  expect_equal(info$example[info$key == "mondo"], "MONDO:0005148")
+  expect_equal(info$modes[info$key == "mondo"], "pattern, cache, remote")
+  expect_equal(info$modes[info$key == "pfam"], "pattern")
+})
+
+test_that("every source example is valid in pattern mode", {
+  info <- source_info()
+  expect_false(anyNA(info$example))
+  for (i in seq_len(nrow(info))) {
+    expect_true(
+      is_valid_id(info$example[i], info$key[i]),
+      info = paste("example for", info$key[i], "should be valid")
+    )
+  }
 })

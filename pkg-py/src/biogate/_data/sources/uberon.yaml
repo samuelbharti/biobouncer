@@ -3,6 +3,7 @@ name: Uberon
 description: Uberon cross-species anatomy ontology terms.
 # CURIE core pattern in ASCII classes so R (PCRE) and Python (re) agree.
 pattern: "UBERON:[0-9]{7}"
+example: 'UBERON:0002107'
 species_aware: false
 version_aware: true
 curie:

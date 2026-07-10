@@ -3,6 +3,7 @@ name: Mammalian Phenotype Ontology
 description: Mammalian Phenotype Ontology terms.
 # CURIE core pattern in ASCII classes so R (PCRE) and Python (re) agree.
 pattern: "MP:[0-9]{7}"
+example: 'MP:0001262'
 species_aware: false
 version_aware: true
 curie:

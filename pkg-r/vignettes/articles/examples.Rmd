@@ -1,0 +1,122 @@
+---
+title: "Examples"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(biogate)
+```
+
+Practical recipes. Each one is a short, real task. For the full list of sources
+and a valid example id for each, see the
+[sources cookbook](sources.html).
+
+## Clean a column of identifiers
+
+Split a vector into the ones that pass and the ones that do not, keeping order.
+
+```{r}
+ids <- c("MONDO:0005148", "mondo:5148", "MONDO:0018076", "banana")
+ok <- is_valid_id(ids, source_db = "mondo")
+
+ids[ok] # valid
+ids[!ok] # invalid
+```
+
+## Repair what can be repaired
+
+`check_id()` returns a `suggestion` for an input that is invalid but mappable,
+such as a lowercase prefix. Use it to fix a column instead of dropping it.
+
+```{r}
+res <- check_id(ids, source_db = "mondo")
+res$fixed <- ifelse(res$valid, res$normalized, res$suggestion)
+res[c("input", "valid", "fixed")]
+```
+
+`banana` has no repair, so its `fixed` value is `NA`.
+
+## Existence, not just shape
+
+`pattern` mode only checks the shape. To check that an id actually exists, use a
+pinned snapshot (`cache`) or the live source (`remote`).
+
+```{r}
+# offline, against the sample snapshot that ships with the package
+is_valid_id("MONDO:9999999", source_db = "mondo", how = "cache", version = "sample")
+```
+
+`MONDO:9999999` is well-formed, so it passes `pattern`, but it is not in the
+snapshot. The live check needs a network, so it is shown but not run here:
+
+```{r, eval = FALSE}
+is_valid_id("ENSG00000139618", source_db = "ensembl", how = "remote")
+```
+
+A failed `remote` lookup raises an error. It never returns a silent `FALSE`, so
+a network problem cannot be mistaken for an absent id.
+
+## Species context
+
+For species-aware sources, pass `species`. For Ensembl the species is encoded in
+the id, so even `pattern` mode can reject a well-formed id from the wrong
+species.
+
+```{r}
+is_valid_id("ENSMUSG00000059552", source_db = "ensembl", species = "mus_musculus")
+is_valid_id("ENSMUSG00000059552", source_db = "ensembl", species = "homo_sapiens")
+```
+
+## Guard a pipeline with checkmate
+
+The checkmate-style adapters check, assert, or test a vector against a source.
+
+```{r}
+# a friendly message instead of TRUE when something is off
+check_valid_id(c("MONDO:0005148", "mondo:5148"), "mondo")
+
+# a single logical, handy in `if` and `stopifnot`
+test_valid_id("MONDO:0005148", "mondo")
+```
+
+## Validate a data frame with assertr or validate
+
+`id_predicate()` returns an elementwise predicate, which is what data-frame
+validators expect.
+
+```{r}
+is_mondo <- id_predicate("mondo")
+ids[is_mondo(ids)]
+```
+
+Drop it straight into a pipeline. These need the `assertr` or `validate`
+package, so they are shown but not run here:
+
+```{r, eval = FALSE}
+# assertr, inside a dplyr pipeline
+df |> assertr::assert(id_predicate("mondo"), term)
+
+# validate
+rules <- validate::validator(good_terms = id_predicate("mondo")(term))
+validate::confront(df, rules)
+```
+
+## Validate a Shiny input
+
+`sv_biogate()` returns a shinyvalidate rule. It returns `NULL` for a valid input
+and a message otherwise.
+
+```{r}
+rule <- sv_biogate("mondo")
+rule("MONDO:0005148") # NULL, valid
+rule("mondo:5148") # a message
+```
+
+## Discover sources in code
+
+You never need to hard-code a key or guess an example. `source_info()` lists
+every source with a valid example and its supported modes.
+
+```{r}
+source_info()
+```

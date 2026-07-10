@@ -3,6 +3,7 @@ name: Human Phenotype Ontology
 description: Human Phenotype Ontology terms for phenotypic abnormalities.
 # CURIE core pattern in ASCII classes so R (PCRE) and Python (re) agree.
 pattern: "HP:[0-9]{7}"
+example: 'HP:0001250'
 species_aware: false
 version_aware: true
 curie:

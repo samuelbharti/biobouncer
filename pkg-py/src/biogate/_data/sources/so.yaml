@@ -3,6 +3,7 @@ name: Sequence Ontology
 description: Sequence Ontology terms for sequence features.
 # CURIE core pattern in ASCII classes so R (PCRE) and Python (re) agree.
 pattern: "SO:[0-9]{7}"
+example: 'SO:0000704'
 species_aware: false
 version_aware: true
 curie:

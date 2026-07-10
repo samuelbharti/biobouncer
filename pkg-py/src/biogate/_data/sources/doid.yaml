@@ -3,6 +3,7 @@ name: Human Disease Ontology
 description: Human Disease Ontology terms.
 # CURIE core pattern in ASCII classes so R (PCRE) and Python (re) agree.
 pattern: "DOID:[0-9]+"
+example: 'DOID:9352'
 species_aware: false
 version_aware: true
 curie:

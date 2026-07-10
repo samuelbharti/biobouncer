@@ -2,6 +2,7 @@ key: go
 name: Gene Ontology
 description: Gene Ontology terms for molecular function, process, and component.
 pattern: "GO:[0-9]{7}"
+example: 'GO:0006915'
 species_aware: false
 version_aware: true
 curie:

@@ -22,6 +22,16 @@ class Source:
     cache: dict | None
     remote: dict | None
     species: dict | None = None
+    example: str | None = None
+
+    def modes(self) -> list[str]:
+        """Return the checking modes this source supports, in order."""
+        out = ["pattern"]
+        if self.cache:
+            out.append("cache")
+        if self.remote:
+            out.append("remote")
+        return out
 
 
 @functools.lru_cache(maxsize=1)
@@ -44,6 +54,7 @@ def _registry() -> dict[str, Source]:
             cache=spec.get("cache"),
             remote=spec.get("remote"),
             species=spec.get("species"),
+            example=spec.get("example"),
         )
     return out
 
@@ -51,6 +62,38 @@ def _registry() -> dict[str, Source]:
 def sources() -> list[str]:
     """Return the sorted list of available source keys."""
     return sorted(_registry())
+
+
+def source_info() -> list[dict]:
+    """Describe every source, one dict per source, sorted by key.
+
+    Each dict answers "what does a valid id look like and how can I check it?".
+
+    Returns:
+        A list of dicts with keys ``key``, ``name``, ``example`` (a valid
+        identifier for the source), ``modes`` (the checking modes it supports),
+        ``species_aware``, and ``version_aware``.
+
+    Example:
+        >>> import biogate as bg
+        >>> info = {row["key"]: row for row in bg.source_info()}
+        >>> info["mondo"]["example"]
+        'MONDO:0005148'
+        >>> info["mondo"]["modes"]
+        ['pattern', 'cache', 'remote']
+    """
+    reg = _registry()
+    return [
+        {
+            "key": src.key,
+            "name": src.name,
+            "example": src.example,
+            "modes": src.modes(),
+            "species_aware": src.species_aware,
+            "version_aware": src.version_aware,
+        }
+        for src in (reg[k] for k in sorted(reg))
+    ]
 
 
 def get_source(key: str) -> Source:

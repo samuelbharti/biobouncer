@@ -18,12 +18,12 @@ from ._cache import (
     pull,
     snapshots,
 )
-from ._registry import sources
+from ._registry import source_info, sources
 from ._remote import NoResolverError, RemoteError
 from ._result import Result
 from .core import check_id, is_valid_id
 
-__version__ = "0.1.0.dev0"
+__version__ = "0.1.0"
 
 __all__ = [
     "MissingSnapshotError",
@@ -37,6 +37,7 @@ __all__ = [
     "is_valid_id",
     "pull",
     "snapshots",
+    "source_info",
     "sources",
     "__version__",
 ]

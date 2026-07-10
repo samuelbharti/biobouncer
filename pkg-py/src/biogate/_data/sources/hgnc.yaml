@@ -6,6 +6,7 @@ description: Approved HUGO Gene Nomenclature Committee gene symbols.
 # against the approved-symbol snapshot; a withdrawn or previous symbol resolves
 # to its approved successor through the snapshot's retired-map sidecar.
 pattern: "[A-Za-z0-9][A-Za-z0-9._@-]*"
+example: 'TP53'
 species_aware: false
 version_aware: true
 provenance:

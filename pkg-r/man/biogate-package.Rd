@@ -12,6 +12,7 @@ A gate for biological inputs. Validate gene symbols, ontology terms, variant for
 Useful links:
 \itemize{
   \item \url{https://github.com/samuelbharti/biogate}
+  \item \url{https://www.samuelbharti.com/biogate/r/}
   \item Report bugs at \url{https://github.com/samuelbharti/biogate/issues}
 }
 

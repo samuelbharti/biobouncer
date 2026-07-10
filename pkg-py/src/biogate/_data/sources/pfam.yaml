@@ -4,6 +4,7 @@ description: Pfam identifiers for protein families and domains.
 # PF and exactly five digits. Ids are uppercase; a lowercase input is
 # suggested in its canonical case.
 pattern: 'PF[0-9]{5}'
+example: 'PF00001'
 normalize:
   case: upper
 provenance:

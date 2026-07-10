@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "biogate"
-version = "0.1.0.dev0"
+version = "0.1.0"
 description = "A gate for biological inputs: validate identifiers and inputs the same way in R and Python."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -13,7 +13,7 @@ license-files = ["LICENSE"]
 authors = [{ name = "Samuel Bharti", email = "samuelbharti.io@gmail.com" }]
 keywords = ["bioinformatics", "validation", "identifiers", "ontology"]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
