@@ -1,5 +1,9 @@
 # biogate 0.0.0.9000
 
+* Adds `drugbank`, `clinvar`, and `ec` `pattern` sources for drug accessions
+  (`DB00001`), ClinVar records (`VCV000012345`), and Enzyme Commission numbers
+  (`1.1.1.1`). The first two suggest the canonical uppercase for a lowercase
+  input.
 * Adds `pfam`, `rfam`, and `prosite` `pattern` sources for protein families
   (`PF00001`), RNA families (`RF00001`), and PROSITE patterns and profiles
   (`PS00001`). Each suggests the canonical uppercase for a lowercase input.
