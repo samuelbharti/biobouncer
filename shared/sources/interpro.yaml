@@ -1,0 +1,11 @@
+key: interpro
+name: InterPro
+description: InterPro identifiers for protein families, domains, and sites.
+# IPR and exactly six digits. Ids are uppercase; a lowercase input is suggested
+# in its canonical case.
+pattern: 'IPR[0-9]{6}'
+normalize:
+  case: upper
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.ebi.ac.uk/interpro
