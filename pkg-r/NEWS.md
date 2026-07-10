@@ -1,5 +1,8 @@
 # biogate 0.0.0.9000
 
+* Adds `reactome` and `interpro` `pattern` sources. `reactome` checks Reactome
+  stable ids such as `R-HSA-68886`, and `interpro` checks InterPro ids such as
+  `IPR000001`. Both suggest the canonical uppercase for a lowercase input.
 * Adds two more `pattern` sources. `chembl` checks ChEMBL identifiers such as
   `CHEMBL25`, and `pdb` checks Protein Data Bank structure ids such as `4HHB`.
   Both suggest the canonical uppercase for a lowercase input.

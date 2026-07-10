@@ -1,0 +1,6 @@
+{"input": "IPR000001", "source_db": "interpro", "how": "pattern", "expect": {"valid": true, "normalized": "IPR000001"}, "note": "canonical entry (Kringle domain)"}
+{"input": "IPR036388", "source_db": "interpro", "how": "pattern", "expect": {"valid": true, "normalized": "IPR036388"}, "note": "entry with a higher number"}
+{"input": "ipr000001", "source_db": "interpro", "how": "pattern", "expect": {"valid": false, "suggestion": "IPR000001"}, "note": "lowercase is suggestible to the canonical uppercase"}
+{"input": "IPR00001", "source_db": "interpro", "how": "pattern", "expect": {"valid": false}, "note": "five digits, one short"}
+{"input": "IPR0000001", "source_db": "interpro", "how": "pattern", "expect": {"valid": false}, "note": "seven digits, one too many"}
+{"input": "IPR", "source_db": "interpro", "how": "pattern", "expect": {"valid": false}, "note": "prefix without digits"}
