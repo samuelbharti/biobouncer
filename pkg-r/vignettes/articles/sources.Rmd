@@ -33,7 +33,7 @@ pinned snapshot, and `remote` checks existence against the live source. See
 | MONDO Disease Ontology. Cross-referenced disease terms from the Monarch Initiative. | `mondo` | `MONDO:0005148` | pattern, cache, remote | no |
 | Human Disease Ontology. Human diseases, mapped to other disease vocabularies. | `doid` | `DOID:9352` | pattern, cache, remote | no |
 | Experimental Factor Ontology. Diseases, traits, and measurements from the GWAS Catalog and Open Targets. | `efo` | `EFO:0000400` | pattern, cache, remote | no |
-| Orphanet. Rare diseases. | `orphanet` | `ORPHA:558` | pattern | no |
+| Orphanet. Rare diseases. | `orphanet` | `ORPHA:558` | pattern, remote | no |
 
 Check any id in the group the same way:
 

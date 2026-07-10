@@ -1,5 +1,9 @@
 # biogate (development version)
 
+* `orphanet` gains `remote` mode. A rare-disease id is checked against the
+  Orphanet Rare Disease Ontology in the Ontology Lookup Service, reusing the OLS
+  resolver. The `ORPHA` prefix is rewritten to the ontology's `Orphanet` prefix
+  for the lookup, and an obsolete term is reported with its successor.
 * `clinvar` gains `remote` mode. An accession is checked for existence by
   searching ClinVar through NCBI E-utilities. One search covers all three
   accession types (VCV, RCV, and SCV). This is an existence check only.
