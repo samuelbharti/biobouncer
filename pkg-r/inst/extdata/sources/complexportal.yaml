@@ -1,0 +1,11 @@
+key: complexportal
+name: Complex Portal
+description: Complex Portal identifiers for macromolecular complexes.
+# CPX, a hyphen, and digits. A lowercase input is suggested in its
+# canonical case.
+pattern: 'CPX-[0-9]+'
+normalize:
+  case: upper
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.ebi.ac.uk/complexportal

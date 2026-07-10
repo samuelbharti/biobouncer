@@ -1,0 +1,4 @@
+{"input": "PA267", "source_db": "pharmgkb", "how": "pattern", "expect": {"valid": true, "normalized": "PA267"}, "note": "a PharmGKB accession"}
+{"input": "PA124", "source_db": "pharmgkb", "how": "pattern", "expect": {"valid": true, "normalized": "PA124"}, "note": "another accession"}
+{"input": "pa267", "source_db": "pharmgkb", "how": "pattern", "expect": {"valid": false, "suggestion": "PA267"}, "note": "lowercase is suggestible to uppercase"}
+{"input": "PA", "source_db": "pharmgkb", "how": "pattern", "expect": {"valid": false}, "note": "prefix without digits"}

@@ -1,0 +1,10 @@
+key: pharmgkb
+name: PharmGKB
+description: PharmGKB accession identifiers.
+# PA and digits. A lowercase input is suggested in its canonical case.
+pattern: 'PA[0-9]+'
+normalize:
+  case: upper
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.pharmgkb.org
