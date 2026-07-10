@@ -1,0 +1,19 @@
+key: pato
+name: Phenotype And Trait Ontology
+description: Phenotype and Trait Ontology terms for qualities.
+# CURIE core pattern in ASCII classes so R (PCRE) and Python (re) agree.
+pattern: "PATO:[0-9]{7}"
+species_aware: false
+version_aware: true
+curie:
+  prefix: PATO
+  pad_to: 7
+cache:
+  builder: obo
+  obo_url: http://purl.obolibrary.org/obo/pato.obo
+remote:
+  resolver: ols
+  ols_ontology: pato
+provenance:
+  pattern_source: bioregistry
+  homepage: https://github.com/pato-ontology/pato

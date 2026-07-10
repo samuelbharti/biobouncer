@@ -1,0 +1,19 @@
+key: mp
+name: Mammalian Phenotype Ontology
+description: Mammalian Phenotype Ontology terms.
+# CURIE core pattern in ASCII classes so R (PCRE) and Python (re) agree.
+pattern: "MP:[0-9]{7}"
+species_aware: false
+version_aware: true
+curie:
+  prefix: MP
+  pad_to: 7
+cache:
+  builder: obo
+  obo_url: http://purl.obolibrary.org/obo/mp.obo
+remote:
+  resolver: ols
+  ols_ontology: mp
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.informatics.jax.org/vocab/mp_ontology
