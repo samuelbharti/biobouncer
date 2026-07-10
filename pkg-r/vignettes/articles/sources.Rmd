@@ -89,7 +89,7 @@ is_valid_id("TP53", source_db = "hgnc")
 |---|---|---|---|---|
 | dbSNP. dbSNP reference SNP ids. | `dbsnp` | `rs7412` | pattern, remote | no |
 | HGVS. HGVS sequence variant syntax, such as a coding substitution. | `hgvs` | `NM_004006.2:c.4375C>T` | pattern, remote | no |
-| ClinVar. ClinVar variation, record, and submission accessions. | `clinvar` | `VCV000012345` | pattern | no |
+| ClinVar. ClinVar variation, record, and submission accessions. | `clinvar` | `VCV000012345` | pattern, remote | no |
 | COSMIC. COSMIC somatic mutation ids. | `cosmic` | `COSM476` | pattern | no |
 
 Check any id in the group the same way:

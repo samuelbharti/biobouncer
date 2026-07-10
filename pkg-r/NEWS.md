@@ -1,5 +1,8 @@
 # biogate (development version)
 
+* `clinvar` gains `remote` mode. An accession is checked for existence by
+  searching ClinVar through NCBI E-utilities. One search covers all three
+  accession types (VCV, RCV, and SCV). This is an existence check only.
 * `refseq` gains `remote` mode. An accession is checked for existence against
   NCBI E-utilities, routed to the nucleotide or protein database by its molecule
   prefix. The summary endpoint returns an empty result for an unknown accession.
