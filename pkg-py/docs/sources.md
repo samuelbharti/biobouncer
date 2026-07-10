@@ -102,7 +102,7 @@ bg.is_valid_id("rs7412", source_db="dbsnp")
 |---|---|---|---|---|
 | UniProt. UniProt protein accessions. Species-aware. | `uniprot` | `P04637` | pattern, remote | yes |
 | UniParc. UniParc unique sequence identifiers. | `uniparc` | `UPI0000000001` | pattern | no |
-| PDB. Protein Data Bank structures. | `pdb` | `4HHB` | pattern | no |
+| PDB. Protein Data Bank structures. | `pdb` | `4HHB` | pattern, remote | no |
 | Complex Portal. Macromolecular complexes. | `complexportal` | `CPX-2158` | pattern | no |
 
 Check any id in the group the same way:
