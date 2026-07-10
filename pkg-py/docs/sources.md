@@ -101,9 +101,9 @@ bg.is_valid_id("rs7412", source_db="dbsnp")
 | Source | `source_db` | Example | Modes | Species-aware |
 |---|---|---|---|---|
 | UniProt. UniProt protein accessions. Species-aware. | `uniprot` | `P04637` | pattern, remote | yes |
-| UniParc. UniParc unique sequence identifiers. | `uniparc` | `UPI0000000001` | pattern | no |
+| UniParc. UniParc unique sequence identifiers. | `uniparc` | `UPI0000000001` | pattern, remote | no |
 | PDB. Protein Data Bank structures. | `pdb` | `4HHB` | pattern, remote | no |
-| Complex Portal. Macromolecular complexes. | `complexportal` | `CPX-2158` | pattern | no |
+| Complex Portal. Macromolecular complexes. | `complexportal` | `CPX-2158` | pattern, remote | no |
 
 Check any id in the group the same way:
 
@@ -159,7 +159,7 @@ bg.is_valid_id("CHEBI:15377", source_db="chebi")
 | Source | `source_db` | Example | Modes | Species-aware |
 |---|---|---|---|---|
 | Reactome. Reactome pathways, reactions, and entities. | `reactome` | `R-HSA-68886` | pattern, remote | no |
-| WikiPathways. Community-curated pathways. | `wikipathways` | `WP554` | pattern | no |
+| WikiPathways. Community-curated pathways. | `wikipathways` | `WP554` | pattern, remote | no |
 
 Check any id in the group the same way:
 
@@ -171,7 +171,7 @@ bg.is_valid_id("R-HSA-68886", source_db="reactome")
 
 | Source | `source_db` | Example | Modes | Species-aware |
 |---|---|---|---|---|
-| Rfam. RNA families. | `rfam` | `RF00001` | pattern | no |
+| Rfam. RNA families. | `rfam` | `RF00001` | pattern, remote | no |
 | miRBase. Mature microRNAs. | `mirbase` | `MIMAT0000001` | pattern | no |
 
 Check any id in the group the same way:

@@ -1,5 +1,10 @@
 # biogate (development version)
 
+* `rfam`, `uniparc`, `complexportal`, and `wikipathways` gain `remote` mode. Each
+  checks existence against its source: the Rfam API, the UniProt UniParc
+  endpoint, the EBI Complex Portal web service, and the published WikiPathways
+  asset. All four are existence checks; an absent id is reported as not valid
+  with no successor.
 * `interpro` and `pfam` gain `remote` mode. An accession is checked for existence
   against the EBI InterPro API, which hosts both databases, so one resolver
   serves the two sources. The entry endpoint answers 204 for a well-formed
