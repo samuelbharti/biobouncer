@@ -1,5 +1,9 @@
 # biogate 0.0.0.9000
 
+* Adds two `pattern` sources. `refseq` checks NCBI RefSeq accessions such as
+  `NM_000546.6`, with an optional version, and suggests the canonical uppercase
+  for a lowercase input. `dbsnp` checks dbSNP reference SNP ids such as `rs7412`,
+  and suggests lowercase for an uppercase prefix.
 * `hgvs` gains `remote` mode. A variant is checked against the Mutalyzer
   normalizer, which confirms the reference sequence exists and the change is
   consistent with it, such as the stated reference base and coordinates in
