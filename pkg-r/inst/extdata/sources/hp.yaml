@@ -1,0 +1,19 @@
+key: hp
+name: Human Phenotype Ontology
+description: Human Phenotype Ontology terms for phenotypic abnormalities.
+# CURIE core pattern in ASCII classes so R (PCRE) and Python (re) agree.
+pattern: "HP:[0-9]{7}"
+species_aware: false
+version_aware: true
+curie:
+  prefix: HP
+  pad_to: 7
+cache:
+  builder: obo
+  obo_url: http://purl.obolibrary.org/obo/hp.obo
+remote:
+  resolver: ols
+  ols_ontology: hp
+provenance:
+  pattern_source: bioregistry
+  homepage: https://hpo.jax.org

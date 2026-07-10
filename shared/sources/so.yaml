@@ -1,0 +1,19 @@
+key: so
+name: Sequence Ontology
+description: Sequence Ontology terms for sequence features.
+# CURIE core pattern in ASCII classes so R (PCRE) and Python (re) agree.
+pattern: "SO:[0-9]{7}"
+species_aware: false
+version_aware: true
+curie:
+  prefix: SO
+  pad_to: 7
+cache:
+  builder: obo
+  obo_url: http://purl.obolibrary.org/obo/so.obo
+remote:
+  resolver: ols
+  ols_ontology: so
+provenance:
+  pattern_source: bioregistry
+  homepage: http://www.sequenceontology.org
