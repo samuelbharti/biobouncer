@@ -31,9 +31,9 @@ length as its input.
 Returns a function of one argument that reports, element by element, whether
 each value is a valid identifier for \code{source_db}. The predicate is the shape
 that data-frame validation packages expect, so it drops straight into
-\code{assertr::assert()} or a \code{validate::validator()} rule, or into base \code{Filter()}
-and \code{vapply()}. It is the R counterpart of the pandera check in the Python
-package.
+\code{assertr::assert()}, a \code{validate::validator()} rule, or a pointblank
+\code{col_vals_expr()} step, or into base \code{Filter()} and \code{vapply()}. It is the R
+counterpart of the pandera check in the Python package.
 }
 \examples{
 is_mondo <- id_predicate("mondo")
@@ -48,6 +48,12 @@ ids[is_mondo(ids)]
 # With validate, if it is installed:
 # rules <- validate::validator(is_mondo := id_predicate("mondo")(term))
 # validate::confront(df, rules)
+
+# With pointblank, if it is installed:
+# library(pointblank)
+# create_agent(df) |>
+#   col_vals_expr(~ is_valid_id(term, "mondo")) |>
+#   interrogate()
 }
 \seealso{
 \code{\link[=is_valid_id]{is_valid_id()}}, \code{\link[=check_valid_id]{check_valid_id()}}.
