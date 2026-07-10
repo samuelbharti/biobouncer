@@ -109,6 +109,35 @@ Association(disease="MONDO:0005148", gene="ENSG00000139618")
 # a bad value raises pydantic.ValidationError
 ```
 
+## Validate a batch with Great Expectations
+
+`biogate.gx.ExpectColumnValuesToBeValidId` is a Great Expectations column-map
+expectation. Install it with `pip install "biogate[gx]"`.
+
+```python
+import pandas as pd
+import great_expectations as gx
+from biogate.gx import ExpectColumnValuesToBeValidId
+
+context = gx.get_context(mode="ephemeral")
+df = pd.DataFrame({"term": ["MONDO:0005148", "mondo:5148", "MONDO:0018076"]})
+batch = (
+    context.data_sources.add_pandas("p")
+    .add_dataframe_asset("a")
+    .add_batch_definition_whole_dataframe("b")
+    .get_batch(batch_parameters={"dataframe": df})
+)
+
+result = batch.validate(
+    ExpectColumnValuesToBeValidId(column="term", source_db="mondo")
+)
+result.success  # False: one of the three values is not valid
+```
+
+It takes `source_db`, `how`, `species`, and the usual `mostly` tolerance. To pin
+a snapshot `version`, validate with the core API first, since `version` collides
+with a reserved Great Expectations field.
+
 ## Discover sources in code
 
 You never need to hard-code a key or guess an example. `source_info` lists every

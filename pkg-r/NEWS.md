@@ -1,3 +1,17 @@
+# biogate (development version)
+
+* The Python package installs a `biogate` command-line tool. It validates
+  identifiers from arguments, a file, or standard input, prints per-id results
+  as text, TSV, or JSON, and exits non-zero when any input is invalid, so it
+  drops into shell pipelines and CI. It also has `biogate sources` and
+  `biogate info`.
+* The Python package adds a Great Expectations column-map expectation,
+  `biogate.gx.ExpectColumnValuesToBeValidId`, for validating a data frame
+  column. Install it with `pip install "biogate[gx]"`.
+* `id_predicate()` now documents its use as a pointblank `col_vals_expr()` step,
+  alongside assertr and validate. The predicate is unchanged; pointblank
+  consumes it directly.
+
 # biogate 0.1.0
 
 * First numbered release. Sets the version to 0.1.0 in both the R and Python

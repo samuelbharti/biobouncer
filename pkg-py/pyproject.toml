@@ -23,13 +23,24 @@ dependencies = ["platformdirs>=3", "pyyaml>=6"]
 [project.optional-dependencies]
 # Framework adapters. Install with: pip install biogate[adapters]
 adapters = ["pydantic>=2", "pandera[pandas]>=0.20"]
+# Great Expectations expectation. Install with: pip install biogate[gx]
+gx = ["great-expectations>=1"]
+
+[project.scripts]
+biogate = "biogate.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/samuelbharti/biogate"
 Issues = "https://github.com/samuelbharti/biogate/issues"
 
 [dependency-groups]
-dev = ["pytest>=8", "ruff>=0.15", "pydantic>=2", "pandera[pandas]>=0.20"]
+dev = [
+    "pytest>=8",
+    "ruff>=0.15",
+    "pydantic>=2",
+    "pandera[pandas]>=0.20",
+    "great-expectations>=1",
+]
 docs = [
     "mkdocs-material>=9.5",
     "mkdocstrings[python]>=0.26",
