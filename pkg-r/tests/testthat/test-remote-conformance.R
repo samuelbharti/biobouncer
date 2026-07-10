@@ -116,6 +116,10 @@
   if (length(refseq) == 3L) {
     return(list(resolver = "refseq", subkey = "esummary", id = refseq[3]))
   }
+  clinvar <- regmatches(url, regexec("db=clinvar&term=([^&]+)", url))[[1]]
+  if (length(clinvar) == 2L) {
+    return(list(resolver = "clinvar", subkey = "esearch", id = clinvar[2]))
+  }
   stop("could not parse resolver and id from url: ", url)
 }
 

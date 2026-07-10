@@ -189,6 +189,15 @@
   uids <- tryCatch(body$result$uids, error = function(e) NULL)
   length(uids) >= 1L
 }
+# The hit count from an E-utilities esearch response (it is a string).
+.esearch_count <- function(body) {
+  count <- tryCatch(body$esearchresult$count, error = function(e) NULL)
+  if (is.null(count) || length(count) == 0L) {
+    return(0L)
+  }
+  n <- suppressWarnings(as.integer(count))
+  if (is.na(n)) 0L else n
+}
 
 # Resolver definitions. Each maps a source and id to a URL, decides existence
 # from a status and body, and names the minimal body to persist. A resolver is
@@ -555,6 +564,36 @@
           uids <- list()
         }
         list(result = list(uids = as.list(uids)))
+      } else {
+        NULL
+      }
+    },
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  clinvar = list(
+    name = "clinvar",
+    subkey = function(source) "esearch",
+    # esearch matches a full accession of any type (VCV, RCV, or SCV), so one
+    # search covers the whole source.
+    url = function(source, id) {
+      paste0(
+        "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi",
+        "?db=clinvar&term=",
+        id,
+        "&retmode=json"
+      )
+    },
+    exists = function(status, body) {
+      if (status != 200) {
+        .remote_abort_status(status)
+      }
+      .esearch_count(body) >= 1L
+    },
+    # Persist only the hit count, which is all existence needs.
+    cache_body = function(status, body) {
+      if (status == 200) {
+        list(esearchresult = list(count = as.character(.esearch_count(body))))
       } else {
         NULL
       }

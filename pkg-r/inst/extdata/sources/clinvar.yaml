@@ -7,6 +7,11 @@ pattern: '(?:VCV|RCV|SCV)[0-9]{9}(?:\.[0-9]+)?'
 example: 'VCV000012345'
 normalize:
   case: upper
+# remote mode checks existence against NCBI E-utilities, searching ClinVar for
+# the accession. One search covers all three accession types. This is an
+# existence check only.
+remote:
+  resolver: clinvar
 provenance:
   pattern_source: bioregistry
   homepage: https://www.ncbi.nlm.nih.gov/clinvar

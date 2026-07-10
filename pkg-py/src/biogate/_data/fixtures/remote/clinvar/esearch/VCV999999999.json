@@ -1,0 +1,7 @@
+{
+  "resolver": "clinvar",
+  "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=clinvar&term=VCV999999999&retmode=json",
+  "recorded": "2026-07-10",
+  "status": 200,
+  "body": {"esearchresult": {"count": "0"}}
+}

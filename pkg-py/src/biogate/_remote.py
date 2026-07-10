@@ -10,7 +10,7 @@ for reference SNP ids, RCSB PDB for structure ids, ChEMBL for compound and other
 entity ids, Reactome for pathway stable ids, the EBI InterPro API for InterPro
 and Pfam accessions, Rfam for RNA families, UniParc for unique sequences, the EBI
 Complex Portal for macromolecular complexes, WikiPathways for pathways, and NCBI
-E-utilities for RefSeq accessions.
+E-utilities for RefSeq and ClinVar accessions.
 """
 
 from __future__ import annotations
@@ -40,6 +40,7 @@ _UNIPARC_BASE = "https://rest.uniprot.org/uniparc/"
 _COMPLEXPORTAL_BASE = "https://www.ebi.ac.uk/intact/complex-ws/complex/"
 _WIKIPATHWAYS_BASE = "https://www.wikipathways.org/wikipathways-assets/pathways/"
 _ESUMMARY_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
+_ESEARCH_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
 # RefSeq accessions split across two NCBI databases by their molecule prefix.
 _REFSEQ_PROTEIN_PREFIXES = frozenset({"AP", "NP", "WP", "XP", "YP", "ZP"})
 _UNSAFE_IDENT = re.compile(r"[^A-Za-z0-9._-]")
@@ -599,6 +600,34 @@ def _refseq_cache_body(status: int, body: dict | None) -> dict | None:
     return None
 
 
+def _clinvar_url(source: Source, ident: str) -> str:
+    # esearch matches a full accession of any type (VCV, RCV, or SCV), so one
+    # search covers the whole source.
+    return f"{_ESEARCH_BASE}?db=clinvar&term={ident}&retmode=json"
+
+
+def _esearch_count(body: dict | None) -> int:
+    """The hit count from an E-utilities esearch response (it is a string)."""
+    result = (body or {}).get("esearchresult") or {}
+    try:
+        return int(result.get("count") or 0)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _clinvar_exists(status: int, body: dict | None) -> bool:
+    if status != 200:
+        raise RemoteError(f"NCBI E-utilities returned unexpected status {status}.")
+    return _esearch_count(body) >= 1
+
+
+def _clinvar_cache_body(status: int, body: dict | None) -> dict | None:
+    # Persist only the hit count, which is all existence needs.
+    if status == 200:
+        return {"esearchresult": {"count": str(_esearch_count(body))}}
+    return None
+
+
 _OLS = Resolver(
     name="ols",
     subkey=_ols_subkey,
@@ -737,6 +766,16 @@ _REFSEQ = Resolver(
     retired=_never_retired,
 )
 
+_CLINVAR = Resolver(
+    name="clinvar",
+    subkey=lambda source: "esearch",
+    url=_clinvar_url,
+    exists=_clinvar_exists,
+    cache_body=_clinvar_cache_body,
+    species_ok=_species_agnostic,
+    retired=_never_retired,
+)
+
 _RESOLVERS = {
     "ols": _OLS,
     "ensembl": _ENSEMBL,
@@ -752,6 +791,7 @@ _RESOLVERS = {
     "complexportal": _COMPLEXPORTAL,
     "wikipathways": _WIKIPATHWAYS,
     "refseq": _REFSEQ,
+    "clinvar": _CLINVAR,
 }
 
 

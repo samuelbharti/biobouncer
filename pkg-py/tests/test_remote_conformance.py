@@ -29,6 +29,7 @@ _UNIPARC_RE = re.compile(r"uniparc/([^.?/]+)")
 _COMPLEXPORTAL_RE = re.compile(r"complex-ws/complex/([^/?]+)")
 _WIKIPATHWAYS_RE = re.compile(r"pathways/([^/]+)/")
 _REFSEQ_RE = re.compile(r"db=(?:nuccore|protein)&id=([^&]+)")
+_CLINVAR_RE = re.compile(r"db=clinvar&term=([^&]+)")
 
 
 def _load_cases():
@@ -92,6 +93,9 @@ def _resolve_fixture(url):
     match = _REFSEQ_RE.search(url)
     if match:
         return "refseq", "esummary", match.group(1)
+    match = _CLINVAR_RE.search(url)
+    if match:
+        return "clinvar", "esearch", match.group(1)
     raise AssertionError(f"could not parse remote url: {url!r}")
 
 
