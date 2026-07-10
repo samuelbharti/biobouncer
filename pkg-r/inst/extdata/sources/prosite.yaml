@@ -1,0 +1,11 @@
+key: prosite
+name: PROSITE
+description: PROSITE identifiers for protein patterns and profiles.
+# PS and exactly five digits. Ids are uppercase; a lowercase input is
+# suggested in its canonical case.
+pattern: 'PS[0-9]{5}'
+normalize:
+  case: upper
+provenance:
+  pattern_source: bioregistry
+  homepage: https://prosite.expasy.org
