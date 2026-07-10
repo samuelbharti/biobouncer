@@ -1,0 +1,8 @@
+bibentry(
+  bibtype  = "Manual",
+  title    = "biogate: Validate Biological Identifiers and Inputs",
+  author   = person("Samuel", "Bharti"),
+  year     = "2026",
+  note     = "R package version 0.0.0.9000",
+  url      = "https://github.com/samuelbharti/biogate"
+)
