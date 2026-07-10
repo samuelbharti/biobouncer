@@ -7,7 +7,7 @@ focused checks on representative shapes and on the pattern-only contract.
 import pytest
 
 import biogate
-from biogate import NoResolverError
+from biogate import MissingSnapshotError
 
 VALID = [
     "NM_004006.2:c.4375C>T",
@@ -39,6 +39,9 @@ def test_malformed_variants_are_invalid(variant):
     assert biogate.is_valid_id(variant, "hgvs") is False
 
 
-def test_hgvs_is_pattern_only():
-    with pytest.raises(NoResolverError):
-        biogate.check_id("NM_004006.2:c.4375C>T", "hgvs", how="remote")
+def test_hgvs_cache_mode_has_no_snapshot(tmp_path, monkeypatch):
+    # hgvs supports pattern (syntax) and remote (Mutalyzer) modes. It ships no
+    # cache snapshot, so cache mode reports the missing snapshot explicitly.
+    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    with pytest.raises(MissingSnapshotError):
+        biogate.check_id("NM_004006.2:c.4375C>T", "hgvs", how="cache", version="sample")

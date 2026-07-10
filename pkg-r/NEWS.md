@@ -1,5 +1,10 @@
 # biogate 0.0.0.9000
 
+* `hgvs` gains `remote` mode. A variant is checked against the Mutalyzer
+  normalizer, which confirms the reference sequence exists and the change is
+  consistent with it, such as the stated reference base and coordinates in
+  range. This goes beyond the offline syntax check. Only inputs that pass the
+  offline grammar are looked up, and the response is cached on disk.
 * Adds an `hgvs` source that checks the syntax of HGVS sequence variant names,
   for example `NM_004006.2:c.4375C>T` or `NP_003997.1:p.(Gly56Ala)`. This is a
   grammar check in `pattern` mode: it covers substitutions, deletions,

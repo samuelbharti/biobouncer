@@ -51,6 +51,14 @@
   if (length(uni) == 2L) {
     return(list(resolver = "uniprot", subkey = "uniprotkb", id = uni[2]))
   }
+  mut <- regmatches(url, regexec("normalize/(.+)$", url))[[1]]
+  if (length(mut) == 2L) {
+    return(list(
+      resolver = "mutalyzer",
+      subkey = "normalize",
+      id = utils::URLdecode(mut[2])
+    ))
+  }
   stop("could not parse resolver and id from url: ", url)
 }
 
@@ -64,7 +72,7 @@
     "remote",
     route$resolver,
     route$subkey,
-    paste0(gsub(":", "_", route$id), ".json"),
+    paste0(gsub("[^A-Za-z0-9._-]", "_", route$id), ".json"),
     package = "biogate"
   )
   if (!nzchar(fx_path) || !file.exists(fx_path)) {

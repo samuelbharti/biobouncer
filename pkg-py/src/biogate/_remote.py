@@ -3,15 +3,17 @@
 Remote mode mirrors cache mode, with membership in a pinned snapshot replaced by
 live existence via a resolver. A resolver names one API and knows how to build a
 lookup URL, read a status and body into an existence verdict, and reduce a
-response to the minimal body worth caching. Three resolvers ship here: OLS (EBI
-Ontology Lookup Service) for the ontology sources, Ensembl for stable ids, and
-UniProt for protein accessions.
+response to the minimal body worth caching. Four resolvers ship here: OLS (EBI
+Ontology Lookup Service) for the ontology sources, Ensembl for stable ids,
+UniProt for protein accessions, and Mutalyzer for HGVS variant descriptions.
 """
 
 from __future__ import annotations
 
 import json
+import re
 import urllib.error
+import urllib.parse
 import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -23,6 +25,18 @@ from ._registry import Source
 
 _USER_AGENT = "biogate/0.1 (+https://github.com/samuelbharti/biogate)"
 _OLS_BASE = "https://www.ebi.ac.uk/ols4/api"
+_MUTALYZER_BASE = "https://mutalyzer.nl/api/normalize/"
+_UNSAFE_IDENT = re.compile(r"[^A-Za-z0-9._-]")
+
+
+def _safe_ident(ident: str) -> str:
+    """Turn an identifier into a safe file name.
+
+    Every character outside ``[A-Za-z0-9._-]`` becomes ``_``. This keeps an id
+    with a colon, a slash, or a ``>`` (such as an HGVS variant) usable as a cache
+    or fixture file name across platforms. The rule matches ``mode-remote.R``.
+    """
+    return _UNSAFE_IDENT.sub("_", ident)
 
 
 class RemoteError(RuntimeError):
@@ -277,6 +291,41 @@ def _uniprot_retired(source: Source, body: dict | None) -> tuple[bool, str | Non
     return False, None
 
 
+def _mutalyzer_subkey(source: Source) -> str:
+    return "normalize"
+
+
+def _mutalyzer_url(source: Source, ident: str) -> str:
+    return _MUTALYZER_BASE + urllib.parse.quote(ident, safe="")
+
+
+def _mutalyzer_exists(status: int, body: dict | None) -> bool:
+    # Mutalyzer normalizes a valid variant (200) and rejects one that is not
+    # consistent with its reference (422): wrong reference base, a coordinate out
+    # of range, or a reference that does not exist.
+    if status == 200:
+        return True
+    if status == 422:
+        return False
+    raise RemoteError(f"Mutalyzer returned unexpected status {status}.")
+
+
+def _mutalyzer_cache_body(status: int, body: dict | None) -> dict | None:
+    # The status carries the whole verdict, so no body is worth persisting.
+    return None
+
+
+def _mutalyzer_species_ok(
+    source: Source, ident: str, body: dict | None, species
+) -> bool:
+    # An HGVS variant is named against a specific reference, not a species map.
+    return True
+
+
+def _mutalyzer_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
+    return False, None
+
+
 _OLS = Resolver(
     name="ols",
     subkey=_ols_subkey,
@@ -305,17 +354,28 @@ _UNIPROT = Resolver(
     retired=_uniprot_retired,
 )
 
-_RESOLVERS = {"ols": _OLS, "ensembl": _ENSEMBL, "uniprot": _UNIPROT}
+_MUTALYZER = Resolver(
+    name="mutalyzer",
+    subkey=_mutalyzer_subkey,
+    url=_mutalyzer_url,
+    exists=_mutalyzer_exists,
+    cache_body=_mutalyzer_cache_body,
+    species_ok=_mutalyzer_species_ok,
+    retired=_mutalyzer_retired,
+)
+
+_RESOLVERS = {
+    "ols": _OLS,
+    "ensembl": _ENSEMBL,
+    "uniprot": _UNIPROT,
+    "mutalyzer": _MUTALYZER,
+}
 
 
 def _remote_cache_path(resolver_name: str, subkey: str, ident: str) -> Path:
     """On-disk path for a cached remote response."""
     return (
-        cache_dir()
-        / "remote"
-        / resolver_name
-        / subkey
-        / f"{ident.replace(':', '_')}.json"
+        cache_dir() / "remote" / resolver_name / subkey / f"{_safe_ident(ident)}.json"
     )
 
 

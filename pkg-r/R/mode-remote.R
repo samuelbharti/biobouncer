@@ -47,6 +47,14 @@
   )
 }
 
+# Turn an identifier into a safe file name: every character outside
+# [A-Za-z0-9._-] becomes "_". Keeps an id with a colon, a slash, or a ">" (such
+# as an HGVS variant) usable as a cache or fixture file name. Matches the rule
+# in _remote.py.
+.safe_ident <- function(id) {
+  gsub("[^A-Za-z0-9._-]", "_", id)
+}
+
 # Cache path for a resolved id, keyed by resolver and its subdirectory.
 .remote_cache_path <- function(resolver, subkey, id) {
   file.path(
@@ -54,7 +62,7 @@
     "remote",
     resolver,
     subkey,
-    paste0(gsub(":", "_", id), ".json")
+    paste0(.safe_ident(id), ".json")
   )
 }
 
@@ -252,6 +260,33 @@
     species_ok = function(source, id, body, species) {
       .uniprot_species_ok(source, body, species)
     },
+    retired = function(source, body) list(retired = FALSE, successor = NULL)
+  ),
+  mutalyzer = list(
+    name = "mutalyzer",
+    subkey = function(source) "normalize",
+    url = function(source, id) {
+      paste0(
+        "https://mutalyzer.nl/api/normalize/",
+        utils::URLencode(id, reserved = TRUE)
+      )
+    },
+    # Mutalyzer normalizes a valid variant (200) and rejects one that is not
+    # consistent with its reference (422): a wrong reference base, a coordinate
+    # out of range, or a reference that does not exist.
+    exists = function(status, body) {
+      if (status == 200) {
+        return(TRUE)
+      }
+      if (status == 422) {
+        return(FALSE)
+      }
+      .remote_abort_status(status)
+    },
+    # The status carries the whole verdict, so no body is worth persisting.
+    cache_body = function(status, body) NULL,
+    # An HGVS variant is named against a specific reference, not a species map.
+    species_ok = function(source, id, body, species) TRUE,
     retired = function(source, body) list(retired = FALSE, successor = NULL)
   )
 )
