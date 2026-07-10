@@ -3,12 +3,13 @@
 Remote mode mirrors cache mode, with membership in a pinned snapshot replaced by
 live existence via a resolver. A resolver names one API and knows how to build a
 lookup URL, read a status and body into an existence verdict, and reduce a
-response to the minimal body worth caching. Nine resolvers ship here: OLS (EBI
+response to the minimal body worth caching. The resolvers cover OLS (EBI
 Ontology Lookup Service) for the ontology sources, Ensembl for stable ids,
 UniProt for protein accessions, Mutalyzer for HGVS variant descriptions, dbSNP
 for reference SNP ids, RCSB PDB for structure ids, ChEMBL for compound and other
-entity ids, Reactome for pathway stable ids, and InterPro for protein family and
-domain accessions, covering both InterPro and Pfam.
+entity ids, Reactome for pathway stable ids, the EBI InterPro API for InterPro
+and Pfam accessions, Rfam for RNA families, UniParc for unique sequences, the EBI
+Complex Portal for macromolecular complexes, and WikiPathways for pathways.
 """
 
 from __future__ import annotations
@@ -33,6 +34,10 @@ _RCSB_BASE = "https://data.rcsb.org/rest/v1/core/entry/"
 _CHEMBL_BASE = "https://www.ebi.ac.uk/chembl/api/data/chembl_id_lookup/"
 _REACTOME_BASE = "https://reactome.org/ContentService/data/query/"
 _INTERPRO_BASE = "https://www.ebi.ac.uk/interpro/api/entry/"
+_RFAM_BASE = "https://rfam.org/family/"
+_UNIPARC_BASE = "https://rest.uniprot.org/uniparc/"
+_COMPLEXPORTAL_BASE = "https://www.ebi.ac.uk/intact/complex-ws/complex/"
+_WIKIPATHWAYS_BASE = "https://www.wikipathways.org/wikipathways-assets/pathways/"
 _UNSAFE_IDENT = re.compile(r"[^A-Za-z0-9._-]")
 
 
@@ -514,6 +519,46 @@ def _interpro_retired(source: Source, body: dict | None) -> tuple[bool, str | No
     return False, None
 
 
+# Shared building blocks for existence-only resolvers whose whole verdict is the
+# HTTP status: 200 exists, 404 is absent, the body is never consulted, and the id
+# is neither species scoped nor tracked for retirement.
+def _exists_by_404(status: int, body: dict | None) -> bool:
+    if status == 200:
+        return True
+    if status == 404:
+        return False
+    raise RemoteError(f"Remote source returned unexpected status {status}.")
+
+
+def _no_cache_body(status: int, body: dict | None) -> dict | None:
+    return None
+
+
+def _species_agnostic(source: Source, ident: str, body: dict | None, species) -> bool:
+    return True
+
+
+def _never_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
+    return False, None
+
+
+def _rfam_url(source: Source, ident: str) -> str:
+    return f"{_RFAM_BASE}{ident}?content-type=application/json"
+
+
+def _uniparc_url(source: Source, ident: str) -> str:
+    return f"{_UNIPARC_BASE}{ident}.json"
+
+
+def _complexportal_url(source: Source, ident: str) -> str:
+    return f"{_COMPLEXPORTAL_BASE}{ident}"
+
+
+def _wikipathways_url(source: Source, ident: str) -> str:
+    # The asset path repeats the id: .../pathways/WP554/WP554.gpml.
+    return f"{_WIKIPATHWAYS_BASE}{ident}/{ident}.gpml"
+
+
 _OLS = Resolver(
     name="ols",
     subkey=_ols_subkey,
@@ -602,6 +647,46 @@ _INTERPRO = Resolver(
     retired=_interpro_retired,
 )
 
+_RFAM = Resolver(
+    name="rfam",
+    subkey=lambda source: "family",
+    url=_rfam_url,
+    exists=_exists_by_404,
+    cache_body=_no_cache_body,
+    species_ok=_species_agnostic,
+    retired=_never_retired,
+)
+
+_UNIPARC = Resolver(
+    name="uniparc",
+    subkey=lambda source: "uniparc",
+    url=_uniparc_url,
+    exists=_exists_by_404,
+    cache_body=_no_cache_body,
+    species_ok=_species_agnostic,
+    retired=_never_retired,
+)
+
+_COMPLEXPORTAL = Resolver(
+    name="complexportal",
+    subkey=lambda source: "complex",
+    url=_complexportal_url,
+    exists=_exists_by_404,
+    cache_body=_no_cache_body,
+    species_ok=_species_agnostic,
+    retired=_never_retired,
+)
+
+_WIKIPATHWAYS = Resolver(
+    name="wikipathways",
+    subkey=lambda source: "pathways",
+    url=_wikipathways_url,
+    exists=_exists_by_404,
+    cache_body=_no_cache_body,
+    species_ok=_species_agnostic,
+    retired=_never_retired,
+)
+
 _RESOLVERS = {
     "ols": _OLS,
     "ensembl": _ENSEMBL,
@@ -612,6 +697,10 @@ _RESOLVERS = {
     "chembl": _CHEMBL,
     "reactome": _REACTOME,
     "interpro": _INTERPRO,
+    "rfam": _RFAM,
+    "uniparc": _UNIPARC,
+    "complexportal": _COMPLEXPORTAL,
+    "wikipathways": _WIKIPATHWAYS,
 }
 
 

@@ -93,6 +93,22 @@
       id = interpro[3]
     ))
   }
+  rfam <- regmatches(url, regexec("family/([^?]+)", url))[[1]]
+  if (length(rfam) == 2L) {
+    return(list(resolver = "rfam", subkey = "family", id = rfam[2]))
+  }
+  uniparc <- regmatches(url, regexec("uniparc/([^.?/]+)", url))[[1]]
+  if (length(uniparc) == 2L) {
+    return(list(resolver = "uniparc", subkey = "uniparc", id = uniparc[2]))
+  }
+  cpx <- regmatches(url, regexec("complex-ws/complex/([^/?]+)", url))[[1]]
+  if (length(cpx) == 2L) {
+    return(list(resolver = "complexportal", subkey = "complex", id = cpx[2]))
+  }
+  wp <- regmatches(url, regexec("pathways/([^/]+)/", url))[[1]]
+  if (length(wp) == 2L) {
+    return(list(resolver = "wikipathways", subkey = "pathways", id = wp[2]))
+  }
   stop("could not parse resolver and id from url: ", url)
 }
 

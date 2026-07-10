@@ -7,6 +7,10 @@ pattern: 'UPI[0-9A-F]{10}'
 example: 'UPI0000000001'
 normalize:
   case: upper
+# remote mode checks existence against the UniProt UniParc endpoint. This is an
+# existence check only.
+remote:
+  resolver: uniparc
 provenance:
   pattern_source: bioregistry
   homepage: https://www.uniprot.org/uniparc

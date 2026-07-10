@@ -24,6 +24,10 @@ _PDB_RE = re.compile(r"core/entry/(.+)$")
 _CHEMBL_RE = re.compile(r"chembl_id_lookup/([^.?/]+)")
 _REACTOME_RE = re.compile(r"data/query/([^?]+)")
 _INTERPRO_RE = re.compile(r"entry/(interpro|pfam)/([^/?]+)")
+_RFAM_RE = re.compile(r"family/([^?]+)")
+_UNIPARC_RE = re.compile(r"uniparc/([^.?/]+)")
+_COMPLEXPORTAL_RE = re.compile(r"complex-ws/complex/([^/?]+)")
+_WIKIPATHWAYS_RE = re.compile(r"pathways/([^/]+)/")
 
 
 def _load_cases():
@@ -72,6 +76,18 @@ def _resolve_fixture(url):
     match = _INTERPRO_RE.search(url)
     if match:
         return "interpro", match.group(1), match.group(2)
+    match = _RFAM_RE.search(url)
+    if match:
+        return "rfam", "family", match.group(1)
+    match = _UNIPARC_RE.search(url)
+    if match:
+        return "uniparc", "uniparc", match.group(1)
+    match = _COMPLEXPORTAL_RE.search(url)
+    if match:
+        return "complexportal", "complex", match.group(1)
+    match = _WIKIPATHWAYS_RE.search(url)
+    if match:
+        return "wikipathways", "pathways", match.group(1)
     raise AssertionError(f"could not parse remote url: {url!r}")
 
 

@@ -7,6 +7,10 @@ pattern: 'RF[0-9]{5}'
 example: 'RF00001'
 normalize:
   case: upper
+# remote mode checks existence against the Rfam API. This is an existence check
+# only; a superseded family is reported as absent, not with a successor.
+remote:
+  resolver: rfam
 provenance:
   pattern_source: bioregistry
   homepage: https://rfam.org

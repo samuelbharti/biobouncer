@@ -7,6 +7,10 @@ pattern: 'WP[0-9]+'
 example: 'WP554'
 normalize:
   case: upper
+# remote mode checks existence against the published WikiPathways asset for the
+# pathway. This is an existence check only.
+remote:
+  resolver: wikipathways
 provenance:
   pattern_source: bioregistry
   homepage: https://www.wikipathways.org

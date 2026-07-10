@@ -160,6 +160,22 @@
   as.character(merged[[1]])
 }
 
+# Shared building blocks for existence-only resolvers whose whole verdict is the
+# HTTP status: 200 exists, 404 is absent, the body is never consulted, and the id
+# is neither species scoped nor tracked for retirement.
+.exists_by_404 <- function(status, body) {
+  if (status == 200) {
+    return(TRUE)
+  }
+  if (status == 404) {
+    return(FALSE)
+  }
+  .remote_abort_status(status)
+}
+.no_cache_body <- function(status, body) NULL
+.species_agnostic <- function(source, id, body, species) TRUE
+.never_retired <- function(source, body) list(retired = FALSE, successor = NULL)
+
 # Resolver definitions. Each maps a source and id to a URL, decides existence
 # from a status and body, and names the minimal body to persist. A resolver is
 # selected by source$remote$resolver and names its cache and fixture subtree.
@@ -445,6 +461,57 @@
     # Existence only; a deleted accession is reported as absent, not with a
     # successor.
     retired = function(source, body) list(retired = FALSE, successor = NULL)
+  ),
+  rfam = list(
+    name = "rfam",
+    subkey = function(source) "family",
+    url = function(source, id) {
+      paste0("https://rfam.org/family/", id, "?content-type=application/json")
+    },
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  uniparc = list(
+    name = "uniparc",
+    subkey = function(source) "uniparc",
+    url = function(source, id) {
+      paste0("https://rest.uniprot.org/uniparc/", id, ".json")
+    },
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  complexportal = list(
+    name = "complexportal",
+    subkey = function(source) "complex",
+    url = function(source, id) {
+      paste0("https://www.ebi.ac.uk/intact/complex-ws/complex/", id)
+    },
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  wikipathways = list(
+    name = "wikipathways",
+    subkey = function(source) "pathways",
+    # The asset path repeats the id: .../pathways/WP554/WP554.gpml.
+    url = function(source, id) {
+      paste0(
+        "https://www.wikipathways.org/wikipathways-assets/pathways/",
+        id,
+        "/",
+        id,
+        ".gpml"
+      )
+    },
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
   )
 )
 
