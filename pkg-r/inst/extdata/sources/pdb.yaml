@@ -5,6 +5,7 @@ description: Protein Data Bank four-character structure identifiers.
 # input is suggested in its canonical case. The newer extended pdb_ accession is
 # not covered yet.
 pattern: '[1-9][A-Z0-9]{3}'
+example: '4HHB'
 normalize:
   case: upper
 provenance:

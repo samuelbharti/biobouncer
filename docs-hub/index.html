@@ -11,53 +11,88 @@
     <style>
       :root {
         --bg: #ffffff;
-        --fg: #1b1b1b;
-        --muted: #5a5a5a;
-        --accent: #1a6b54;
-        --card: #f5f7f6;
-        --border: #e2e6e4;
-      }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #0f1512;
-          --fg: #e8ece9;
-          --muted: #9aa5a0;
-          --accent: #4fd0a6;
-          --card: #17201c;
-          --border: #263029;
-        }
+        --ink: #173744;
+        --body: #343a40;
+        --muted: #536b75;
+        --teal: #176d75;
+        --gold: #d39b32;
+        --border: #d8e2eb;
+        --card-shadow: 0 1rem 2.5rem rgba(27, 62, 80, 0.1);
+        --card-shadow-sm: 0 0.4rem 1.25rem rgba(27, 62, 80, 0.07);
       }
       * {
         box-sizing: border-box;
       }
       body {
         margin: 0;
-        font-family:
-          system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
-          sans-serif;
         background: var(--bg);
-        color: var(--fg);
-        line-height: 1.6;
+        color: var(--body);
+        font-family:
+          "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.65;
+        -webkit-font-smoothing: antialiased;
       }
-      main {
-        max-width: 720px;
-        margin: 0 auto;
-        padding: 4rem 1.5rem 3rem;
+      .page {
+        max-width: 920px;
+        margin: 2rem auto 4rem;
+        padding: 0 1.25rem;
+      }
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: clamp(2rem, 6vw, 4.5rem);
+        border: 1px solid var(--border);
+        border-radius: 1.25rem;
+        background:
+          radial-gradient(
+            circle at 92% 10%,
+            rgba(89, 191, 181, 0.24),
+            transparent 28%
+          ),
+          linear-gradient(145deg, #f8fbfd 0%, #edf5f7 100%);
+        box-shadow: var(--card-shadow);
+      }
+      .kicker {
+        margin: 0 0 1.1rem;
+        color: var(--teal);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
       }
       h1 {
-        font-size: 2.75rem;
-        margin: 0 0 0.25rem;
-        letter-spacing: -0.02em;
+        margin: 0;
+        color: var(--ink);
+        font-size: clamp(2.4rem, 6vw, 3.65rem);
+        line-height: 1.05;
+        letter-spacing: -0.035em;
+      }
+      .rule {
+        width: 4.5rem;
+        height: 0.3rem;
+        margin: 1.6rem 0;
+        border-radius: 1rem;
+        background: var(--gold);
       }
       .tagline {
-        font-size: 1.2rem;
+        max-width: 40rem;
+        margin: 0;
+        color: var(--ink);
+        font-size: clamp(1.15rem, 2.4vw, 1.4rem);
+        font-weight: 600;
+      }
+      .lead {
+        max-width: 44rem;
+        margin: 1.25rem 0 0;
         color: var(--muted);
-        margin: 0 0 2.5rem;
+        font-size: 1.05rem;
       }
       .cards {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 1rem;
+        gap: 1.25rem;
+        margin-top: 2rem;
       }
       @media (max-width: 560px) {
         .cards {
@@ -66,70 +101,81 @@
       }
       a.card {
         display: block;
-        padding: 1.5rem;
+        padding: 1.6rem 1.75rem;
         border: 1px solid var(--border);
-        border-radius: 12px;
-        background: var(--card);
+        border-left: 0.3rem solid var(--gold);
+        border-radius: 0.75rem;
+        background: #fff;
         text-decoration: none;
         color: inherit;
+        box-shadow: var(--card-shadow-sm);
         transition:
-          border-color 0.15s ease,
-          transform 0.15s ease;
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
       }
       a.card:hover {
-        border-color: var(--accent);
         transform: translateY(-2px);
+        box-shadow: var(--card-shadow);
       }
       a.card h2 {
-        margin: 0 0 0.35rem;
+        margin: 0 0 0.3rem;
+        color: var(--teal);
         font-size: 1.25rem;
-        color: var(--accent);
+        letter-spacing: -0.01em;
       }
       a.card p {
         margin: 0;
         color: var(--muted);
-        font-size: 0.95rem;
+        font-size: 0.98rem;
       }
       .foot {
-        margin-top: 2.5rem;
-        font-size: 0.95rem;
+        margin: 2.25rem 0.25rem 0;
         color: var(--muted);
+        font-size: 0.98rem;
       }
       .foot a {
-        color: var(--accent);
+        color: var(--teal);
+        font-weight: 600;
       }
       code {
-        background: var(--card);
+        padding: 0.1rem 0.4rem;
         border: 1px solid var(--border);
         border-radius: 5px;
-        padding: 0.1rem 0.35rem;
-        font-size: 0.9em;
+        background: #f6f9fb;
+        color: var(--ink);
+        font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+          "Courier New", monospace;
+        font-size: 0.88em;
       }
     </style>
   </head>
   <body>
-    <main>
-      <h1>biogate</h1>
-      <p class="tagline">
-        Validate biological identifiers and inputs the same way in R and Python.
-      </p>
-
-      <p>
-        One small API answers "is this a valid identifier?" for gene symbols,
-        ontology terms, variant formats, and database accessions. R and Python
-        return the same verdict for the same input, enforced by a shared
-        conformance corpus. Choose an offline shape check, an offline existence
-        check against a pinned snapshot, or a live check against the source.
-      </p>
+    <main class="page">
+      <section class="hero">
+        <p class="kicker">R and Python</p>
+        <h1>biogate</h1>
+        <div class="rule"></div>
+        <p class="tagline">
+          Validate biological identifiers and inputs the same way in R and
+          Python.
+        </p>
+        <p class="lead">
+          One small API answers "is this a valid identifier?" for gene symbols,
+          ontology terms, variant formats, and database accessions. R and Python
+          return the same verdict for the same input, checked against a shared
+          conformance corpus. Choose an offline shape check, an offline existence
+          check against a pinned snapshot, or a live check against the source.
+        </p>
+      </section>
 
       <div class="cards">
         <a class="card" href="r/">
           <h2>R package &rarr;</h2>
-          <p>Function reference and the getting-started vignette (pkgdown).</p>
+          <p>Function reference, a getting-started vignette, and recipes (pkgdown).</p>
         </a>
         <a class="card" href="py/">
           <h2>Python package &rarr;</h2>
-          <p>Guide and API reference (MkDocs).</p>
+          <p>Guide, examples, a sources cookbook, and API reference (MkDocs).</p>
         </a>
       </div>
 

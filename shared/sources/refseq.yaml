@@ -5,6 +5,7 @@ description: NCBI Reference Sequence accessions for genomic, RNA, and protein re
 # NZ_ (whole-genome shotgun) carries a short letter block before its digits.
 # Accessions are uppercase; a lowercase one is suggested in its canonical case.
 pattern: '(?:(?:AC|AP|NC|NG|NM|NP|NR|NT|NW|WP|XM|XP|XR|YP|ZP)_[0-9]+|NZ_[A-Z]{2,4}[0-9]+)(?:\.[0-9]+)?'
+example: 'NM_000546.6'
 normalize:
   case: upper
 provenance:

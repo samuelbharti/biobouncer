@@ -1,6 +1,6 @@
 site_name: biogate (Python)
 site_description: Validate biological identifiers and inputs the same way in R and Python.
-site_url: https://samuelbharti.github.io/biogate/py/
+site_url: https://www.samuelbharti.com/biogate/py/
 repo_url: https://github.com/samuelbharti/biogate
 repo_name: samuelbharti/biogate
 edit_uri: edit/main/pkg-py/docs/
@@ -31,8 +31,10 @@ theme:
 nav:
   - Get started: index.md
   - Guide: guide.md
+  - Examples: examples.md
+  - Sources cookbook: sources.md
   - API reference: reference.md
-  - R docs: https://samuelbharti.github.io/biogate/r/
+  - R docs: https://www.samuelbharti.com/biogate/r/
 
 markdown_extensions:
   - admonition

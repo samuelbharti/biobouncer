@@ -3,6 +3,7 @@ name: Cell Ontology
 description: Cell Ontology terms for cell types.
 # CURIE core pattern in ASCII classes so R (PCRE) and Python (re) agree.
 pattern: "CL:[0-9]{7}"
+example: 'CL:0000236'
 species_aware: false
 version_aware: true
 curie:

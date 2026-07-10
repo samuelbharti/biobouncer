@@ -28,10 +28,25 @@ sources <- function() {
   sort(names(.load_sources()))
 }
 
+.source_modes <- function(spec) {
+  modes <- "pattern"
+  if (!is.null(spec$cache)) {
+    modes <- c(modes, "cache")
+  }
+  if (!is.null(spec$remote)) {
+    modes <- c(modes, "remote")
+  }
+  paste(modes, collapse = ", ")
+}
+
 #' Describe the available sources
 #'
+#' Answers "what does a valid id look like and how can I check it?" for each
+#' source.
+#'
 #' @return A [tibble][tibble::tibble] with one row per source and the columns
-#'   `key`, `name`, `species_aware`, and `version_aware`.
+#'   `key`, `name`, `example` (a valid identifier for the source), `modes` (the
+#'   checking modes it supports), `species_aware`, and `version_aware`.
 #' @examples
 #' source_info()
 #' @export
@@ -43,6 +58,21 @@ source_info <- function() {
     name = vapply(
       keys,
       function(k) reg[[k]]$name,
+      character(1),
+      USE.NAMES = FALSE
+    ),
+    example = vapply(
+      keys,
+      function(k) {
+        ex <- reg[[k]]$example
+        if (is.null(ex)) NA_character_ else ex
+      },
+      character(1),
+      USE.NAMES = FALSE
+    ),
+    modes = vapply(
+      keys,
+      function(k) .source_modes(reg[[k]]),
       character(1),
       USE.NAMES = FALSE
     ),

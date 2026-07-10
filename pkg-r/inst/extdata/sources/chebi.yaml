@@ -3,6 +3,7 @@ name: ChEBI
 description: Chemical Entities of Biological Interest identifiers.
 # Local id has no fixed width, so there is no zero-pad rule.
 pattern: "CHEBI:[0-9]+"
+example: 'CHEBI:15377'
 species_aware: false
 version_aware: true
 curie:

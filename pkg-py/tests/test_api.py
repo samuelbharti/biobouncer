@@ -43,6 +43,27 @@ def test_is_valid_id_scalar_and_vector():
     ]
 
 
+def test_source_info_has_example_and_modes():
+    info = {row["key"]: row for row in biogate.source_info()}
+    assert set(info["mondo"]) == {
+        "key",
+        "name",
+        "example",
+        "modes",
+        "species_aware",
+        "version_aware",
+    }
+    assert info["mondo"]["example"] == "MONDO:0005148"
+    assert info["mondo"]["modes"] == ["pattern", "cache", "remote"]
+    assert info["pfam"]["modes"] == ["pattern"]
+
+
+def test_every_source_example_is_valid_in_pattern_mode():
+    for row in biogate.source_info():
+        assert row["example"] is not None
+        assert biogate.is_valid_id(row["example"], source_db=row["key"]), row["key"]
+
+
 def test_unknown_source_raises():
     with pytest.raises(ValueError, match="Unknown source_db"):
         biogate.check_id("x", source_db="not_a_source")

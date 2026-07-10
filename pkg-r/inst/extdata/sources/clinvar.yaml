@@ -4,6 +4,7 @@ description: ClinVar VCV, RCV, and SCV accessions.
 # A VCV, RCV, or SCV prefix and nine digits, with an optional version.
 # Ids are uppercase; a lowercase input is suggested in its canonical case.
 pattern: '(?:VCV|RCV|SCV)[0-9]{9}(?:\.[0-9]+)?'
+example: 'VCV000012345'
 normalize:
   case: upper
 provenance:

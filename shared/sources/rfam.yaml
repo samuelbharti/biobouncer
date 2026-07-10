@@ -4,6 +4,7 @@ description: Rfam identifiers for RNA families.
 # RF and exactly five digits. Ids are uppercase; a lowercase input is
 # suggested in its canonical case.
 pattern: 'RF[0-9]{5}'
+example: 'RF00001'
 normalize:
   case: upper
 provenance:

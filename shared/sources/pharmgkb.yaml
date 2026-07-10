@@ -3,6 +3,7 @@ name: PharmGKB
 description: PharmGKB accession identifiers.
 # PA and digits. A lowercase input is suggested in its canonical case.
 pattern: 'PA[0-9]+'
+example: 'PA267'
 normalize:
   case: upper
 provenance:

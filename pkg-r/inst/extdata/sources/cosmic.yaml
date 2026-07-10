@@ -4,6 +4,7 @@ description: COSMIC identifiers for somatic mutations.
 # COSM (legacy) or COSV (current) and digits. A lowercase input is
 # suggested in its canonical case.
 pattern: 'COS[MV][0-9]+'
+example: 'COSM476'
 normalize:
   case: upper
 provenance:

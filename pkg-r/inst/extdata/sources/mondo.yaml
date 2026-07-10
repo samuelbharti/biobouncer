@@ -3,6 +3,7 @@ name: MONDO Disease Ontology
 description: Monarch Disease Ontology terms.
 # Unanchored core pattern using ASCII classes so R (PCRE) and Python (re) agree.
 pattern: "MONDO:[0-9]{7}"
+example: 'MONDO:0005148'
 species_aware: false
 version_aware: true
 # CURIE sources support prefix-case and zero-pad suggestions.

@@ -1,4 +1,4 @@
-url: https://samuelbharti.github.io/biogate/r
+url: https://www.samuelbharti.com/biogate/r
 
 template:
   bootstrap: 5
@@ -17,7 +17,7 @@ navbar:
   components:
     python:
       text: Python docs
-      href: https://samuelbharti.github.io/biogate/py/
+      href: https://www.samuelbharti.com/biogate/py/
     github:
       icon: fab fa-github
       href: https://github.com/samuelbharti/biogate
@@ -58,3 +58,7 @@ articles:
     navbar: ~
     contents:
       - biogate
+  - title: Recipes
+    contents:
+      - articles/examples
+      - articles/sources
