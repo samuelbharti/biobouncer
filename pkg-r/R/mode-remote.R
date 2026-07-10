@@ -413,6 +413,38 @@
     species_ok = function(source, id, body, species) TRUE,
     # Existence only; a superseded stable id is not reported with a successor yet.
     retired = function(source, body) list(retired = FALSE, successor = NULL)
+  ),
+  interpro = list(
+    name = "interpro",
+    subkey = function(source) source$remote$interpro_db,
+    # One InterPro API serves several member databases; the source names which
+    # (interpro or pfam), and the entry path selects it.
+    url = function(source, id) {
+      paste0(
+        "https://www.ebi.ac.uk/interpro/api/entry/",
+        source$remote$interpro_db,
+        "/",
+        id
+      )
+    },
+    # The entry endpoint answers 204 (no content) for a well-formed accession
+    # that is not a current entry, and 200 when it exists.
+    exists = function(status, body) {
+      if (status == 200) {
+        return(TRUE)
+      }
+      if (status == 204 || status == 404) {
+        return(FALSE)
+      }
+      .remote_abort_status(status)
+    },
+    # The status carries the whole verdict, so no body is worth persisting.
+    cache_body = function(status, body) NULL,
+    # A family or domain accession is not species scoped.
+    species_ok = function(source, id, body, species) TRUE,
+    # Existence only; a deleted accession is reported as absent, not with a
+    # successor.
+    retired = function(source, body) list(retired = FALSE, successor = NULL)
   )
 )
 

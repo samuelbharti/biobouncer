@@ -63,7 +63,7 @@ test_that("source_info returns a tibble of metadata", {
   expect_false(info$species_aware[info$key == "mondo"])
   expect_equal(info$example[info$key == "mondo"], "MONDO:0005148")
   expect_equal(info$modes[info$key == "mondo"], "pattern, cache, remote")
-  expect_equal(info$modes[info$key == "pfam"], "pattern")
+  expect_equal(info$modes[info$key == "drugbank"], "pattern")
 })
 
 test_that("every source example is valid in pattern mode", {

@@ -3,11 +3,12 @@
 Remote mode mirrors cache mode, with membership in a pinned snapshot replaced by
 live existence via a resolver. A resolver names one API and knows how to build a
 lookup URL, read a status and body into an existence verdict, and reduce a
-response to the minimal body worth caching. Eight resolvers ship here: OLS (EBI
+response to the minimal body worth caching. Nine resolvers ship here: OLS (EBI
 Ontology Lookup Service) for the ontology sources, Ensembl for stable ids,
 UniProt for protein accessions, Mutalyzer for HGVS variant descriptions, dbSNP
 for reference SNP ids, RCSB PDB for structure ids, ChEMBL for compound and other
-entity ids, and Reactome for pathway stable ids.
+entity ids, Reactome for pathway stable ids, and InterPro for protein family and
+domain accessions, covering both InterPro and Pfam.
 """
 
 from __future__ import annotations
@@ -31,6 +32,7 @@ _MUTALYZER_BASE = "https://mutalyzer.nl/api/normalize/"
 _RCSB_BASE = "https://data.rcsb.org/rest/v1/core/entry/"
 _CHEMBL_BASE = "https://www.ebi.ac.uk/chembl/api/data/chembl_id_lookup/"
 _REACTOME_BASE = "https://reactome.org/ContentService/data/query/"
+_INTERPRO_BASE = "https://www.ebi.ac.uk/interpro/api/entry/"
 _UNSAFE_IDENT = re.compile(r"[^A-Za-z0-9._-]")
 
 
@@ -474,6 +476,44 @@ def _reactome_retired(source: Source, body: dict | None) -> tuple[bool, str | No
     return False, None
 
 
+def _interpro_subkey(source: Source) -> str:
+    return source.remote["interpro_db"]
+
+
+def _interpro_url(source: Source, ident: str) -> str:
+    # One InterPro API serves several member databases; the source names which
+    # (interpro or pfam), and the entry path selects it.
+    return f"{_INTERPRO_BASE}{source.remote['interpro_db']}/{ident}"
+
+
+def _interpro_exists(status: int, body: dict | None) -> bool:
+    # The entry endpoint answers 204 (no content) for a well-formed accession
+    # that is not a current entry, and 200 when it exists.
+    if status == 200:
+        return True
+    if status in (204, 404):
+        return False
+    raise RemoteError(f"InterPro returned unexpected status {status}.")
+
+
+def _interpro_cache_body(status: int, body: dict | None) -> dict | None:
+    # The status carries the whole verdict, so no body is worth persisting.
+    return None
+
+
+def _interpro_species_ok(
+    source: Source, ident: str, body: dict | None, species
+) -> bool:
+    # A family or domain accession is not species scoped.
+    return True
+
+
+def _interpro_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
+    # Existence only; a deleted accession is reported as absent, not with a
+    # successor.
+    return False, None
+
+
 _OLS = Resolver(
     name="ols",
     subkey=_ols_subkey,
@@ -552,6 +592,16 @@ _REACTOME = Resolver(
     retired=_reactome_retired,
 )
 
+_INTERPRO = Resolver(
+    name="interpro",
+    subkey=_interpro_subkey,
+    url=_interpro_url,
+    exists=_interpro_exists,
+    cache_body=_interpro_cache_body,
+    species_ok=_interpro_species_ok,
+    retired=_interpro_retired,
+)
+
 _RESOLVERS = {
     "ols": _OLS,
     "ensembl": _ENSEMBL,
@@ -561,6 +611,7 @@ _RESOLVERS = {
     "pdb": _PDB,
     "chembl": _CHEMBL,
     "reactome": _REACTOME,
+    "interpro": _INTERPRO,
 }
 
 

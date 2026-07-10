@@ -23,6 +23,7 @@ _DBSNP_RE = re.compile(r"refsnp/([0-9]+)")
 _PDB_RE = re.compile(r"core/entry/(.+)$")
 _CHEMBL_RE = re.compile(r"chembl_id_lookup/([^.?/]+)")
 _REACTOME_RE = re.compile(r"data/query/([^?]+)")
+_INTERPRO_RE = re.compile(r"entry/(interpro|pfam)/([^/?]+)")
 
 
 def _load_cases():
@@ -68,6 +69,9 @@ def _resolve_fixture(url):
     match = _REACTOME_RE.search(url)
     if match:
         return "reactome", "query", match.group(1)
+    match = _INTERPRO_RE.search(url)
+    if match:
+        return "interpro", match.group(1), match.group(2)
     raise AssertionError(f"could not parse remote url: {url!r}")
 
 

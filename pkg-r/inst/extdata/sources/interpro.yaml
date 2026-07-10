@@ -7,6 +7,12 @@ pattern: 'IPR[0-9]{6}'
 example: 'IPR000001'
 normalize:
   case: upper
+# remote mode checks existence against the EBI InterPro API. This is an
+# existence check only; a deleted accession is reported as absent, not with a
+# successor.
+remote:
+  resolver: interpro
+  interpro_db: interpro
 provenance:
   pattern_source: bioregistry
   homepage: https://www.ebi.ac.uk/interpro

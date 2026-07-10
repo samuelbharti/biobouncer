@@ -82,6 +82,17 @@
   if (length(reactome) == 2L) {
     return(list(resolver = "reactome", subkey = "query", id = reactome[2]))
   }
+  interpro <- regmatches(
+    url,
+    regexec("entry/(interpro|pfam)/([^/?]+)", url)
+  )[[1]]
+  if (length(interpro) == 3L) {
+    return(list(
+      resolver = "interpro",
+      subkey = interpro[2],
+      id = interpro[3]
+    ))
+  }
   stop("could not parse resolver and id from url: ", url)
 }
 

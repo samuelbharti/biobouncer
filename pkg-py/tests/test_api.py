@@ -55,7 +55,7 @@ def test_source_info_has_example_and_modes():
     }
     assert info["mondo"]["example"] == "MONDO:0005148"
     assert info["mondo"]["modes"] == ["pattern", "cache", "remote"]
-    assert info["pfam"]["modes"] == ["pattern"]
+    assert info["drugbank"]["modes"] == ["pattern"]
 
 
 def test_every_source_example_is_valid_in_pattern_mode():
