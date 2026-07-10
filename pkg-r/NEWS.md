@@ -1,5 +1,9 @@
 # biogate 0.0.0.9000
 
+* Adds `uniparc`, `complexportal`, `cosmic`, and `pharmgkb` `pattern` sources for
+  unique protein sequences (`UPI0000000001`), macromolecular complexes
+  (`CPX-2158`), somatic mutations (`COSM476`), and PharmGKB accessions (`PA267`).
+  Each suggests the canonical uppercase for a lowercase input.
 * Adds `wikipathways`, `orphanet`, and `mirbase` `pattern` sources for pathways
   (`WP554`), rare diseases (`ORPHA:558`), and mature microRNAs (`MIMAT0000001`).
   Each suggests the canonical uppercase for a lowercase input.
