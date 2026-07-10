@@ -14,9 +14,9 @@
 > **Status: early development.** The API described below is the intended public
 > surface and may change before the first tagged release.
 
-**Documentation:** [R package](https://samuelbharti.github.io/biogate/r/) (pkgdown)
-and [Python package](https://samuelbharti.github.io/biogate/py/) (MkDocs), from
-one [landing page](https://samuelbharti.github.io/biogate/).
+**Documentation:** [R package](https://www.samuelbharti.com/biogate/r/) (pkgdown)
+and [Python package](https://www.samuelbharti.com/biogate/py/) (MkDocs), from
+one [landing page](https://www.samuelbharti.com/biogate/).
 
 ---
 
