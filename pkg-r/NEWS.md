@@ -1,5 +1,10 @@
 # biogate 0.0.0.9000
 
+* Adds the OBO ontology sources `so`, `hp`, `doid`, `uberon`, and `cl` for
+  sequence features (`SO:0000704`), phenotypes (`HP:0001250`), diseases
+  (`DOID:9352`), anatomy (`UBERON:0002107`), and cell types (`CL:0000236`). Each
+  supports `pattern` mode with prefix and zero-pad suggestions and live `remote`
+  existence through the Ontology Lookup Service.
 * Adds `uniparc`, `complexportal`, `cosmic`, and `pharmgkb` `pattern` sources for
   unique protein sequences (`UPI0000000001`), macromolecular complexes
   (`CPX-2158`), somatic mutations (`COSM476`), and PharmGKB accessions (`PA267`).
