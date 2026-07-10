@@ -1,5 +1,10 @@
-# biogate 0.0.0.9000
+# biogate 0.1.0
 
+* First numbered release. Sets the version to 0.1.0 in both the R and Python
+  packages so they track together.
+* `source_info()` gains an `example` identifier and a `modes` column for each
+  source, so it now answers "what does a valid id look like and how can I check
+  it?". The Python package gains a matching `source_info()`.
 * Adds a documentation website. The R reference and the getting-started vignette
   are built with pkgdown, the Python guide and API reference with MkDocs, and a
   shared landing page links the two. A `docs` workflow builds both on every pull

@@ -8,10 +8,12 @@ source_info()
 }
 \value{
 A \link[tibble:tibble]{tibble} with one row per source and the columns
-\code{key}, \code{name}, \code{species_aware}, and \code{version_aware}.
+\code{key}, \code{name}, \code{example} (a valid identifier for the source), \code{modes} (the
+checking modes it supports), \code{species_aware}, and \code{version_aware}.
 }
 \description{
-Describe the available sources
+Answers "what does a valid id look like and how can I check it?" for each
+source.
 }
 \examples{
 source_info()

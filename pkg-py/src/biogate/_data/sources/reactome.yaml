@@ -5,6 +5,7 @@ description: Reactome stable identifiers for pathways, reactions, and entities.
 # a number, with an optional version. Ids are uppercase; a lowercase input is
 # suggested in its canonical case.
 pattern: 'R-[A-Z]{3}-[0-9]+(?:\.[0-9]+)?'
+example: 'R-HSA-68886'
 normalize:
   case: upper
 provenance:

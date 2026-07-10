@@ -3,6 +3,7 @@ name: BRENDA Tissue Ontology
 description: BRENDA Tissue Ontology terms for tissues and cell lines.
 # CURIE core pattern in ASCII classes so R (PCRE) and Python (re) agree.
 pattern: "BTO:[0-9]{7}"
+example: 'BTO:0000759'
 species_aware: false
 version_aware: true
 curie:

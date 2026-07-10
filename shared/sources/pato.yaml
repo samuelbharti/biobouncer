@@ -3,6 +3,7 @@ name: Phenotype And Trait Ontology
 description: Phenotype and Trait Ontology terms for qualities.
 # CURIE core pattern in ASCII classes so R (PCRE) and Python (re) agree.
 pattern: "PATO:[0-9]{7}"
+example: 'PATO:0000001'
 species_aware: false
 version_aware: true
 curie:

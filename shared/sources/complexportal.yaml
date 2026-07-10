@@ -4,6 +4,7 @@ description: Complex Portal identifiers for macromolecular complexes.
 # CPX, a hyphen, and digits. A lowercase input is suggested in its
 # canonical case.
 pattern: 'CPX-[0-9]+'
+example: 'CPX-2158'
 normalize:
   case: upper
 provenance:

@@ -2,6 +2,7 @@ key: efo
 name: Experimental Factor Ontology
 description: EFO terms for experimental variables.
 pattern: "EFO:[0-9]{7}"
+example: 'EFO:0000400'
 species_aware: false
 version_aware: true
 curie:
