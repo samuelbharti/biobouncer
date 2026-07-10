@@ -155,9 +155,9 @@ sv_biogate <- function(
 #' Returns a function of one argument that reports, element by element, whether
 #' each value is a valid identifier for `source_db`. The predicate is the shape
 #' that data-frame validation packages expect, so it drops straight into
-#' `assertr::assert()` or a `validate::validator()` rule, or into base `Filter()`
-#' and `vapply()`. It is the R counterpart of the pandera check in the Python
-#' package.
+#' `assertr::assert()`, a `validate::validator()` rule, or a pointblank
+#' `col_vals_expr()` step, or into base `Filter()` and `vapply()`. It is the R
+#' counterpart of the pandera check in the Python package.
 #'
 #' @inheritParams check_id
 #' @return A function of one argument that returns a logical vector the same
@@ -176,6 +176,12 @@ sv_biogate <- function(
 #' # With validate, if it is installed:
 #' # rules <- validate::validator(is_mondo := id_predicate("mondo")(term))
 #' # validate::confront(df, rules)
+#'
+#' # With pointblank, if it is installed:
+#' # library(pointblank)
+#' # create_agent(df) |>
+#' #   col_vals_expr(~ is_valid_id(term, "mondo")) |>
+#' #   interrogate()
 #' @export
 id_predicate <- function(
   source_db,

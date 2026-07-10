@@ -50,6 +50,9 @@ reach those tools.
   repair a column, not just reject one field.
 - **Plugs into the tools you already use.** Adapters for `pandera`, `pydantic`,
   `shinyvalidate`, `checkmate`, and `assertr`/`validate`/`pointblank`.
+- **Works from the shell.** The Python package installs a `biogate` command that
+  validates ids from a file or a pipe and exits non-zero on any invalid input,
+  for use in scripts and CI.
 - **Reproducible by design.** `pattern` and `cache` modes are pure functions of
   pinned data; every result records the snapshot version it came from.
 

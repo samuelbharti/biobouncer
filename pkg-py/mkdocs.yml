@@ -32,6 +32,7 @@ nav:
   - Get started: index.md
   - Guide: guide.md
   - Examples: examples.md
+  - Command line: cli.md
   - Sources cookbook: sources.md
   - API reference: reference.md
   - R docs: https://www.samuelbharti.com/biogate/r/

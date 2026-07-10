@@ -101,6 +101,20 @@ rules <- validate::validator(good_terms = id_predicate("mondo")(term))
 validate::confront(df, rules)
 ```
 
+## Validate a data frame with pointblank
+
+pointblank agents run an expression per column. `is_valid_id()` is exactly the
+right shape, so it drops into a `col_vals_expr()` step. This needs the
+`pointblank` package, so it is shown but not run here:
+
+```{r, eval = FALSE}
+library(pointblank)
+
+create_agent(df) |>
+  col_vals_expr(~ is_valid_id(term, "mondo")) |>
+  interrogate()
+```
+
 ## Validate a Shiny input
 
 `sv_biogate()` returns a shinyvalidate rule. It returns `NULL` for a valid input
