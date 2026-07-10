@@ -1,5 +1,9 @@
 # biogate (development version)
 
+* `pdb` gains `remote` mode. A four-character structure id is checked for
+  existence against the RCSB PDB data API. This is an existence check only; an
+  obsoleted structure that was superseded is not yet reported with its
+  successor.
 * The Python package installs a `biogate` command-line tool. It validates
   identifiers from arguments, a file, or standard input, prints per-id results
   as text, TSV, or JSON, and exits non-zero when any input is invalid, so it

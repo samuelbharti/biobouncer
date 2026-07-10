@@ -1,0 +1,5 @@
+{"input": "4HHB", "source_db": "pdb", "how": "remote", "expect": {"valid": true, "normalized": "4HHB"}, "note": "a real structure (deoxyhaemoglobin)"}
+{"input": "1CRN", "source_db": "pdb", "how": "remote", "expect": {"valid": true, "normalized": "1CRN"}, "note": "a real structure (crambin)"}
+{"input": "2ZZZ", "source_db": "pdb", "how": "remote", "expect": {"valid": false}, "note": "well-formed but no such structure"}
+{"input": "4hhb", "source_db": "pdb", "how": "remote", "expect": {"valid": false, "suggestion": "4HHB"}, "note": "lowercase; the canonical uppercase form exists remotely"}
+{"input": "GO:0006915", "source_db": "pdb", "how": "remote", "expect": {"valid": false}, "note": "wrong shape for a PDB id; fails the grammar before any lookup"}

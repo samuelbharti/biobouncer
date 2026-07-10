@@ -67,6 +67,10 @@
       id = paste0("rs", snp[2])
     ))
   }
+  pdb <- regmatches(url, regexec("core/entry/(.+)$", url))[[1]]
+  if (length(pdb) == 2L) {
+    return(list(resolver = "pdb", subkey = "entry", id = pdb[2]))
+  }
   stop("could not parse resolver and id from url: ", url)
 }
 

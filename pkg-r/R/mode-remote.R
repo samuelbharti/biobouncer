@@ -340,6 +340,28 @@
         list(retired = FALSE, successor = NULL)
       }
     }
+  ),
+  pdb = list(
+    name = "pdb",
+    subkey = function(source) "entry",
+    url = function(source, id) {
+      paste0("https://data.rcsb.org/rest/v1/core/entry/", id)
+    },
+    exists = function(status, body) {
+      if (status == 200) {
+        return(TRUE)
+      }
+      if (status == 404) {
+        return(FALSE)
+      }
+      .remote_abort_status(status)
+    },
+    # The status carries the whole verdict, so no body is worth persisting.
+    cache_body = function(status, body) NULL,
+    # A structure is not species scoped for this existence check.
+    species_ok = function(source, id, body, species) TRUE,
+    # Existence only; an obsoleted-with-successor entry is not modeled yet.
+    retired = function(source, body) list(retired = FALSE, successor = NULL)
   )
 )
 
