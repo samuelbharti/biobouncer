@@ -27,9 +27,17 @@ test_that("malformed HGVS variants are invalid", {
   expect_false(any(is_valid_id(bad, "hgvs")))
 })
 
-test_that("hgvs is pattern-only: remote mode has no resolver", {
+test_that("hgvs cache mode has no snapshot", {
+  # hgvs supports pattern (syntax) and remote (Mutalyzer) modes. It ships no
+  # cache snapshot, so cache mode reports the missing snapshot explicitly.
+  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
   expect_error(
-    check_id("NM_004006.2:c.4375C>T", "hgvs", how = "remote"),
-    class = "biogate_error_no_resolver"
+    check_id(
+      "NM_004006.2:c.4375C>T",
+      "hgvs",
+      how = "cache",
+      version = "sample"
+    ),
+    class = "biogate_error_missing_snapshot"
   )
 })
