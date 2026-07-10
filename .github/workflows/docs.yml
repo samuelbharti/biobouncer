@@ -88,6 +88,9 @@ jobs:
     runs-on: ubuntu-latest
     name: deploy
     permissions:
+      # A job-level permissions block replaces the defaults, so contents must be
+      # named explicitly or actions/checkout cannot read this private repo.
+      contents: read
       pages: write
       id-token: write
     environment:
