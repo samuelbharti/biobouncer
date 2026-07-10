@@ -1,5 +1,8 @@
 # biogate 0.0.0.9000
 
+* Adds two more `pattern` sources. `chembl` checks ChEMBL identifiers such as
+  `CHEMBL25`, and `pdb` checks Protein Data Bank structure ids such as `4HHB`.
+  Both suggest the canonical uppercase for a lowercase input.
 * `dbsnp` gains `remote` mode. An rsID is checked for existence against the NCBI
   dbSNP RefSNP API. An rsID that was merged into another still resolves but is
   not current, so it is not valid and suggests the primary id.
