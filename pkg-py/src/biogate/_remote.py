@@ -3,10 +3,11 @@
 Remote mode mirrors cache mode, with membership in a pinned snapshot replaced by
 live existence via a resolver. A resolver names one API and knows how to build a
 lookup URL, read a status and body into an existence verdict, and reduce a
-response to the minimal body worth caching. Six resolvers ship here: OLS (EBI
+response to the minimal body worth caching. Eight resolvers ship here: OLS (EBI
 Ontology Lookup Service) for the ontology sources, Ensembl for stable ids,
 UniProt for protein accessions, Mutalyzer for HGVS variant descriptions, dbSNP
-for reference SNP ids, and RCSB PDB for structure ids.
+for reference SNP ids, RCSB PDB for structure ids, ChEMBL for compound and other
+entity ids, and Reactome for pathway stable ids.
 """
 
 from __future__ import annotations
@@ -28,6 +29,8 @@ _USER_AGENT = "biogate/0.1 (+https://github.com/samuelbharti/biogate)"
 _OLS_BASE = "https://www.ebi.ac.uk/ols4/api"
 _MUTALYZER_BASE = "https://mutalyzer.nl/api/normalize/"
 _RCSB_BASE = "https://data.rcsb.org/rest/v1/core/entry/"
+_CHEMBL_BASE = "https://www.ebi.ac.uk/chembl/api/data/chembl_id_lookup/"
+_REACTOME_BASE = "https://reactome.org/ContentService/data/query/"
 _UNSAFE_IDENT = re.compile(r"[^A-Za-z0-9._-]")
 
 
@@ -404,6 +407,73 @@ def _pdb_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
     return False, None
 
 
+def _chembl_subkey(source: Source) -> str:
+    return "lookup"
+
+
+def _chembl_url(source: Source, ident: str) -> str:
+    # The id-lookup endpoint resolves a ChEMBL id of any entity type (compound,
+    # target, assay, document, and so on), so one call covers the whole source.
+    return f"{_CHEMBL_BASE}{ident}.json"
+
+
+def _chembl_exists(status: int, body: dict | None) -> bool:
+    if status == 200:
+        return True
+    if status == 404:
+        return False
+    raise RemoteError(f"ChEMBL returned unexpected status {status}.")
+
+
+def _chembl_cache_body(status: int, body: dict | None) -> dict | None:
+    # The status carries the whole verdict, so no body is worth persisting.
+    return None
+
+
+def _chembl_species_ok(source: Source, ident: str, body: dict | None, species) -> bool:
+    # A ChEMBL id is not species scoped for this existence check.
+    return True
+
+
+def _chembl_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
+    # Existence only; the lookup status field is not interpreted yet, so an
+    # obsolete id is not reported with a successor.
+    return False, None
+
+
+def _reactome_subkey(source: Source) -> str:
+    return "query"
+
+
+def _reactome_url(source: Source, ident: str) -> str:
+    return _REACTOME_BASE + ident
+
+
+def _reactome_exists(status: int, body: dict | None) -> bool:
+    if status == 200:
+        return True
+    if status == 404:
+        return False
+    raise RemoteError(f"Reactome returned unexpected status {status}.")
+
+
+def _reactome_cache_body(status: int, body: dict | None) -> dict | None:
+    # The status carries the whole verdict, so no body is worth persisting.
+    return None
+
+
+def _reactome_species_ok(
+    source: Source, ident: str, body: dict | None, species
+) -> bool:
+    # The species is encoded in the stable id prefix, not checked against a map.
+    return True
+
+
+def _reactome_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
+    # Existence only; a superseded stable id is not reported with a successor yet.
+    return False, None
+
+
 _OLS = Resolver(
     name="ols",
     subkey=_ols_subkey,
@@ -462,6 +532,26 @@ _PDB = Resolver(
     retired=_pdb_retired,
 )
 
+_CHEMBL = Resolver(
+    name="chembl",
+    subkey=_chembl_subkey,
+    url=_chembl_url,
+    exists=_chembl_exists,
+    cache_body=_chembl_cache_body,
+    species_ok=_chembl_species_ok,
+    retired=_chembl_retired,
+)
+
+_REACTOME = Resolver(
+    name="reactome",
+    subkey=_reactome_subkey,
+    url=_reactome_url,
+    exists=_reactome_exists,
+    cache_body=_reactome_cache_body,
+    species_ok=_reactome_species_ok,
+    retired=_reactome_retired,
+)
+
 _RESOLVERS = {
     "ols": _OLS,
     "ensembl": _ENSEMBL,
@@ -469,6 +559,8 @@ _RESOLVERS = {
     "mutalyzer": _MUTALYZER,
     "dbsnp": _DBSNP,
     "pdb": _PDB,
+    "chembl": _CHEMBL,
+    "reactome": _REACTOME,
 }
 
 

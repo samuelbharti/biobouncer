@@ -362,6 +362,57 @@
     species_ok = function(source, id, body, species) TRUE,
     # Existence only; an obsoleted-with-successor entry is not modeled yet.
     retired = function(source, body) list(retired = FALSE, successor = NULL)
+  ),
+  chembl = list(
+    name = "chembl",
+    subkey = function(source) "lookup",
+    # The id-lookup endpoint resolves a ChEMBL id of any entity type (compound,
+    # target, assay, document, and so on), so one call covers the whole source.
+    url = function(source, id) {
+      paste0(
+        "https://www.ebi.ac.uk/chembl/api/data/chembl_id_lookup/",
+        id,
+        ".json"
+      )
+    },
+    exists = function(status, body) {
+      if (status == 200) {
+        return(TRUE)
+      }
+      if (status == 404) {
+        return(FALSE)
+      }
+      .remote_abort_status(status)
+    },
+    # The status carries the whole verdict, so no body is worth persisting.
+    cache_body = function(status, body) NULL,
+    # A ChEMBL id is not species scoped for this existence check.
+    species_ok = function(source, id, body, species) TRUE,
+    # Existence only; the lookup status field is not interpreted yet, so an
+    # obsolete id is not reported with a successor.
+    retired = function(source, body) list(retired = FALSE, successor = NULL)
+  ),
+  reactome = list(
+    name = "reactome",
+    subkey = function(source) "query",
+    url = function(source, id) {
+      paste0("https://reactome.org/ContentService/data/query/", id)
+    },
+    exists = function(status, body) {
+      if (status == 200) {
+        return(TRUE)
+      }
+      if (status == 404) {
+        return(FALSE)
+      }
+      .remote_abort_status(status)
+    },
+    # The status carries the whole verdict, so no body is worth persisting.
+    cache_body = function(status, body) NULL,
+    # The species is encoded in the stable id prefix, not checked against a map.
+    species_ok = function(source, id, body, species) TRUE,
+    # Existence only; a superseded stable id is not reported with a successor yet.
+    retired = function(source, body) list(retired = FALSE, successor = NULL)
   )
 )
 

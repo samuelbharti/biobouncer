@@ -71,6 +71,17 @@
   if (length(pdb) == 2L) {
     return(list(resolver = "pdb", subkey = "entry", id = pdb[2]))
   }
+  chembl <- regmatches(
+    url,
+    regexec("chembl_id_lookup/([^.?/]+)", url)
+  )[[1]]
+  if (length(chembl) == 2L) {
+    return(list(resolver = "chembl", subkey = "lookup", id = chembl[2]))
+  }
+  reactome <- regmatches(url, regexec("data/query/([^?]+)", url))[[1]]
+  if (length(reactome) == 2L) {
+    return(list(resolver = "reactome", subkey = "query", id = reactome[2]))
+  }
   stop("could not parse resolver and id from url: ", url)
 }
 
