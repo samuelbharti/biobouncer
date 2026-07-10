@@ -1,6 +1,6 @@
 Package: biogate
 Title: Validate Biological Identifiers and Inputs
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R:
     person("Samuel", "Bharti", , "samuelbharti.io@gmail.com", role = c("aut", "cre"))
 Description: A gate for biological inputs. Validate gene symbols, ontology
@@ -8,7 +8,7 @@ Description: A gate for biological inputs. Validate gene symbols, ontology
     using offline pattern and cache checks or live remote checks. Results are
     designed to match the companion Python package for the same inputs.
 License: MIT + file LICENSE
-URL: https://github.com/samuelbharti/biogate, https://samuelbharti.github.io/biogate/r/
+URL: https://github.com/samuelbharti/biogate, https://www.samuelbharti.com/biogate/r/
 BugReports: https://github.com/samuelbharti/biogate/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
