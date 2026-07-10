@@ -28,6 +28,7 @@ _RFAM_RE = re.compile(r"family/([^?]+)")
 _UNIPARC_RE = re.compile(r"uniparc/([^.?/]+)")
 _COMPLEXPORTAL_RE = re.compile(r"complex-ws/complex/([^/?]+)")
 _WIKIPATHWAYS_RE = re.compile(r"pathways/([^/]+)/")
+_REFSEQ_RE = re.compile(r"db=(?:nuccore|protein)&id=([^&]+)")
 
 
 def _load_cases():
@@ -88,6 +89,9 @@ def _resolve_fixture(url):
     match = _WIKIPATHWAYS_RE.search(url)
     if match:
         return "wikipathways", "pathways", match.group(1)
+    match = _REFSEQ_RE.search(url)
+    if match:
+        return "refseq", "esummary", match.group(1)
     raise AssertionError(f"could not parse remote url: {url!r}")
 
 

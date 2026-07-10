@@ -8,6 +8,11 @@ pattern: '(?:(?:AC|AP|NC|NG|NM|NP|NR|NT|NW|WP|XM|XP|XR|YP|ZP)_[0-9]+|NZ_[A-Z]{2,
 example: 'NM_000546.6'
 normalize:
   case: upper
+# remote mode checks existence against NCBI E-utilities, routing an accession to
+# the nucleotide or protein database by its molecule prefix. This is an existence
+# check only; a suppressed accession is not distinguished from a current one.
+remote:
+  resolver: refseq
 provenance:
   pattern_source: bioregistry
   homepage: https://www.ncbi.nlm.nih.gov/refseq

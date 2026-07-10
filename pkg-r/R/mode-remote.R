@@ -176,6 +176,20 @@
 .species_agnostic <- function(source, id, body, species) TRUE
 .never_retired <- function(source, body) list(retired = FALSE, successor = NULL)
 
+# RefSeq accessions split across two NCBI databases by their molecule prefix.
+# Protein accessions live in the protein database; the rest are nucleotide
+# records in nuccore.
+.refseq_protein_prefixes <- c("AP", "NP", "WP", "XP", "YP", "ZP")
+.refseq_db <- function(id) {
+  prefix <- toupper(sub("_.*$", "", id))
+  if (prefix %in% .refseq_protein_prefixes) "protein" else "nuccore"
+}
+# Whether an E-utilities esummary response resolved the accession to a uid.
+.esummary_has_uid <- function(body) {
+  uids <- tryCatch(body$result$uids, error = function(e) NULL)
+  length(uids) >= 1L
+}
+
 # Resolver definitions. Each maps a source and id to a URL, decides existence
 # from a status and body, and names the minimal body to persist. A resolver is
 # selected by source$remote$resolver and names its cache and fixture subtree.
@@ -510,6 +524,41 @@
     },
     exists = .exists_by_404,
     cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  refseq = list(
+    name = "refseq",
+    subkey = function(source) "esummary",
+    url = function(source, id) {
+      paste0(
+        "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=",
+        .refseq_db(id),
+        "&id=",
+        id,
+        "&retmode=json"
+      )
+    },
+    # esummary answers 200 with an empty uid list and an error field for an
+    # unknown accession, so existence is decided from the body, not the status.
+    exists = function(status, body) {
+      if (status != 200) {
+        .remote_abort_status(status)
+      }
+      .esummary_has_uid(body)
+    },
+    # Persist only the resolved uid list, which is all existence needs.
+    cache_body = function(status, body) {
+      if (status == 200) {
+        uids <- tryCatch(body$result$uids, error = function(e) NULL)
+        if (is.null(uids)) {
+          uids <- list()
+        }
+        list(result = list(uids = as.list(uids)))
+      } else {
+        NULL
+      }
+    },
     species_ok = .species_agnostic,
     retired = .never_retired
   )

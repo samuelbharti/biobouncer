@@ -109,6 +109,13 @@
   if (length(wp) == 2L) {
     return(list(resolver = "wikipathways", subkey = "pathways", id = wp[2]))
   }
+  refseq <- regmatches(
+    url,
+    regexec("db=(nuccore|protein)&id=([^&]+)", url)
+  )[[1]]
+  if (length(refseq) == 3L) {
+    return(list(resolver = "refseq", subkey = "esummary", id = refseq[3]))
+  }
   stop("could not parse resolver and id from url: ", url)
 }
 

@@ -9,7 +9,8 @@ UniProt for protein accessions, Mutalyzer for HGVS variant descriptions, dbSNP
 for reference SNP ids, RCSB PDB for structure ids, ChEMBL for compound and other
 entity ids, Reactome for pathway stable ids, the EBI InterPro API for InterPro
 and Pfam accessions, Rfam for RNA families, UniParc for unique sequences, the EBI
-Complex Portal for macromolecular complexes, and WikiPathways for pathways.
+Complex Portal for macromolecular complexes, WikiPathways for pathways, and NCBI
+E-utilities for RefSeq accessions.
 """
 
 from __future__ import annotations
@@ -38,6 +39,9 @@ _RFAM_BASE = "https://rfam.org/family/"
 _UNIPARC_BASE = "https://rest.uniprot.org/uniparc/"
 _COMPLEXPORTAL_BASE = "https://www.ebi.ac.uk/intact/complex-ws/complex/"
 _WIKIPATHWAYS_BASE = "https://www.wikipathways.org/wikipathways-assets/pathways/"
+_ESUMMARY_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
+# RefSeq accessions split across two NCBI databases by their molecule prefix.
+_REFSEQ_PROTEIN_PREFIXES = frozenset({"AP", "NP", "WP", "XP", "YP", "ZP"})
 _UNSAFE_IDENT = re.compile(r"[^A-Za-z0-9._-]")
 
 
@@ -559,6 +563,42 @@ def _wikipathways_url(source: Source, ident: str) -> str:
     return f"{_WIKIPATHWAYS_BASE}{ident}/{ident}.gpml"
 
 
+def _refseq_db(ident: str) -> str:
+    """Pick the NCBI database for a RefSeq accession from its molecule prefix.
+
+    Protein accessions (NP, XP, YP, WP, AP, ZP) live in the protein database; all
+    other RefSeq prefixes are nucleotide records in nuccore.
+    """
+    prefix = ident.split("_", 1)[0].upper()
+    return "protein" if prefix in _REFSEQ_PROTEIN_PREFIXES else "nuccore"
+
+
+def _refseq_url(source: Source, ident: str) -> str:
+    return f"{_ESUMMARY_BASE}?db={_refseq_db(ident)}&id={ident}&retmode=json"
+
+
+def _esummary_has_uid(body: dict | None) -> bool:
+    """Whether an E-utilities esummary response resolved the accession to a uid."""
+    uids = ((body or {}).get("result") or {}).get("uids") or []
+    return len(uids) >= 1
+
+
+def _refseq_exists(status: int, body: dict | None) -> bool:
+    # esummary answers 200 with an empty uid list and an error field for an
+    # unknown accession, so existence is decided from the body, not the status.
+    if status != 200:
+        raise RemoteError(f"NCBI E-utilities returned unexpected status {status}.")
+    return _esummary_has_uid(body)
+
+
+def _refseq_cache_body(status: int, body: dict | None) -> dict | None:
+    # Persist only the resolved uid list, which is all existence needs.
+    if status == 200:
+        uids = ((body or {}).get("result") or {}).get("uids") or []
+        return {"result": {"uids": list(uids)}}
+    return None
+
+
 _OLS = Resolver(
     name="ols",
     subkey=_ols_subkey,
@@ -687,6 +727,16 @@ _WIKIPATHWAYS = Resolver(
     retired=_never_retired,
 )
 
+_REFSEQ = Resolver(
+    name="refseq",
+    subkey=lambda source: "esummary",
+    url=_refseq_url,
+    exists=_refseq_exists,
+    cache_body=_refseq_cache_body,
+    species_ok=_species_agnostic,
+    retired=_never_retired,
+)
+
 _RESOLVERS = {
     "ols": _OLS,
     "ensembl": _ENSEMBL,
@@ -701,6 +751,7 @@ _RESOLVERS = {
     "uniparc": _UNIPARC,
     "complexportal": _COMPLEXPORTAL,
     "wikipathways": _WIKIPATHWAYS,
+    "refseq": _REFSEQ,
 }
 
 
