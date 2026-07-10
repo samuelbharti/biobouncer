@@ -1,5 +1,8 @@
 # biogate 0.0.0.9000
 
+* Adds `wikipathways`, `orphanet`, and `mirbase` `pattern` sources for pathways
+  (`WP554`), rare diseases (`ORPHA:558`), and mature microRNAs (`MIMAT0000001`).
+  Each suggests the canonical uppercase for a lowercase input.
 * Adds `drugbank`, `clinvar`, and `ec` `pattern` sources for drug accessions
   (`DB00001`), ClinVar records (`VCV000012345`), and Enzyme Commission numbers
   (`1.1.1.1`). The first two suggest the canonical uppercase for a lowercase
