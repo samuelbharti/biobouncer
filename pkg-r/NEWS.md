@@ -1,5 +1,8 @@
 # biogate 0.0.0.9000
 
+* Adds the OBO ontology sources `pato`, `mp`, and `bto` for qualities
+  (`PATO:0000001`), mammalian phenotypes (`MP:0001262`), and tissues
+  (`BTO:0000759`), each with `pattern` and live OLS `remote` modes.
 * Adds the OBO ontology sources `so`, `hp`, `doid`, `uberon`, and `cl` for
   sequence features (`SO:0000704`), phenotypes (`HP:0001250`), diseases
   (`DOID:9352`), anatomy (`UBERON:0002107`), and cell types (`CL:0000236`). Each
