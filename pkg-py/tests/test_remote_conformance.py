@@ -19,6 +19,7 @@ _OLS_RE = re.compile(r"ontologies/([^/]+)/terms\?obo_id=(.+)$")
 _ENSEMBL_RE = re.compile(r"lookup/id/([^?]+)")
 _UNIPROT_RE = re.compile(r"uniprotkb/([^.?/]+)")
 _MUTALYZER_RE = re.compile(r"normalize/(.+)$")
+_DBSNP_RE = re.compile(r"refsnp/([0-9]+)")
 
 
 def _load_cases():
@@ -52,6 +53,9 @@ def _resolve_fixture(url):
     match = _MUTALYZER_RE.search(url)
     if match:
         return "mutalyzer", "normalize", urllib.parse.unquote(match.group(1))
+    match = _DBSNP_RE.search(url)
+    if match:
+        return "dbsnp", "refsnp", f"rs{match.group(1)}"
     raise AssertionError(f"could not parse remote url: {url!r}")
 
 

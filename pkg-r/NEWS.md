@@ -1,5 +1,8 @@
 # biogate 0.0.0.9000
 
+* `dbsnp` gains `remote` mode. An rsID is checked for existence against the NCBI
+  dbSNP RefSNP API. An rsID that was merged into another still resolves but is
+  not current, so it is not valid and suggests the primary id.
 * Adds two `pattern` sources. `refseq` checks NCBI RefSeq accessions such as
   `NM_000546.6`, with an optional version, and suggests the canonical uppercase
   for a lowercase input. `dbsnp` checks dbSNP reference SNP ids such as `rs7412`,

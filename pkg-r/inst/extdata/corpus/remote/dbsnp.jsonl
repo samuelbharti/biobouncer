@@ -1,0 +1,6 @@
+{"input": "rs7412", "source_db": "dbsnp", "how": "remote", "expect": {"valid": true, "normalized": "rs7412"}, "note": "current reference SNP (APOE)"}
+{"input": "rs334", "source_db": "dbsnp", "how": "remote", "expect": {"valid": true, "normalized": "rs334"}, "note": "current reference SNP (HBB)"}
+{"input": "rs999999999999", "source_db": "dbsnp", "how": "remote", "expect": {"valid": false}, "note": "no such reference SNP"}
+{"input": "rs3200542", "source_db": "dbsnp", "how": "remote", "expect": {"valid": false, "suggestion": "rs7412"}, "note": "merged into rs7412; the primary id is suggested"}
+{"input": "RS7412", "source_db": "dbsnp", "how": "remote", "expect": {"valid": false, "suggestion": "rs7412"}, "note": "uppercase prefix; the lowercase form exists remotely"}
+{"input": "ss12345", "source_db": "dbsnp", "how": "remote", "expect": {"valid": false}, "note": "a submitted-SNP id fails the grammar before any lookup"}

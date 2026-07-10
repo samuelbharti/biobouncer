@@ -6,6 +6,10 @@ description: NCBI dbSNP reference SNP identifiers.
 pattern: 'rs[0-9]+'
 normalize:
   case: lower
+# remote mode checks existence against the NCBI dbSNP RefSNP API. An rsID that
+# was merged into another is not valid and suggests the current (primary) id.
+remote:
+  resolver: dbsnp
 provenance:
   pattern_source: bioregistry
   homepage: https://www.ncbi.nlm.nih.gov/snp

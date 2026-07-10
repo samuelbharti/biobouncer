@@ -3,9 +3,10 @@
 Remote mode mirrors cache mode, with membership in a pinned snapshot replaced by
 live existence via a resolver. A resolver names one API and knows how to build a
 lookup URL, read a status and body into an existence verdict, and reduce a
-response to the minimal body worth caching. Four resolvers ship here: OLS (EBI
+response to the minimal body worth caching. Five resolvers ship here: OLS (EBI
 Ontology Lookup Service) for the ontology sources, Ensembl for stable ids,
-UniProt for protein accessions, and Mutalyzer for HGVS variant descriptions.
+UniProt for protein accessions, Mutalyzer for HGVS variant descriptions, and
+dbSNP for reference SNP ids.
 """
 
 from __future__ import annotations
@@ -326,6 +327,51 @@ def _mutalyzer_retired(source: Source, body: dict | None) -> tuple[bool, str | N
     return False, None
 
 
+def _dbsnp_subkey(source: Source) -> str:
+    return "refsnp"
+
+
+def _dbsnp_url(source: Source, ident: str) -> str:
+    number = ident[2:] if ident[:2].lower() == "rs" else ident
+    return f"https://api.ncbi.nlm.nih.gov/variation/v0/refsnp/{number}"
+
+
+def _dbsnp_merged_into(body: dict | None) -> str | None:
+    """The primary rsID number a merged record points to, or None for a primary."""
+    merged = (body or {}).get("merged_snapshot_data") or {}
+    ids = merged.get("merged_into") or []
+    return str(ids[0]) if ids else None
+
+
+def _dbsnp_exists(status: int, body: dict | None) -> bool:
+    if status == 200:
+        return True
+    if status == 404:
+        return False
+    raise RemoteError(f"dbSNP returned unexpected status {status}.")
+
+
+def _dbsnp_cache_body(status: int, body: dict | None) -> dict | None:
+    # Persist only the merge pointer; a primary record needs no body.
+    if status == 200:
+        target = _dbsnp_merged_into(body)
+        if target:
+            return {"merged_snapshot_data": {"merged_into": [target]}}
+    return None
+
+
+def _dbsnp_species_ok(source: Source, ident: str, body: dict | None, species) -> bool:
+    return True
+
+
+def _dbsnp_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
+    # A merged rsID still resolves but is not current; suggest the primary id.
+    target = _dbsnp_merged_into(body)
+    if target:
+        return True, f"rs{target}"
+    return False, None
+
+
 _OLS = Resolver(
     name="ols",
     subkey=_ols_subkey,
@@ -364,11 +410,22 @@ _MUTALYZER = Resolver(
     retired=_mutalyzer_retired,
 )
 
+_DBSNP = Resolver(
+    name="dbsnp",
+    subkey=_dbsnp_subkey,
+    url=_dbsnp_url,
+    exists=_dbsnp_exists,
+    cache_body=_dbsnp_cache_body,
+    species_ok=_dbsnp_species_ok,
+    retired=_dbsnp_retired,
+)
+
 _RESOLVERS = {
     "ols": _OLS,
     "ensembl": _ENSEMBL,
     "uniprot": _UNIPROT,
     "mutalyzer": _MUTALYZER,
+    "dbsnp": _DBSNP,
 }
 
 
