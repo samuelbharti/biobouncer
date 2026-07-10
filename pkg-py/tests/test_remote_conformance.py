@@ -7,6 +7,7 @@ runs the same cases against the real API and is skipped unless opted in.
 import json
 import os
 import re
+import urllib.parse
 from importlib.resources import files
 
 import pytest
@@ -17,6 +18,7 @@ import biogate._remote as remote
 _OLS_RE = re.compile(r"ontologies/([^/]+)/terms\?obo_id=(.+)$")
 _ENSEMBL_RE = re.compile(r"lookup/id/([^?]+)")
 _UNIPROT_RE = re.compile(r"uniprotkb/([^.?/]+)")
+_MUTALYZER_RE = re.compile(r"normalize/(.+)$")
 
 
 def _load_cases():
@@ -47,6 +49,9 @@ def _resolve_fixture(url):
     match = _UNIPROT_RE.search(url)
     if match:
         return "uniprot", "uniprotkb", match.group(1)
+    match = _MUTALYZER_RE.search(url)
+    if match:
+        return "mutalyzer", "normalize", urllib.parse.unquote(match.group(1))
     raise AssertionError(f"could not parse remote url: {url!r}")
 
 
@@ -60,7 +65,7 @@ def _fixture_http_get(url, timeout=30):
         / "remote"
         / resolver
         / subkey
-        / f"{ident.replace(':', '_')}.json"
+        / f"{remote._safe_ident(ident)}.json"
     )
     if not path.is_file():
         raise AssertionError(f"missing fixture for {resolver}/{subkey}/{ident}: {path}")
