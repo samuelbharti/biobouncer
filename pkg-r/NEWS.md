@@ -1,5 +1,8 @@
 # biogate 0.0.0.9000
 
+* Adds `pfam`, `rfam`, and `prosite` `pattern` sources for protein families
+  (`PF00001`), RNA families (`RF00001`), and PROSITE patterns and profiles
+  (`PS00001`). Each suggests the canonical uppercase for a lowercase input.
 * Adds `reactome` and `interpro` `pattern` sources. `reactome` checks Reactome
   stable ids such as `R-HSA-68886`, and `interpro` checks InterPro ids such as
   `IPR000001`. Both suggest the canonical uppercase for a lowercase input.
