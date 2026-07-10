@@ -144,7 +144,7 @@ bg.is_valid_id("GO:0006915", source_db="go")
 | Source | `source_db` | Example | Modes | Species-aware |
 |---|---|---|---|---|
 | ChEBI. Chemical entities of biological interest. | `chebi` | `CHEBI:15377` | pattern, cache, remote | no |
-| ChEMBL. Bioactive molecules. | `chembl` | `CHEMBL25` | pattern | no |
+| ChEMBL. Bioactive molecules. | `chembl` | `CHEMBL25` | pattern, remote | no |
 | DrugBank. Drug accessions. | `drugbank` | `DB00001` | pattern | no |
 | PharmGKB. Pharmacogenomics accessions. | `pharmgkb` | `PA267` | pattern | no |
 
@@ -158,7 +158,7 @@ bg.is_valid_id("CHEBI:15377", source_db="chebi")
 
 | Source | `source_db` | Example | Modes | Species-aware |
 |---|---|---|---|---|
-| Reactome. Reactome pathways, reactions, and entities. | `reactome` | `R-HSA-68886` | pattern | no |
+| Reactome. Reactome pathways, reactions, and entities. | `reactome` | `R-HSA-68886` | pattern, remote | no |
 | WikiPathways. Community-curated pathways. | `wikipathways` | `WP554` | pattern | no |
 
 Check any id in the group the same way:

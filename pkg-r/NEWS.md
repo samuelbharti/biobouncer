@@ -1,5 +1,12 @@
 # biogate (development version)
 
+* `chembl` gains `remote` mode. A ChEMBL id is checked for existence against the
+  ChEMBL id-lookup endpoint, which resolves an id of any entity type, so one
+  lookup covers compounds, targets, assays, and documents alike. This is an
+  existence check only; an obsolete id is not yet reported with a successor.
+* `reactome` gains `remote` mode. A stable id is checked for existence against
+  the Reactome content service. This is an existence check only; a superseded
+  stable id is not yet reported with its successor.
 * `pdb` gains `remote` mode. A four-character structure id is checked for
   existence against the RCSB PDB data API. This is an existence check only; an
   obsoleted structure that was superseded is not yet reported with its
