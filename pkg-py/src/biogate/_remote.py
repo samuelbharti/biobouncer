@@ -402,39 +402,8 @@ def _dbsnp_retired(source: Source, body: dict | None) -> tuple[bool, str | None]
     return False, None
 
 
-def _pdb_subkey(source: Source) -> str:
-    return "entry"
-
-
 def _pdb_url(source: Source, ident: str) -> str:
     return _RCSB_BASE + ident
-
-
-def _pdb_exists(status: int, body: dict | None) -> bool:
-    if status == 200:
-        return True
-    if status == 404:
-        return False
-    raise RemoteError(f"RCSB PDB returned unexpected status {status}.")
-
-
-def _pdb_cache_body(status: int, body: dict | None) -> dict | None:
-    # The status carries the whole verdict, so no body is worth persisting.
-    return None
-
-
-def _pdb_species_ok(source: Source, ident: str, body: dict | None, species) -> bool:
-    # A structure is not species scoped for this existence check.
-    return True
-
-
-def _pdb_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
-    # Existence only; an obsoleted-with-successor entry is not modeled yet.
-    return False, None
-
-
-def _chembl_subkey(source: Source) -> str:
-    return "lookup"
 
 
 def _chembl_url(source: Source, ident: str) -> str:
@@ -443,61 +412,8 @@ def _chembl_url(source: Source, ident: str) -> str:
     return f"{_CHEMBL_BASE}{ident}.json"
 
 
-def _chembl_exists(status: int, body: dict | None) -> bool:
-    if status == 200:
-        return True
-    if status == 404:
-        return False
-    raise RemoteError(f"ChEMBL returned unexpected status {status}.")
-
-
-def _chembl_cache_body(status: int, body: dict | None) -> dict | None:
-    # The status carries the whole verdict, so no body is worth persisting.
-    return None
-
-
-def _chembl_species_ok(source: Source, ident: str, body: dict | None, species) -> bool:
-    # A ChEMBL id is not species scoped for this existence check.
-    return True
-
-
-def _chembl_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
-    # Existence only; the lookup status field is not interpreted yet, so an
-    # obsolete id is not reported with a successor.
-    return False, None
-
-
-def _reactome_subkey(source: Source) -> str:
-    return "query"
-
-
 def _reactome_url(source: Source, ident: str) -> str:
     return _REACTOME_BASE + ident
-
-
-def _reactome_exists(status: int, body: dict | None) -> bool:
-    if status == 200:
-        return True
-    if status == 404:
-        return False
-    raise RemoteError(f"Reactome returned unexpected status {status}.")
-
-
-def _reactome_cache_body(status: int, body: dict | None) -> dict | None:
-    # The status carries the whole verdict, so no body is worth persisting.
-    return None
-
-
-def _reactome_species_ok(
-    source: Source, ident: str, body: dict | None, species
-) -> bool:
-    # The species is encoded in the stable id prefix, not checked against a map.
-    return True
-
-
-def _reactome_retired(source: Source, body: dict | None) -> tuple[bool, str | None]:
-    # Existence only; a superseded stable id is not reported with a successor yet.
-    return False, None
 
 
 def _interpro_subkey(source: Source) -> str:
@@ -725,32 +641,32 @@ _DBSNP = Resolver(
 
 _PDB = Resolver(
     name="pdb",
-    subkey=_pdb_subkey,
+    subkey=lambda source: "entry",
     url=_pdb_url,
-    exists=_pdb_exists,
-    cache_body=_pdb_cache_body,
-    species_ok=_pdb_species_ok,
-    retired=_pdb_retired,
+    exists=_exists_by_404,
+    cache_body=_no_cache_body,
+    species_ok=_species_agnostic,
+    retired=_never_retired,
 )
 
 _CHEMBL = Resolver(
     name="chembl",
-    subkey=_chembl_subkey,
+    subkey=lambda source: "lookup",
     url=_chembl_url,
-    exists=_chembl_exists,
-    cache_body=_chembl_cache_body,
-    species_ok=_chembl_species_ok,
-    retired=_chembl_retired,
+    exists=_exists_by_404,
+    cache_body=_no_cache_body,
+    species_ok=_species_agnostic,
+    retired=_never_retired,
 )
 
 _REACTOME = Resolver(
     name="reactome",
-    subkey=_reactome_subkey,
+    subkey=lambda source: "query",
     url=_reactome_url,
-    exists=_reactome_exists,
-    cache_body=_reactome_cache_body,
-    species_ok=_reactome_species_ok,
-    retired=_reactome_retired,
+    exists=_exists_by_404,
+    cache_body=_no_cache_body,
+    species_ok=_species_agnostic,
+    retired=_never_retired,
 )
 
 _INTERPRO = Resolver(

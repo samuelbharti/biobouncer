@@ -403,21 +403,10 @@
     url = function(source, id) {
       paste0("https://data.rcsb.org/rest/v1/core/entry/", id)
     },
-    exists = function(status, body) {
-      if (status == 200) {
-        return(TRUE)
-      }
-      if (status == 404) {
-        return(FALSE)
-      }
-      .remote_abort_status(status)
-    },
-    # The status carries the whole verdict, so no body is worth persisting.
-    cache_body = function(status, body) NULL,
-    # A structure is not species scoped for this existence check.
-    species_ok = function(source, id, body, species) TRUE,
-    # Existence only; an obsoleted-with-successor entry is not modeled yet.
-    retired = function(source, body) list(retired = FALSE, successor = NULL)
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
   ),
   chembl = list(
     name = "chembl",
@@ -431,22 +420,10 @@
         ".json"
       )
     },
-    exists = function(status, body) {
-      if (status == 200) {
-        return(TRUE)
-      }
-      if (status == 404) {
-        return(FALSE)
-      }
-      .remote_abort_status(status)
-    },
-    # The status carries the whole verdict, so no body is worth persisting.
-    cache_body = function(status, body) NULL,
-    # A ChEMBL id is not species scoped for this existence check.
-    species_ok = function(source, id, body, species) TRUE,
-    # Existence only; the lookup status field is not interpreted yet, so an
-    # obsolete id is not reported with a successor.
-    retired = function(source, body) list(retired = FALSE, successor = NULL)
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
   ),
   reactome = list(
     name = "reactome",
@@ -454,21 +431,10 @@
     url = function(source, id) {
       paste0("https://reactome.org/ContentService/data/query/", id)
     },
-    exists = function(status, body) {
-      if (status == 200) {
-        return(TRUE)
-      }
-      if (status == 404) {
-        return(FALSE)
-      }
-      .remote_abort_status(status)
-    },
-    # The status carries the whole verdict, so no body is worth persisting.
-    cache_body = function(status, body) NULL,
-    # The species is encoded in the stable id prefix, not checked against a map.
-    species_ok = function(source, id, body, species) TRUE,
-    # Existence only; a superseded stable id is not reported with a successor yet.
-    retired = function(source, body) list(retired = FALSE, successor = NULL)
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
   ),
   interpro = list(
     name = "interpro",
