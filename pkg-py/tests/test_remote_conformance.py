@@ -4,34 +4,15 @@ The offline test replaces the network seam with a fixture reader. A live test
 runs the same cases against the real API and is skipped unless opted in.
 """
 
+import functools
 import json
 import os
-import re
-import urllib.parse
 from importlib.resources import files
 
 import pytest
 
 import biogate
 import biogate._remote as remote
-
-_OLS_RE = re.compile(r"ontologies/([^/]+)/terms\?obo_id=(.+)$")
-_ENSEMBL_RE = re.compile(r"lookup/id/([^?]+)")
-_UNIPROT_RE = re.compile(r"uniprotkb/([^.?/]+)")
-_MUTALYZER_RE = re.compile(r"normalize/(.+)$")
-_DBSNP_RE = re.compile(r"refsnp/([0-9]+)")
-_PDB_RE = re.compile(r"core/entry/(.+)$")
-_CHEMBL_RE = re.compile(r"chembl_id_lookup/([^.?/]+)")
-_REACTOME_RE = re.compile(r"data/query/([^?]+)")
-_INTERPRO_RE = re.compile(r"entry/(interpro|pfam)/([^/?]+)")
-_RFAM_RE = re.compile(r"family/([^?]+)")
-_UNIPARC_RE = re.compile(r"uniparc/([^.?/]+)")
-_COMPLEXPORTAL_RE = re.compile(r"complex-ws/complex/([^/?]+)")
-_WIKIPATHWAYS_RE = re.compile(r"pathways/([^/]+)/")
-_REFSEQ_RE = re.compile(r"db=(?:nuccore|protein)&id=([^&]+)")
-_CLINVAR_RE = re.compile(r"db=clinvar&term=([^&]+)")
-_PROSITE_RE = re.compile(r"prosite\.expasy\.org/([^/?]+)")
-_MIRBASE_RE = re.compile(r"rnacentral\?query=([^&]+)")
 
 
 def _load_cases():
@@ -51,76 +32,35 @@ CASES = _load_cases()
 _IDS = [f"{c['source_db']}-{c['input']}" for c in CASES]
 
 
-def _resolve_fixture(url):
-    """Map any resolver URL to ``(resolver, subkey, ident)`` or fail loudly."""
-    match = _OLS_RE.search(url)
-    if match:
-        return "ols", match.group(1), match.group(2)
-    match = _ENSEMBL_RE.search(url)
-    if match:
-        return "ensembl", "id", match.group(1)
-    match = _UNIPROT_RE.search(url)
-    if match:
-        return "uniprot", "uniprotkb", match.group(1)
-    match = _MUTALYZER_RE.search(url)
-    if match:
-        return "mutalyzer", "normalize", urllib.parse.unquote(match.group(1))
-    match = _DBSNP_RE.search(url)
-    if match:
-        return "dbsnp", "refsnp", f"rs{match.group(1)}"
-    match = _PDB_RE.search(url)
-    if match:
-        return "pdb", "entry", match.group(1)
-    match = _CHEMBL_RE.search(url)
-    if match:
-        return "chembl", "lookup", match.group(1)
-    match = _REACTOME_RE.search(url)
-    if match:
-        return "reactome", "query", match.group(1)
-    match = _INTERPRO_RE.search(url)
-    if match:
-        return "interpro", match.group(1), match.group(2)
-    match = _RFAM_RE.search(url)
-    if match:
-        return "rfam", "family", match.group(1)
-    match = _UNIPARC_RE.search(url)
-    if match:
-        return "uniparc", "uniparc", match.group(1)
-    match = _COMPLEXPORTAL_RE.search(url)
-    if match:
-        return "complexportal", "complex", match.group(1)
-    match = _WIKIPATHWAYS_RE.search(url)
-    if match:
-        return "wikipathways", "pathways", match.group(1)
-    match = _REFSEQ_RE.search(url)
-    if match:
-        return "refseq", "esummary", match.group(1)
-    match = _CLINVAR_RE.search(url)
-    if match:
-        return "clinvar", "esearch", match.group(1)
-    match = _PROSITE_RE.search(url)
-    if match:
-        return "prosite", "entry", match.group(1)
-    match = _MIRBASE_RE.search(url)
-    if match:
-        return "mirbase", "rnacentral", match.group(1)
-    raise AssertionError(f"could not parse remote url: {url!r}")
+def _iter_fixture_files(root):
+    for entry in root.iterdir():
+        if entry.is_dir():
+            yield from _iter_fixture_files(entry)
+        elif entry.name.endswith(".json"):
+            yield entry
+
+
+@functools.cache
+def _fixture_index():
+    """Map each recorded fixture URL to its file, walking the tree once.
+
+    Every fixture records the exact URL its resolver builds, so the offline
+    transport is a direct lookup with no per-resolver URL parsing to keep in
+    sync as sources are added.
+    """
+    root = files("biogate") / "_data" / "fixtures" / "remote"
+    index = {}
+    for path in _iter_fixture_files(root):
+        record = json.loads(path.read_text(encoding="utf-8"))
+        index[record["url"]] = path
+    return index
 
 
 def _fixture_http_get(url, timeout=30):
-    """Serve a recorded fixture for a resolver existence URL, or fail loudly."""
-    resolver, subkey, ident = _resolve_fixture(url)
-    path = (
-        files("biogate")
-        / "_data"
-        / "fixtures"
-        / "remote"
-        / resolver
-        / subkey
-        / f"{remote._safe_ident(ident)}.json"
-    )
-    if not path.is_file():
-        raise AssertionError(f"missing fixture for {resolver}/{subkey}/{ident}: {path}")
+    """Serve the recorded fixture whose URL matches, or fail loudly."""
+    path = _fixture_index().get(url)
+    if path is None:
+        raise AssertionError(f"missing fixture for url: {url!r}")
     fx = json.loads(path.read_text(encoding="utf-8"))
     return fx["status"], fx["body"]
 

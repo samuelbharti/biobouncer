@@ -34,122 +34,39 @@
   expect_gt(n_cases, 0)
 }
 
-# Map a request url to the resolver, subkey, and id that name its fixture.
-.fixture_route <- function(url) {
-  ols <- regmatches(
-    url,
-    regexec("ontologies/([^/]+)/terms\\?obo_id=(.+)$", url)
-  )[[1]]
-  if (length(ols) == 3L) {
-    return(list(resolver = "ols", subkey = ols[2], id = ols[3]))
+# Build a url -> fixture-path index once by walking the vendored fixtures tree.
+# Every fixture records the exact URL its resolver builds, so serving one is a
+# direct lookup, with no per-resolver URL parsing to keep in sync.
+.fixture_index <- local({
+  cache <- NULL
+  function() {
+    if (is.null(cache)) {
+      root <- system.file("extdata", "fixtures", "remote", package = "biogate")
+      paths <- list.files(
+        root,
+        pattern = "\\.json$",
+        recursive = TRUE,
+        full.names = TRUE
+      )
+      idx <- list()
+      for (p in paths) {
+        fx <- jsonlite::fromJSON(p, simplifyVector = FALSE)
+        idx[[fx$url]] <- p
+      }
+      cache <<- idx
+    }
+    cache
   }
-  ens <- regmatches(url, regexec("lookup/id/([^?]+)", url))[[1]]
-  if (length(ens) == 2L) {
-    return(list(resolver = "ensembl", subkey = "id", id = ens[2]))
-  }
-  uni <- regmatches(url, regexec("uniprotkb/([^.?/]+)", url))[[1]]
-  if (length(uni) == 2L) {
-    return(list(resolver = "uniprot", subkey = "uniprotkb", id = uni[2]))
-  }
-  mut <- regmatches(url, regexec("normalize/(.+)$", url))[[1]]
-  if (length(mut) == 2L) {
-    return(list(
-      resolver = "mutalyzer",
-      subkey = "normalize",
-      id = utils::URLdecode(mut[2])
-    ))
-  }
-  snp <- regmatches(url, regexec("refsnp/([0-9]+)", url))[[1]]
-  if (length(snp) == 2L) {
-    return(list(
-      resolver = "dbsnp",
-      subkey = "refsnp",
-      id = paste0("rs", snp[2])
-    ))
-  }
-  pdb <- regmatches(url, regexec("core/entry/(.+)$", url))[[1]]
-  if (length(pdb) == 2L) {
-    return(list(resolver = "pdb", subkey = "entry", id = pdb[2]))
-  }
-  chembl <- regmatches(
-    url,
-    regexec("chembl_id_lookup/([^.?/]+)", url)
-  )[[1]]
-  if (length(chembl) == 2L) {
-    return(list(resolver = "chembl", subkey = "lookup", id = chembl[2]))
-  }
-  reactome <- regmatches(url, regexec("data/query/([^?]+)", url))[[1]]
-  if (length(reactome) == 2L) {
-    return(list(resolver = "reactome", subkey = "query", id = reactome[2]))
-  }
-  interpro <- regmatches(
-    url,
-    regexec("entry/(interpro|pfam)/([^/?]+)", url)
-  )[[1]]
-  if (length(interpro) == 3L) {
-    return(list(
-      resolver = "interpro",
-      subkey = interpro[2],
-      id = interpro[3]
-    ))
-  }
-  rfam <- regmatches(url, regexec("family/([^?]+)", url))[[1]]
-  if (length(rfam) == 2L) {
-    return(list(resolver = "rfam", subkey = "family", id = rfam[2]))
-  }
-  uniparc <- regmatches(url, regexec("uniparc/([^.?/]+)", url))[[1]]
-  if (length(uniparc) == 2L) {
-    return(list(resolver = "uniparc", subkey = "uniparc", id = uniparc[2]))
-  }
-  cpx <- regmatches(url, regexec("complex-ws/complex/([^/?]+)", url))[[1]]
-  if (length(cpx) == 2L) {
-    return(list(resolver = "complexportal", subkey = "complex", id = cpx[2]))
-  }
-  wp <- regmatches(url, regexec("pathways/([^/]+)/", url))[[1]]
-  if (length(wp) == 2L) {
-    return(list(resolver = "wikipathways", subkey = "pathways", id = wp[2]))
-  }
-  refseq <- regmatches(
-    url,
-    regexec("db=(nuccore|protein)&id=([^&]+)", url)
-  )[[1]]
-  if (length(refseq) == 3L) {
-    return(list(resolver = "refseq", subkey = "esummary", id = refseq[3]))
-  }
-  clinvar <- regmatches(url, regexec("db=clinvar&term=([^&]+)", url))[[1]]
-  if (length(clinvar) == 2L) {
-    return(list(resolver = "clinvar", subkey = "esearch", id = clinvar[2]))
-  }
-  prosite <- regmatches(url, regexec("prosite\\.expasy\\.org/([^/?]+)", url))[[
-    1
-  ]]
-  if (length(prosite) == 2L) {
-    return(list(resolver = "prosite", subkey = "entry", id = prosite[2]))
-  }
-  mirbase <- regmatches(url, regexec("rnacentral\\?query=([^&]+)", url))[[1]]
-  if (length(mirbase) == 2L) {
-    return(list(resolver = "mirbase", subkey = "rnacentral", id = mirbase[2]))
-  }
-  stop("could not parse resolver and id from url: ", url)
-}
+})
 
 # Serve recorded fixtures in place of the live API. A missing fixture must fail
 # loudly rather than silently reach the network.
 .fixture_transport <- function(url, timeout) {
-  route <- .fixture_route(url)
-  fx_path <- system.file(
-    "extdata",
-    "fixtures",
-    "remote",
-    route$resolver,
-    route$subkey,
-    paste0(gsub("[^A-Za-z0-9._-]", "_", route$id), ".json"),
-    package = "biogate"
-  )
-  if (!nzchar(fx_path) || !file.exists(fx_path)) {
-    stop("missing fixture for ", route$resolver, " ", route$id)
+  path <- .fixture_index()[[url]]
+  if (is.null(path)) {
+    stop("missing fixture for url: ", url)
   }
-  fx <- jsonlite::fromJSON(fx_path, simplifyVector = FALSE)
+  fx <- jsonlite::fromJSON(path, simplifyVector = FALSE)
   list(status = fx$status, body = fx$body)
 }
 
