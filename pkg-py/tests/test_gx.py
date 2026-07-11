@@ -37,6 +37,15 @@ def test_invalid_value_fails_and_is_counted():
     assert result.result["unexpected_percent"] == pytest.approx(100 / 3)
 
 
+def test_null_cell_is_not_counted_as_invalid():
+    # A missing value is not a failed identifier; it must not count as unexpected.
+    df = pd.DataFrame({"term": ["MONDO:0005148", None, "MONDO:0018076"]})
+    result = _batch(df).validate(
+        ExpectColumnValuesToBeValidId(column="term", source_db="mondo")
+    )
+    assert result.success is True
+
+
 def test_mostly_tolerates_some_invalid():
     df = pd.DataFrame({"term": ["MONDO:0005148", "mondo:5148", "MONDO:0018076"]})
     result = _batch(df).validate(
