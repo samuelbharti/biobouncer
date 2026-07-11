@@ -871,9 +871,12 @@ def remote_verdicts(
     call.
     """
     resolver = _get_resolver(source)
-    plans: list[tuple[bool, str | None]] = []
+    plans: list[tuple[bool | None, str | None]] = []
     need: set[str] = set()
     for item in items:
+        if item is None:
+            plans.append((None, None))
+            continue
         if matches(source.pattern, item):
             plans.append((True, item))
             need.add(item)
@@ -885,6 +888,9 @@ def remote_verdicts(
     resolved = _resolve_ids(resolver, source, sorted(need), species) if need else {}
     verdicts: list[tuple[bool, str | None, str | None]] = []
     for well_formed, value in plans:
+        if well_formed is None:
+            verdicts.append((None, None, None))
+            continue
         valid, successor = resolved.get(value, (False, None))
         if well_formed:
             if valid:

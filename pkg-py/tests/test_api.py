@@ -65,10 +65,46 @@ def test_every_source_example_is_valid_in_pattern_mode():
 
 
 def test_unknown_source_raises():
-    with pytest.raises(ValueError, match="Unknown source_db"):
+    with pytest.raises(biogate.UnknownSourceError, match="Unknown source_db"):
         biogate.check_id("x", source_db="not_a_source")
 
 
 def test_invalid_mode_raises():
-    with pytest.raises(ValueError, match="Invalid mode"):
+    with pytest.raises(biogate.InvalidModeError, match="Invalid mode"):
         biogate.check_id("MONDO:0005148", source_db="mondo", how="bogus")
+
+
+def test_missing_values_propagate_as_none():
+    results = biogate.check_id([None, "MONDO:0005148", float("nan")], source_db="mondo")
+    assert results[0].input is None
+    assert results[0].valid is None
+    assert results[0].normalized is None
+    assert results[0].suggestion is None
+    assert results[1].valid is True
+    assert results[2].valid is None
+
+
+def test_is_valid_id_returns_none_for_missing():
+    assert biogate.is_valid_id(None, source_db="mondo") is None
+    assert biogate.is_valid_id(["MONDO:0005148", None], source_db="mondo") == [
+        True,
+        None,
+    ]
+
+
+def test_empty_input_returns_empty_list():
+    assert biogate.check_id([], source_db="mondo") == []
+
+
+def test_rejects_unsupported_input_types():
+    with pytest.raises(TypeError):
+        biogate.check_id({"MONDO:0005148": 1}, source_db="mondo")
+    with pytest.raises(TypeError):
+        biogate.check_id(b"MONDO:0005148", source_db="mondo")
+
+
+def test_rejects_non_string_source_db():
+    with pytest.raises(TypeError):
+        biogate.check_id("x", source_db=1)
+    with pytest.raises(TypeError):
+        biogate.check_id("x", source_db=["mondo", "efo"])

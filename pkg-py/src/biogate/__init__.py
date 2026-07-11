@@ -18,20 +18,22 @@ from ._cache import (
     pull,
     snapshots,
 )
-from ._registry import source_info, sources
+from ._registry import UnknownSourceError, source_info, sources
 from ._remote import NoResolverError, RemoteError
 from ._result import Result
-from .core import check_id, is_valid_id
+from .core import InvalidModeError, check_id, is_valid_id
 
 __version__ = "0.1.0"
 
 __all__ = [
+    "InvalidModeError",
     "MissingSnapshotError",
     "MissingVersionError",
     "NoBuilderError",
     "NoResolverError",
     "RemoteError",
     "Result",
+    "UnknownSourceError",
     "cache_dir",
     "check_id",
     "is_valid_id",

@@ -9,6 +9,10 @@ from importlib.resources import files
 import yaml
 
 
+class UnknownSourceError(ValueError):
+    """Raised when a source key is not in the registry."""
+
+
 @dataclass(frozen=True)
 class Source:
     key: str
@@ -100,7 +104,7 @@ def get_source(key: str) -> Source:
     """Return the Source for ``key`` or raise ValueError if it is unknown."""
     reg = _registry()
     if key not in reg:
-        raise ValueError(
+        raise UnknownSourceError(
             f"Unknown source_db {key!r}. Available: {', '.join(sources())}."
         )
     return reg[key]

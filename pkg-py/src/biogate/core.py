@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+import math
+from collections.abc import Iterable, Mapping
 from datetime import datetime, timezone
 
 from ._cache import (
@@ -21,8 +22,26 @@ from ._result import Result
 _KNOWN_MODES = ("pattern", "cache", "remote", "existence")
 
 
+class InvalidModeError(ValueError):
+    """Raised when ``how`` is not one of the supported checking modes."""
+
+
 def _is_scalar(x: object) -> bool:
     return isinstance(x, str) or not isinstance(x, Iterable)
+
+
+def _is_missing(value: object) -> bool:
+    """Whether a value is missing rather than an identifier to check.
+
+    Covers ``None``, a float ``NaN`` (including ``numpy.nan``, which is a float),
+    and pandas ``NA``, so a missing cell propagates as ``valid=None`` instead of
+    being checked as the literal string ``"None"`` or ``"nan"``.
+    """
+    if value is None:
+        return True
+    if isinstance(value, float) and math.isnan(value):
+        return True
+    return type(value).__name__ in ("NAType", "NaTType")
 
 
 def _utc_stamp() -> str:
@@ -51,12 +70,21 @@ def check_id(
     Returns:
         A list of ``Result``, one per input, in the input order.
     """
+    if not isinstance(source_db, str):
+        raise TypeError(f"source_db must be a string, got {type(source_db).__name__}.")
+    if not isinstance(how, str):
+        raise TypeError(f"how must be a string, got {type(how).__name__}.")
+    if isinstance(x, (bytes, bytearray, Mapping)):
+        raise TypeError(
+            f"x must be a string or an iterable of strings, got {type(x).__name__}."
+        )
     if how not in _KNOWN_MODES:
-        raise ValueError(
+        raise InvalidModeError(
             f"Invalid mode how={how!r}. Choose one of {', '.join(_KNOWN_MODES)}."
         )
     source = get_source(source_db)
-    items = [str(it) for it in ([x] if _is_scalar(x) else list(x))]
+    raw = [x] if _is_scalar(x) else list(x)
+    items = [None if _is_missing(it) else str(it) for it in raw]
 
     # Resolve where verdicts come from. ``ids`` drives the offline snapshot path
     # (cache, or existence when a snapshot is available); ``remote_out`` drives
@@ -98,7 +126,9 @@ def check_id(
 
     results = []
     for idx, s in enumerate(items):
-        if ids is not None:
+        if s is None:
+            valid, normalized, suggestion = None, None, None
+        elif ids is not None:
             valid, normalized, suggestion = cache_check(source, s, ids, retired)
         elif remote_out is not None:
             valid, normalized, suggestion = remote_out[idx]

@@ -10,8 +10,8 @@ class Result:
     """One verdict, with enough context to be self-describing.
 
     Attributes:
-        input: The original value, unchanged.
-        valid: Whether the input passed the check.
+        input: The original value, or None for a missing input.
+        valid: Whether the input passed the check, or None for a missing input.
         normalized: Canonical form when valid, else None.
         suggestion: Best-effort correction when invalid but mappable, else None.
         source_db: The source the check ran against.
@@ -20,8 +20,8 @@ class Result:
         how: The mode used ("pattern").
     """
 
-    input: str
-    valid: bool
+    input: str | None
+    valid: bool | None
     normalized: str | None
     suggestion: str | None
     source_db: str
