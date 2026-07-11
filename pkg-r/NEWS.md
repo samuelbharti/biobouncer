@@ -1,5 +1,13 @@
 # biogate (development version)
 
+* `mirbase` gains `remote` mode. A mature accession is checked for existence
+  against RNAcentral through EBI Search, which indexes miRBase. miRBase has no
+  existence API of its own. This is an existence check only; a withdrawn
+  accession is reported as absent, not with a successor.
+* `prosite` gains `remote` mode. A pattern or profile accession is checked for
+  existence against the ExPASy PROSITE entry endpoint, which resolves both entry
+  types from one address. This is an existence check only; a deleted accession is
+  reported as absent, not with a successor.
 * `orphanet` gains `remote` mode. A rare-disease id is checked against the
   Orphanet Rare Disease Ontology in the Ontology Lookup Service, reusing the OLS
   resolver. The `ORPHA` prefix is rewritten to the ontology's `Orphanet` prefix

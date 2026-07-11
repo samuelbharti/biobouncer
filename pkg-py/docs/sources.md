@@ -117,7 +117,7 @@ bg.is_valid_id("P04637", source_db="uniprot")
 |---|---|---|---|---|
 | Pfam. Protein families and domains. | `pfam` | `PF00001` | pattern, remote | no |
 | InterPro. Integrated protein families, domains, and sites. | `interpro` | `IPR000001` | pattern, remote | no |
-| PROSITE. Protein patterns and profiles. | `prosite` | `PS00001` | pattern | no |
+| PROSITE. Protein patterns and profiles. | `prosite` | `PS00001` | pattern, remote | no |
 
 Check any id in the group the same way:
 
@@ -172,7 +172,7 @@ bg.is_valid_id("R-HSA-68886", source_db="reactome")
 | Source | `source_db` | Example | Modes | Species-aware |
 |---|---|---|---|---|
 | Rfam. RNA families. | `rfam` | `RF00001` | pattern, remote | no |
-| miRBase. Mature microRNAs. | `mirbase` | `MIMAT0000001` | pattern | no |
+| miRBase. Mature microRNAs. | `mirbase` | `MIMAT0000001` | pattern, remote | no |
 
 Check any id in the group the same way:
 
