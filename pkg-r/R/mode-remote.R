@@ -199,6 +199,16 @@
   if (is.na(n)) 0L else n
 }
 
+# The hit count from an EBI Search response, 0 when absent or malformed.
+.ebisearch_hitcount <- function(body) {
+  count <- tryCatch(body$hitCount, error = function(e) NULL)
+  if (is.null(count) || length(count) == 0L) {
+    return(0L)
+  }
+  n <- suppressWarnings(as.integer(count))
+  if (is.na(n)) 0L else n
+}
+
 # Resolver definitions. Each maps a source and id to a URL, decides existence
 # from a status and body, and names the minimal body to persist. A resolver is
 # selected by source$remote$resolver and names its cache and fixture subtree.
@@ -543,6 +553,18 @@
     species_ok = .species_agnostic,
     retired = .never_retired
   ),
+  prosite = list(
+    name = "prosite",
+    subkey = function(source) "entry",
+    # One ExPASy entry endpoint resolves both PROSITE patterns and profiles.
+    url = function(source, id) {
+      paste0("https://prosite.expasy.org/", id)
+    },
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
   refseq = list(
     name = "refseq",
     subkey = function(source) "esummary",
@@ -601,6 +623,35 @@
     cache_body = function(status, body) {
       if (status == 200) {
         list(esearchresult = list(count = as.character(.esearch_count(body))))
+      } else {
+        NULL
+      }
+    },
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  mirbase = list(
+    name = "mirbase",
+    subkey = function(source) "rnacentral",
+    # miRBase has no existence API, so a mature accession is checked against
+    # RNAcentral through EBI Search, which indexes miRBase.
+    url = function(source, id) {
+      paste0(
+        "https://www.ebi.ac.uk/ebisearch/ws/rest/rnacentral?query=",
+        id,
+        "&format=json"
+      )
+    },
+    exists = function(status, body) {
+      if (status != 200) {
+        .remote_abort_status(status)
+      }
+      .ebisearch_hitcount(body) >= 1L
+    },
+    # Persist only the hit count, which is all existence needs.
+    cache_body = function(status, body) {
+      if (status == 200) {
+        list(hitCount = .ebisearch_hitcount(body))
       } else {
         NULL
       }

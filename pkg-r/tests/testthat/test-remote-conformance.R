@@ -120,6 +120,16 @@
   if (length(clinvar) == 2L) {
     return(list(resolver = "clinvar", subkey = "esearch", id = clinvar[2]))
   }
+  prosite <- regmatches(url, regexec("prosite\\.expasy\\.org/([^/?]+)", url))[[
+    1
+  ]]
+  if (length(prosite) == 2L) {
+    return(list(resolver = "prosite", subkey = "entry", id = prosite[2]))
+  }
+  mirbase <- regmatches(url, regexec("rnacentral\\?query=([^&]+)", url))[[1]]
+  if (length(mirbase) == 2L) {
+    return(list(resolver = "mirbase", subkey = "rnacentral", id = mirbase[2]))
+  }
   stop("could not parse resolver and id from url: ", url)
 }
 

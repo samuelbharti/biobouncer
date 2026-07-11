@@ -30,6 +30,8 @@ _COMPLEXPORTAL_RE = re.compile(r"complex-ws/complex/([^/?]+)")
 _WIKIPATHWAYS_RE = re.compile(r"pathways/([^/]+)/")
 _REFSEQ_RE = re.compile(r"db=(?:nuccore|protein)&id=([^&]+)")
 _CLINVAR_RE = re.compile(r"db=clinvar&term=([^&]+)")
+_PROSITE_RE = re.compile(r"prosite\.expasy\.org/([^/?]+)")
+_MIRBASE_RE = re.compile(r"rnacentral\?query=([^&]+)")
 
 
 def _load_cases():
@@ -96,6 +98,12 @@ def _resolve_fixture(url):
     match = _CLINVAR_RE.search(url)
     if match:
         return "clinvar", "esearch", match.group(1)
+    match = _PROSITE_RE.search(url)
+    if match:
+        return "prosite", "entry", match.group(1)
+    match = _MIRBASE_RE.search(url)
+    if match:
+        return "mirbase", "rnacentral", match.group(1)
     raise AssertionError(f"could not parse remote url: {url!r}")
 
 

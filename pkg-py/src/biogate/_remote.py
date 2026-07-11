@@ -39,8 +39,10 @@ _RFAM_BASE = "https://rfam.org/family/"
 _UNIPARC_BASE = "https://rest.uniprot.org/uniparc/"
 _COMPLEXPORTAL_BASE = "https://www.ebi.ac.uk/intact/complex-ws/complex/"
 _WIKIPATHWAYS_BASE = "https://www.wikipathways.org/wikipathways-assets/pathways/"
+_PROSITE_BASE = "https://prosite.expasy.org/"
 _ESUMMARY_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
 _ESEARCH_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
+_EBISEARCH_RNACENTRAL_BASE = "https://www.ebi.ac.uk/ebisearch/ws/rest/rnacentral"
 # RefSeq accessions split across two NCBI databases by their molecule prefix.
 _REFSEQ_PROTEIN_PREFIXES = frozenset({"AP", "NP", "WP", "XP", "YP", "ZP"})
 _UNSAFE_IDENT = re.compile(r"[^A-Za-z0-9._-]")
@@ -576,6 +578,11 @@ def _wikipathways_url(source: Source, ident: str) -> str:
     return f"{_WIKIPATHWAYS_BASE}{ident}/{ident}.gpml"
 
 
+def _prosite_url(source: Source, ident: str) -> str:
+    # One ExPASy entry endpoint resolves both PROSITE patterns and profiles.
+    return f"{_PROSITE_BASE}{ident}"
+
+
 def _refseq_db(ident: str) -> str:
     """Pick the NCBI database for a RefSeq accession from its molecule prefix.
 
@@ -637,6 +644,34 @@ def _clinvar_cache_body(status: int, body: dict | None) -> dict | None:
     # Persist only the hit count, which is all existence needs.
     if status == 200:
         return {"esearchresult": {"count": str(_esearch_count(body))}}
+    return None
+
+
+def _ebisearch_hitcount(body: dict | None) -> int:
+    """The hit count from an EBI Search response, 0 when absent or malformed."""
+    count = (body or {}).get("hitCount")
+    try:
+        return int(count)
+    except (TypeError, ValueError):
+        return 0
+
+
+def _mirbase_url(source: Source, ident: str) -> str:
+    # miRBase has no existence API, so a mature accession is checked against
+    # RNAcentral through EBI Search, which indexes miRBase.
+    return f"{_EBISEARCH_RNACENTRAL_BASE}?query={ident}&format=json"
+
+
+def _mirbase_exists(status: int, body: dict | None) -> bool:
+    if status != 200:
+        raise RemoteError(f"EBI Search returned unexpected status {status}.")
+    return _ebisearch_hitcount(body) >= 1
+
+
+def _mirbase_cache_body(status: int, body: dict | None) -> dict | None:
+    # Persist only the hit count, which is all existence needs.
+    if status == 200:
+        return {"hitCount": _ebisearch_hitcount(body)}
     return None
 
 
@@ -768,6 +803,16 @@ _WIKIPATHWAYS = Resolver(
     retired=_never_retired,
 )
 
+_PROSITE = Resolver(
+    name="prosite",
+    subkey=lambda source: "entry",
+    url=_prosite_url,
+    exists=_exists_by_404,
+    cache_body=_no_cache_body,
+    species_ok=_species_agnostic,
+    retired=_never_retired,
+)
+
 _REFSEQ = Resolver(
     name="refseq",
     subkey=lambda source: "esummary",
@@ -788,6 +833,16 @@ _CLINVAR = Resolver(
     retired=_never_retired,
 )
 
+_MIRBASE = Resolver(
+    name="mirbase",
+    subkey=lambda source: "rnacentral",
+    url=_mirbase_url,
+    exists=_mirbase_exists,
+    cache_body=_mirbase_cache_body,
+    species_ok=_species_agnostic,
+    retired=_never_retired,
+)
+
 _RESOLVERS = {
     "ols": _OLS,
     "ensembl": _ENSEMBL,
@@ -802,8 +857,10 @@ _RESOLVERS = {
     "uniparc": _UNIPARC,
     "complexportal": _COMPLEXPORTAL,
     "wikipathways": _WIKIPATHWAYS,
+    "prosite": _PROSITE,
     "refseq": _REFSEQ,
     "clinvar": _CLINVAR,
+    "mirbase": _MIRBASE,
 }
 
 
