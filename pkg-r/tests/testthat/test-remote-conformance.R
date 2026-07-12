@@ -46,9 +46,14 @@
   expect_gt(n_cases, 0)
 }
 
-# Build a url -> fixture-path index once by walking the vendored fixtures tree.
-# Every fixture records the exact URL its resolver builds, so serving one is a
-# direct lookup, with no per-resolver URL parsing to keep in sync.
+# Build a fixture-path index once by walking the vendored fixtures tree, keyed by
+# (url, id). A GET fixture has no id and is keyed by URL; the URL encodes the
+# query. A GraphQL/POST fixture (Open Targets) shares one endpoint URL across ids,
+# so it is keyed by its id too, matched from the request body at replay time.
+.fixture_key <- function(url, id) {
+  if (is.null(id)) url else paste(url, id, sep = "\n")
+}
+
 .fixture_index <- local({
   cache <- NULL
   function() {
@@ -63,7 +68,7 @@
       idx <- list()
       for (p in paths) {
         fx <- jsonlite::fromJSON(p, simplifyVector = FALSE)
-        idx[[fx$url]] <- p
+        idx[[.fixture_key(fx$url, fx$id)]] <- p
       }
       cache <<- idx
     }
@@ -71,20 +76,38 @@
   }
 })
 
-# Serve recorded fixtures in place of the live API. A missing fixture must fail
-# loudly rather than silently reach the network.
-.fixture_transport <- function(url, timeout) {
-  path <- .fixture_index()[[url]]
+.fixture_serve <- function(url, id) {
+  path <- .fixture_index()[[.fixture_key(url, id)]]
   if (is.null(path)) {
-    stop("missing fixture for url: ", url)
+    stop(
+      "missing fixture for url: ",
+      url,
+      " id: ",
+      if (is.null(id)) "NA" else id
+    )
   }
   fx <- jsonlite::fromJSON(path, simplifyVector = FALSE)
   list(status = fx$status, body = fx$body)
 }
 
+# Serve recorded fixtures in place of the live API. A missing fixture must fail
+# loudly rather than silently reach the network.
+.fixture_transport <- function(url, timeout) {
+  .fixture_serve(url, NULL)
+}
+
+# GraphQL fixtures are matched by the id carried in the POST body.
+.fixture_transport_post <- function(url, body, timeout) {
+  id <- jsonlite::fromJSON(body)$variables$ensemblId
+  .fixture_serve(url, id)
+}
+
 test_that("remote conformance corpus passes against recorded fixtures", {
   withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
-  withr::local_options(biogate.remote_transport = .fixture_transport)
+  withr::local_options(
+    biogate.remote_transport = .fixture_transport,
+    biogate.remote_transport_post = .fixture_transport_post
+  )
   .check_remote_corpus("remote")
 })
 

@@ -1,5 +1,8 @@
 # biogate (development version)
 
+* New `opentargets` source. It checks whether a human Ensembl gene id is a target
+  the Open Targets Platform covers, through the platform's GraphQL API. This is
+  the first resolver that queries over a POST body rather than a URL.
 * `check_id()` gains an `on_error` argument for remote and existence checks. With
   the default `"raise"` a network failure still unwinds the call; with
   `"indeterminate"` just that id is left `NA` with the reason in a new `error`

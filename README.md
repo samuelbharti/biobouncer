@@ -243,27 +243,29 @@ Every `check_id()` row carries enough context to be self-describing:
 
 ## Supported sources (growing)
 
-biogate checks 45 sources. A selection is shown below; run `source_info()` or see
+biogate checks 46 sources. A selection is shown below; run `source_info()` or see
 the [sources cookbook](https://www.samuelbharti.com/biogate/py/sources/) for the
 full list with the modes each source supports.
 
-| `source_db`   | Source                     | Example ID                 | pattern | cache | remote | species-aware |
-|---------------|----------------------------|----------------------------|:-------:|:-----:|:------:|:-------------:|
-| `mondo`       | MONDO disease ontology     | `MONDO:0005148`            |   ✓     |   ✓   |   ✓    |      —        |
-| `efo`         | Experimental Factor Ont.   | `EFO:0000400`              |   ✓     |   ✓   |   ✓    |      —        |
-| `go`          | Gene Ontology terms        | `GO:0006915`               |   ✓     |   ✓   |   ✓    |      —        |
-| `chebi`       | ChEBI compounds            | `CHEBI:15377`              |   ✓     |   ✓   |   ✓    |      —        |
-| `hgnc`        | HGNC gene symbols          | `TP53`                     |   ~     |   ✓   |   ✓    |      —        |
-| `ensembl`     | Ensembl gene/transcript    | `ENSG00000139618`          |   ✓     |   —   |   ✓    |      ✓        |
-| `refseq`      | RefSeq accessions          | `NM_000546.6`              |   ✓     |   —   |   ✓    |      —        |
-| `uniprot`     | UniProt accessions         | `P04637`                   |   ✓     |   —   |   ✓    |      ✓        |
-| `dbsnp`       | dbSNP variants             | `rs7412`                   |   ✓     |   —   |   ✓    |      —        |
-| `hgvs`        | HGVS variant syntax        | `NM_004006.2:c.4375C>T`    |   ✓†    |   —   |   ✓    |      —        |
+| `source_db`    | Source                     | Example ID                 | pattern | cache | remote | species-aware |
+|----------------|----------------------------|----------------------------|:-------:|:-----:|:------:|:-------------:|
+| `mondo`        | MONDO disease ontology     | `MONDO:0005148`            |   ✓     |   ✓   |   ✓    |      —        |
+| `efo`          | Experimental Factor Ont.   | `EFO:0000400`              |   ✓     |   ✓   |   ✓    |      —        |
+| `go`           | Gene Ontology terms        | `GO:0006915`               |   ✓     |   ✓   |   ✓    |      —        |
+| `chebi`        | ChEBI compounds            | `CHEBI:15377`              |   ✓     |   ✓   |   ✓    |      —        |
+| `hgnc`         | HGNC gene symbols          | `TP53`                     |   ~     |   ✓   |   ✓    |      —        |
+| `ensembl`      | Ensembl gene/transcript    | `ENSG00000139618`          |   ✓     |   —   |   ✓    |      ✓        |
+| `opentargets`  | Open Targets targets       | `ENSG00000139618`          |   ✓     |   —   |   ✓    |      —        |
+| `refseq`       | RefSeq accessions          | `NM_000546.6`              |   ✓     |   —   |   ✓    |      —        |
+| `uniprot`      | UniProt accessions         | `P04637`                   |   ✓     |   —   |   ✓    |      ✓        |
+| `dbsnp`        | dbSNP variants             | `rs7412`                   |   ✓     |   —   |   ✓    |      —        |
+| `hgvs`         | HGVS variant syntax        | `NM_004006.2:c.4375C>T`    |   ✓†    |   —   |   ✓    |      —        |
 
 `✓` supported · `~` shape check only, a loose token match · `—` not available ·
-`†` syntax only, a single regex (not coordinate-level validation). An Open Targets
-connector is planned. Identifier patterns come from the Identifiers.org /
-Bioregistry registries where available.
+`†` syntax only, a single regex (not coordinate-level validation). The Open
+Targets connector checks whether a human Ensembl gene id is a target the platform
+covers, through its GraphQL API. Identifier patterns come from the
+Identifiers.org / Bioregistry registries where available.
 
 ## Integrating with your stack
 
@@ -360,11 +362,11 @@ Delivered:
 - [x] Real gene-symbol validation (a full HGNC snapshot and a genenames.org resolver)
 - [x] Fuzzy "did you mean" suggestions
 - [x] A validate-and-repair report for data-frame columns (`report` / `report_id`)
+- [x] Per-id indeterminate state and concurrent large-column remote checks
+- [x] An Open Targets connector (GraphQL)
 
 Planned:
 
-- [ ] Faster large-column remote checks (batching and concurrency)
-- [ ] An Open Targets connector
 - [ ] First tagged releases on PyPI and CRAN / R-universe
 
 ## Contributing

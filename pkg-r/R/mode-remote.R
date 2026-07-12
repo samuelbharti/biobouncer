@@ -86,6 +86,49 @@
   resp
 }
 
+# POST network seam for GraphQL resolvers (Open Targets), where the query travels
+# in the body. Tests replace it with the biogate.remote_transport_post option.
+# Mirrors .remote_http_get, retrying a transient failure before giving up.
+.remote_http_post <- function(url, body, timeout = 30) {
+  transport <- getOption("biogate.remote_transport_post", NULL)
+  if (is.function(transport)) {
+    return(transport(url, body, timeout))
+  }
+  fetch <- function() {
+    handle <- curl::new_handle(
+      useragent = .remote_user_agent(),
+      timeout = timeout
+    )
+    curl::handle_setheaders(
+      handle,
+      "Accept" = "application/json",
+      "Content-Type" = "application/json"
+    )
+    curl::handle_setopt(handle, post = TRUE, postfields = body)
+    tryCatch(
+      {
+        resp <- curl::curl_fetch_memory(url, handle = handle)
+        list(
+          status = resp$status_code,
+          body = .remote_parse_body(rawToChar(resp$content))
+        )
+      },
+      error = function(e) NULL
+    )
+  }
+  resp <- .remote_retry(fetch)
+  if (is.null(resp)) {
+    cli::cli_abort(
+      c(
+        "Remote request failed for {.url {url}}.",
+        i = "The request did not complete after retrying."
+      ),
+      class = "biogate_error_remote"
+    )
+  }
+  resp
+}
+
 # Turn an identifier into a safe file name: every character outside
 # [A-Za-z0-9._-] becomes "_". Keeps an id with a colon, a slash, or a ">" (such
 # as an HGVS variant) usable as a cache or fixture file name. Matches the rule
@@ -319,6 +362,17 @@
   }
   n <- suppressWarnings(as.integer(count))
   if (is.na(n)) 0L else n
+}
+
+# A fixed, minimal Open Targets query: fetch the target by its Ensembl gene id.
+.opentargets_query <- paste(
+  "query biogate($ensemblId: String!)",
+  "{ target(ensemblId: $ensemblId) { id } }"
+)
+
+# The target node from an Open Targets GraphQL response, or NULL.
+.opentargets_target <- function(body) {
+  tryCatch(body$data$target, error = function(e) NULL)
 }
 
 # Whether a genenames fetch resolved to an approved symbol.
@@ -796,6 +850,39 @@
     },
     species_ok = .species_agnostic,
     retired = .never_retired
+  ),
+  opentargets = list(
+    name = "opentargets",
+    subkey = function(source) "target",
+    # The Open Targets Platform API is GraphQL: one endpoint for every id, with
+    # the query and id in the POST body that .remote_http_post sends.
+    url = function(source, id) {
+      "https://api.platform.opentargets.org/api/v4/graphql"
+    },
+    body = function(source, id) {
+      jsonlite::toJSON(
+        list(query = .opentargets_query, variables = list(ensemblId = id)),
+        auto_unbox = TRUE
+      )
+    },
+    exists = function(status, body) {
+      # 200 with a null target means a gene the platform does not cover.
+      if (status == 200) {
+        return(!is.null(.opentargets_target(body)))
+      }
+      .remote_abort_status(status)
+    },
+    cache_body = function(status, body) {
+      if (status == 200) {
+        target <- .opentargets_target(body)
+        keep <- if (!is.null(target)) list(id = target$id) else NULL
+        list(data = list(target = keep))
+      } else {
+        NULL
+      }
+    },
+    species_ok = .species_agnostic,
+    retired = .never_retired
   )
 )
 
@@ -860,7 +947,11 @@
     # this id alone, and is never cached, so the rest of the batch still runs.
     out <- tryCatch(
       {
-        r <- .remote_http_get(url)
+        r <- if (!is.null(resolver$body)) {
+          .remote_http_post(url, resolver$body(source, id))
+        } else {
+          .remote_http_get(url)
+        }
         list(resp = r, exists = resolver$exists(r$status, r$body))
       },
       biogate_error_remote = function(e) {

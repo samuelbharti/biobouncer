@@ -1,6 +1,6 @@
 # Sources cookbook
 
-biogate checks 45 sources. Each row below gives a valid example id, the
+biogate checks 46 sources. Each row below gives a valid example id, the
 [checking modes](guide.md#the-checking-modes) it supports, and whether it is
 species-aware. To check an id, pass the source key as `source_db`. The call is
 the same for every source:
@@ -86,6 +86,7 @@ bg.is_valid_id("NCBITaxon:9606", source_db="ncbitaxon")
 |---|---|---|---|---|
 | HGNC gene symbols. Approved symbols. A withdrawn symbol maps to its successor. | `hgnc` | `TP53` | pattern, cache, remote | no |
 | Ensembl. Ensembl gene, transcript, and protein ids. Species-aware. | `ensembl` | `ENSG00000139618` | pattern, remote | yes |
+| Open Targets. A human Ensembl gene id checked against the Open Targets Platform for target coverage. | `opentargets` | `ENSG00000139618` | pattern, remote | no |
 | RefSeq. NCBI RefSeq accessions, with an optional version. | `refseq` | `NM_000546.6` | pattern, remote | no |
 
 Check any id in the group the same way:

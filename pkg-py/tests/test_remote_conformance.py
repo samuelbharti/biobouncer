@@ -42,27 +42,38 @@ def _iter_fixture_files(root):
 
 @functools.cache
 def _fixture_index():
-    """Map each recorded fixture URL to its file, walking the tree once.
+    """Map each recorded fixture to its file, keyed by ``(url, id)``.
 
-    Every fixture records the exact URL its resolver builds, so the offline
-    transport is a direct lookup with no per-resolver URL parsing to keep in
-    sync as sources are added.
+    A GET fixture has no ``id`` and is keyed by URL alone; the URL encodes the
+    query, so the lookup needs no per-resolver parsing. A GraphQL/POST fixture
+    (Open Targets) shares one endpoint URL across ids, so it is keyed by its
+    ``id`` too, matched from the request body at replay time.
     """
     root = files("biogate") / "_data" / "fixtures" / "remote"
     index = {}
     for path in _iter_fixture_files(root):
         record = json.loads(path.read_text(encoding="utf-8"))
-        index[record["url"]] = path
+        index[(record["url"], record.get("id"))] = path
     return index
 
 
-def _fixture_http_get(url, timeout=30):
-    """Serve the recorded fixture whose URL matches, or fail loudly."""
-    path = _fixture_index().get(url)
+def _serve(url, ident):
+    path = _fixture_index().get((url, ident))
     if path is None:
-        raise AssertionError(f"missing fixture for url: {url!r}")
+        raise AssertionError(f"missing fixture for url {url!r} id {ident!r}")
     fx = json.loads(path.read_text(encoding="utf-8"))
     return fx["status"], fx["body"]
+
+
+def _fixture_http_get(url, timeout=30):
+    """Serve the recorded GET fixture whose URL matches, or fail loudly."""
+    return _serve(url, None)
+
+
+def _fixture_http_post(url, data, timeout=30):
+    """Serve a recorded GraphQL fixture, matching the id from the request body."""
+    ident = json.loads(data)["variables"]["ensemblId"]
+    return _serve(url, ident)
 
 
 @pytest.fixture(autouse=True)
@@ -96,6 +107,7 @@ def test_remote_corpus_is_not_empty():
 @pytest.mark.parametrize("case", CASES, ids=_IDS)
 def test_remote_conformance_offline(case, monkeypatch):
     monkeypatch.setattr(remote, "_http_get", _fixture_http_get)
+    monkeypatch.setattr(remote, "_http_post", _fixture_http_post)
     _assert_case(case)
 
 

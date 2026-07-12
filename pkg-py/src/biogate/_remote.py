@@ -130,7 +130,7 @@ def _rate_limit(url: str) -> None:
 
 
 def _http_get_once(url: str, timeout: int = 30) -> tuple[int, dict | None]:
-    """One request: return ``(status, parsed_json_or_None)``.
+    """One GET request: return ``(status, parsed_json_or_None)``.
 
     HTTP error statuses such as 404 flow through as a status. A network or
     timeout failure raises ``RemoteError``.
@@ -138,34 +138,57 @@ def _http_get_once(url: str, timeout: int = 30) -> tuple[int, dict | None]:
     request = urllib.request.Request(
         url, headers={"User-Agent": _USER_AGENT, "Accept": "application/json"}
     )
+    return _read_response(request, url, timeout)
+
+
+def _http_post_once(url: str, data: str, timeout: int = 30) -> tuple[int, dict | None]:
+    """One POST request with a JSON body: return ``(status, parsed_json)``.
+
+    Used by GraphQL resolvers (Open Targets), where the query travels in the body
+    rather than the URL. Failure handling matches ``_http_get_once``.
+    """
+    request = urllib.request.Request(
+        url,
+        data=data.encode("utf-8"),
+        headers={
+            "User-Agent": _USER_AGENT,
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    return _read_response(request, url, timeout)
+
+
+def _read_response(
+    request: urllib.request.Request, url: str, timeout: int
+) -> tuple[int, dict | None]:
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
-            status = response.status
-            text = response.read().decode("utf-8", errors="replace")
+            return response.status, _parse_body(
+                response.read().decode("utf-8", errors="replace")
+            )
     except urllib.error.HTTPError as error:
         return error.code, _parse_body(error.read().decode("utf-8", errors="replace"))
     except (urllib.error.URLError, TimeoutError, OSError) as error:
         raise RemoteError(f"Remote request failed for {url!r}: {error}") from error
-    return status, _parse_body(text)
 
 
-def _http_get(url: str, timeout: int = 30) -> tuple[int, dict | None]:
-    """Fetch ``url`` with a bounded retry on transient failures.
+def _retry_request(fetch: Callable[[], tuple[int, dict | None]]):
+    """Call ``fetch`` with a bounded retry on transient failures.
 
-    This is the network seam. A network error, a 429, or a 5xx is usually
-    transient, so it is retried a few times with exponential backoff. A
-    non-transient status (200, 404, and so on) returns at once for the resolver
-    to classify. A network error that persists past the last attempt raises
-    ``RemoteError``; a transient status that persists is returned so the resolver
-    raises its own clear error.
+    A network error, a 429, or a 5xx is usually transient, so it is retried a few
+    times with exponential backoff. A non-transient status (200, 404, and so on)
+    returns at once for the resolver to classify. A network error that persists
+    past the last attempt raises ``RemoteError``; a transient status that persists
+    is returned so the resolver raises its own clear error.
     """
-    _rate_limit(url)
     last_error: RemoteError | None = None
     status: int | None = None
     body: dict | None = None
     for attempt in range(_MAX_ATTEMPTS):
         try:
-            status, body = _http_get_once(url, timeout)
+            status, body = fetch()
         except RemoteError as error:
             last_error = error
         else:
@@ -177,6 +200,18 @@ def _http_get(url: str, timeout: int = 30) -> tuple[int, dict | None]:
     if last_error is not None:
         raise last_error
     return status, body
+
+
+def _http_get(url: str, timeout: int = 30) -> tuple[int, dict | None]:
+    """The GET network seam, with per-host politeness and bounded retry."""
+    _rate_limit(url)
+    return _retry_request(lambda: _http_get_once(url, timeout))
+
+
+def _http_post(url: str, data: str, timeout: int = 30) -> tuple[int, dict | None]:
+    """The POST network seam for GraphQL resolvers, matching ``_http_get``."""
+    _rate_limit(url)
+    return _retry_request(lambda: _http_post_once(url, data, timeout))
 
 
 _STAMP_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
@@ -311,6 +346,9 @@ class Resolver:
     cache_body: Callable[[int, dict | None], dict | None]
     species_ok: Callable[[Source, str, dict | None, object], bool]
     retired: Callable[[Source, dict | None], tuple[bool, str | None]]
+    # A GraphQL/POST resolver sets ``body`` to build the request body for an id;
+    # when it is None (the default) the request is a GET with the query in the URL.
+    body: Callable[[Source, str], str] | None = None
 
 
 def _ols_subkey(source: Source) -> str:
@@ -779,6 +817,43 @@ def _genenames_cache_body(status: int, body: dict | None) -> dict | None:
     return None
 
 
+_OPENTARGETS_URL = "https://api.platform.opentargets.org/api/v4/graphql"
+# A fixed, minimal query: fetch the target by its Ensembl gene id. A gene the
+# platform does not cover comes back as a null ``target``.
+_OPENTARGETS_QUERY = (
+    "query biogate($ensemblId: String!) { target(ensemblId: $ensemblId) { id } }"
+)
+
+
+def _opentargets_url(source: Source, ident: str) -> str:
+    return _OPENTARGETS_URL
+
+
+def _opentargets_body(source: Source, ident: str) -> str:
+    return json.dumps({"query": _OPENTARGETS_QUERY, "variables": {"ensemblId": ident}})
+
+
+def _opentargets_target(body: dict | None) -> dict | None:
+    return ((body or {}).get("data") or {}).get("target")
+
+
+def _opentargets_exists(status: int, body: dict | None) -> bool:
+    # GraphQL answers 200 with a null target for a gene the platform does not
+    # cover, so existence is read from the body, not the status.
+    if status == 200:
+        return _opentargets_target(body) is not None
+    raise RemoteError(f"Open Targets returned unexpected status {status}.")
+
+
+def _opentargets_cache_body(status: int, body: dict | None) -> dict | None:
+    # Persist only whether the target resolved, which is all existence needs.
+    if status == 200:
+        target = _opentargets_target(body)
+        keep = {"id": target.get("id")} if target else None
+        return {"data": {"target": keep}}
+    return None
+
+
 _OLS = Resolver(
     name="ols",
     subkey=_ols_subkey,
@@ -957,6 +1032,17 @@ _GENENAMES = Resolver(
     retired=_never_retired,
 )
 
+_OPENTARGETS = Resolver(
+    name="opentargets",
+    subkey=lambda source: "target",
+    url=_opentargets_url,
+    exists=_opentargets_exists,
+    cache_body=_opentargets_cache_body,
+    species_ok=_species_agnostic,
+    retired=_never_retired,
+    body=_opentargets_body,
+)
+
 _RESOLVERS = {
     "ols": _OLS,
     "ensembl": _ENSEMBL,
@@ -976,6 +1062,7 @@ _RESOLVERS = {
     "clinvar": _CLINVAR,
     "mirbase": _MIRBASE,
     "genenames": _GENENAMES,
+    "opentargets": _OPENTARGETS,
 }
 
 
@@ -1043,7 +1130,10 @@ def _remote_lookup(
                 return valid, successor, fetched_at, None
     url = resolver.url(source, ident)
     try:
-        status, body = _http_get(url)
+        if resolver.body is not None:
+            status, body = _http_post(url, resolver.body(source, ident))
+        else:
+            status, body = _http_get(url)
         result = resolver.exists(status, body)
     except RemoteError as error:
         if on_error != "indeterminate":
