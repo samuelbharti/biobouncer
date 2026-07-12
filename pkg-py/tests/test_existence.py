@@ -66,3 +66,13 @@ def test_existence_uses_remote_for_source_without_snapshot(tmp_path, monkeypatch
     monkeypatch.setattr(remote, "_http_get", _uniprot)
     res = biogate.check_id("P01308", source_db="uniprot", how="existence")[0]
     assert res.valid is True
+
+
+def test_existence_degrades_to_pattern_for_pattern_only_source(monkeypatch):
+    # cosmic is pattern-only: no snapshot and no resolver. Existence degrades to
+    # a shape check instead of raising NoResolverError. No network is touched.
+    monkeypatch.setattr(remote, "_http_get", _forbidden)
+    res = biogate.check_id(["COSM476", "nonsense"], source_db="cosmic", how="existence")
+    assert [r.valid for r in res] == [True, False]
+    assert all(r.how == "existence" for r in res)
+    assert res[0].version is None

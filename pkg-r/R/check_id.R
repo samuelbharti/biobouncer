@@ -30,14 +30,15 @@
 #' each identifier is well-formed. `cache` mode also checks that it exists in a
 #' pinned local snapshot (see [biogate_snapshots()]). `remote` mode checks live
 #' existence against the source API. `existence` mode uses a snapshot when one is
-#' available for `version` and otherwise falls back to `remote`.
+#' available for `version`, otherwise falls back to `remote`, and for a source
+#' with no resolver falls back to `pattern`.
 #'
 #' @param x A vector of identifiers. Coerced to character.
 #' @param source_db Source key, for example `"mondo"`. See [sources()].
 #' @param how Checking mode: `"pattern"` (offline, shape only), `"cache"`
 #'   (offline existence against a snapshot), `"remote"` (live existence against
 #'   the source API), or `"existence"` (cache when a snapshot is available for
-#'   `version`, otherwise remote).
+#'   `version`, otherwise remote, or pattern for a source with no resolver).
 #' @param species Optional species context, echoed in the result. A name such as
 #'   `"homo_sapiens"` or an NCBI taxon id such as `9606`. When given, an id of a
 #'   different species is invalid: Ensembl is checked from its id prefix (in
@@ -102,8 +103,9 @@ check_id <- function(
     call_stamp <- .utc_stamp()
     version_col <- ifelse(is.na(verdicts$version), call_stamp, verdicts$version)
   } else if (identical(how, "existence")) {
-    # Cache-then-remote fallback: answer from a pinned snapshot when one is
-    # available for the requested version, otherwise check live.
+    # Cache-then-remote-then-pattern fallback: answer from a pinned snapshot when
+    # one is available for the requested version, else check live, else (for a
+    # source with no resolver) degrade to a shape check rather than aborting.
     snap_version <- if (is.null(version)) {
       NA_character_
     } else {
@@ -123,7 +125,7 @@ check_id <- function(
         .snapshot_retired(source_db, snap_version)
       )
       version_col <- rep(snap_version, n)
-    } else {
+    } else if (!is.null(source$remote)) {
       verdicts <- .remote_verdicts(source, x, is_na, species, refresh)
       call_stamp <- .utc_stamp()
       version_col <- ifelse(
@@ -131,6 +133,9 @@ check_id <- function(
         call_stamp,
         verdicts$version
       )
+    } else {
+      verdicts <- .pattern_verdicts(source, x, is_na, species)
+      version_col <- rep(NA_character_, n)
     }
   } else {
     verdicts <- .pattern_verdicts(source, x, is_na, species)

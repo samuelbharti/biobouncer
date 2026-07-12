@@ -21,7 +21,7 @@ check_id(
 \item{how}{Checking mode: \code{"pattern"} (offline, shape only), \code{"cache"}
 (offline existence against a snapshot), \code{"remote"} (live existence against
 the source API), or \code{"existence"} (cache when a snapshot is available for
-\code{version}, otherwise remote).}
+\code{version}, otherwise remote, or pattern for a source with no resolver).}
 
 \item{species}{Optional species context, echoed in the result. A name such as
 \code{"homo_sapiens"} or an NCBI taxon id such as \code{9606}. When given, an id of a
@@ -46,7 +46,8 @@ Validate a vector of identifiers against a source. \code{pattern} mode checks th
 each identifier is well-formed. \code{cache} mode also checks that it exists in a
 pinned local snapshot (see \code{\link[=biogate_snapshots]{biogate_snapshots()}}). \code{remote} mode checks live
 existence against the source API. \code{existence} mode uses a snapshot when one is
-available for \code{version} and otherwise falls back to \code{remote}.
+available for \code{version}, otherwise falls back to \code{remote}, and for a source
+with no resolver falls back to \code{pattern}.
 }
 \examples{
 check_id(c("MONDO:0005148", "mondo:5148"), source_db = "mondo")

@@ -60,8 +60,9 @@ def check_id(
         source_db: Source key, for example "mondo". See ``sources()``.
         how: Checking mode. "pattern" and "cache" run offline; "remote" checks
             live existence against the source API; "existence" uses a pinned
-            snapshot when one is available for ``version`` and otherwise falls
-            back to "remote".
+            snapshot when one is available for ``version``, otherwise falls back
+            to "remote", and for a source with no resolver falls back to
+            "pattern".
         species: Optional species context, echoed in the result.
         version: Optional version context. In cache mode it selects the snapshot
             and defaults to the latest installed one when omitted; in existence
@@ -128,9 +129,12 @@ def check_id(
             ids = snapshot
             retired = _snapshot_retired(source_db, version)
             result_version = version
-        else:
+        elif source.remote:
             remote_out = remote_verdicts(source, items, species, refresh)
             result_version = _utc_stamp()
+        # else: no snapshot and no resolver. Fall through to the pattern path
+        # below, so existence degrades to a shape check rather than raising, which
+        # honors existence mode's graceful-fallback story for pattern-only sources.
 
     # A source may offer fuzzy suggestions in the offline snapshot path. Build the
     # length index once for the whole batch, not per input.

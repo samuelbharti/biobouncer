@@ -21,7 +21,7 @@ is_valid_id(
 \item{how}{Checking mode: \code{"pattern"} (offline, shape only), \code{"cache"}
 (offline existence against a snapshot), \code{"remote"} (live existence against
 the source API), or \code{"existence"} (cache when a snapshot is available for
-\code{version}, otherwise remote).}
+\code{version}, otherwise remote, or pattern for a source with no resolver).}
 
 \item{species}{Optional species context, echoed in the result. A name such as
 \code{"homo_sapiens"} or an NCBI taxon id such as \code{9606}. When given, an id of a
