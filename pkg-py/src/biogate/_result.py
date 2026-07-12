@@ -17,7 +17,8 @@ class Result:
         source_db: The source the check ran against.
         version: Snapshot or release used. None for pattern mode.
         species: Species context, when applicable.
-        how: The mode used ("pattern").
+        how: The checking mode used: "pattern", "cache", "remote", or
+            "existence".
     """
 
     input: str | None

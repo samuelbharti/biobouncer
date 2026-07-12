@@ -10,6 +10,8 @@ against the source API.
 
 from __future__ import annotations
 
+from importlib.metadata import PackageNotFoundError, version
+
 from ._cache import (
     MissingSnapshotError,
     MissingVersionError,
@@ -25,7 +27,12 @@ from ._result import Result
 from .core import InvalidModeError, check_id, is_valid_id
 from .schema import SCHEMA_VERSION
 
-__version__ = "0.1.0"
+# Single-sourced from the package metadata (pyproject.toml), so the version is
+# declared in exactly one place.
+try:
+    __version__ = version("biogate")
+except PackageNotFoundError:  # pragma: no cover - running from an uninstalled tree
+    __version__ = "0.0.0+unknown"
 
 __all__ = [
     "SCHEMA_VERSION",
