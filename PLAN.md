@@ -6,6 +6,16 @@ Claude Code (or any implementer): it fixes the architecture, the API contract,
 and a phased task list with acceptance criteria. Read it top to bottom before
 writing code; each phase has a **Definition of Done**.
 
+> **Status (2026-07):** Phases 0 through 7 are delivered. This document is kept as
+> the original design spec, for the architecture and the rationale. A few details
+> below describe the original intent and differ from the shipped code: the Python
+> package uses flat modules (`core.py`, `_registry.py`, `_pattern.py`, `_cache.py`,
+> `_remote.py`), not the `modes/`/`resolvers/` layout in section 3; the source
+> schema uses `curie:`/`case:` blocks rather than the `normalize:` and
+> `default_version:` keys shown in section 5; and the Open Targets connector is
+> planned, not built. For the current, accurate source list and the modes each
+> source supports, run `source_info()` or read the package docs.
+
 ---
 
 ## 1. Goals and non-goals
@@ -168,25 +178,27 @@ adding a file (plus optional resolver code). Proposed schema:
 ```yaml
 key: mondo
 name: MONDO Disease Ontology
-description: Monarch Disease Ontology terms
-# pattern mode
-pattern: '^MONDO:\d{7}$'
-normalize:                 # optional canonicalization rules
-  uppercase_prefix: true
+description: Monarch Disease Ontology terms.
+# pattern mode: unanchored ASCII-class regex so R (PCRE) and Python (re) agree
+pattern: "MONDO:[0-9]{7}"
+example: "MONDO:0005148"
 # metadata
 species_aware: false
 version_aware: true
-default_version: "2024-09"
+# CURIE sources get prefix-case and zero-pad suggestions
+curie:
+  prefix: MONDO
+  pad_to: 7
 # cache mode
 cache:
-  builder: mondo           # id of the snapshot builder
-  id_field: id
+  builder: obo             # id of the snapshot builder
+  obo_url: http://purl.obolibrary.org/obo/mondo.obo
 # remote mode
 remote:
   resolver: ols            # id of the remote resolver
   ols_ontology: mondo
 provenance:
-  pattern_source: bioregistry   # where the regex came from
+  pattern_source: bioregistry   # where the pattern came from
   homepage: https://mondo.monarchinitiative.org
 ```
 
@@ -196,7 +208,7 @@ invent a regex when a curated one exists.
 
 **Initial source set (Phase 1–4):** `mondo`, `efo`, `hgnc`, `ensembl`,
 `refseq`, `dbsnp`, `uniprot`, `chebi`, `go`, `opentargets`. `hgvs` is
-grammar-based and handled specially (Phase 7).
+syntax-based and handled specially (Phase 7).
 
 ---
 

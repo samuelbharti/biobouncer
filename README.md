@@ -24,7 +24,7 @@ one [landing page](https://www.samuelbharti.com/biogate/).
 
 If you build analyses or Shiny/Dash apps in computational biology, you keep
 rewriting the same guards: *is this a real gene symbol? a well-formed MONDO ID?
-a valid HGVS string? an Open Targets ID that actually exists?* Those checks end
+a valid HGVS string? a UniProt accession that actually exists?* Those checks end
 up scattered across projects as ad-hoc regexes and utility functions, and the R
 version and the Python version quietly disagree on edge cases.
 
@@ -37,9 +37,8 @@ reach those tools.
 ## Key features
 
 - **One entry point, many sources.** `check_id()` / `is_valid_id()` work across
-  a growing set of databases and ontologies (MONDO, EFO, Open Targets, HGNC,
-  Ensembl, RefSeq, dbSNP, UniProt, ChEBI, GO, HGVS, …) selected with a single
-  `source_db` argument.
+  45 databases and ontologies (MONDO, EFO, HGNC, Ensembl, RefSeq, dbSNP, UniProt,
+  ChEBI, GO, HGVS, and more) selected with a single `source_db` argument.
 - **Three checking modes.** Choose how strict and how online you want to be:
   `pattern` (offline regex/grammar), `cache` (offline existence against a pinned
   snapshot), or `remote` (live existence against the source's API).
@@ -98,7 +97,7 @@ is_valid_id("MONDO:0005148", source_db = "mondo", how = "pattern")
 
 # 2. cache mode — existence against a pinned local snapshot
 is_valid_id("MONDO:0005148", source_db = "mondo", how = "cache",
-            version = "2024-09")
+            version = "sample")
 #> [1] TRUE
 
 # 3. remote mode — live existence check against the source
@@ -111,14 +110,14 @@ check_id(
   c("MONDO:0005148", "MONDO:9999999", "mondo:5148"),
   source_db = "mondo",
   how       = "cache",
-  version   = "2024-09"
+  version   = "sample"
 )
 #> # A tibble: 3 x 8
 #>   input          valid normalized     suggestion    source_db version species how
 #>   <chr>          <lgl> <chr>          <chr>         <chr>     <chr>   <chr>   <chr>
-#> 1 MONDO:0005148  TRUE  MONDO:0005148  NA            mondo     2024-09 NA      cache
-#> 2 MONDO:9999999  FALSE NA             NA            mondo     2024-09 NA      cache
-#> 3 mondo:5148     FALSE NA             MONDO:0005148 mondo     2024-09 NA      cache
+#> 1 MONDO:0005148  TRUE  MONDO:0005148  NA            mondo     sample  NA      cache
+#> 2 MONDO:9999999  FALSE NA             NA            mondo     sample  NA      cache
+#> 3 mondo:5148     FALSE NA             MONDO:0005148 mondo     sample  NA      cache
 ```
 
 **Python**
@@ -135,10 +134,10 @@ bg.is_valid_id(
 )
 # True
 
-# Vectorized: returns a DataFrame (pandas or polars) of per-element results
+# Vectorized: returns a list of per-element Result records, in input order
 bg.check_id(
     ["MONDO:0005148", "MONDO:9999999", "mondo:5148"],
-    source_db="mondo", how="cache", version="2024-09",
+    source_db="mondo", how="cache", version="sample",
 )
 ```
 
@@ -171,17 +170,17 @@ check_id("ENSMUSG00000059552", source_db = "ensembl",
 check_id("ENSMUSG00000059552", source_db = "ensembl",
          species = "homo_sapiens", how = "remote")    # not a human ID
 
-# Version-aware: was this symbol valid at a specific HGNC release?
-check_id("LEPRE1", source_db = "hgnc", how = "cache", version = "2014-11")
-#> valid = TRUE  (this symbol was later replaced by P3H1)
-check_id("LEPRE1", source_db = "hgnc", how = "cache", version = "2024-09")
-#> valid = FALSE, suggestion = "P3H1"
+# Retired symbols map to their approved successor
+check_id("MLL", source_db = "hgnc", how = "cache", version = "sample")
+#> valid = FALSE, suggestion = "KMT2A"  (MLL was renamed KMT2A)
 ```
 
-- `species` accepts a name (`"homo_sapiens"`) or an NCBI Taxonomy ID (`9606`).
-- `version` accepts a source release tag or snapshot date; omit it to use the
-  package's default pinned snapshot.
-- Both are ignored (with a note) by sources for which they don't apply.
+- `species` accepts a name (`"homo_sapiens"`) or an NCBI Taxonomy ID (`9606`). It
+  is enforced by the sources for which it applies (such as Ensembl and UniProt)
+  and ignored by the rest.
+- `version` selects the snapshot for `cache` mode. The packages ship a small
+  `sample` snapshot; `biogate_pull()` fetches full, dated snapshots for the OBO
+  ontologies.
 
 ## Result schema
 
@@ -200,23 +199,27 @@ Every `check_id()` row carries enough context to be self-describing:
 
 ## Supported sources (growing)
 
+biogate checks 45 sources. A selection is shown below; run `source_info()` or see
+the [sources cookbook](https://www.samuelbharti.com/biogate/py/sources/) for the
+full list with the modes each source supports.
+
 | `source_db`   | Source                     | Example ID                 | pattern | cache | remote | species-aware |
 |---------------|----------------------------|----------------------------|:-------:|:-----:|:------:|:-------------:|
-| `hgnc`        | HGNC gene symbols          | `TP53`                     |   ~     |   ✓   |   ✓    |   human/mouse |
-| `ensembl`     | Ensembl gene/transcript    | `ENSG00000141510`          |   ✓     |   ✓   |   ✓    |      ✓        |
-| `refseq`      | RefSeq accessions          | `NM_000546`                |   ✓     |   ✓   |   ✓    |      ✓        |
-| `dbsnp`       | dbSNP variants             | `rs7412`                   |   ✓     |   ~   |   ✓    |      ✓        |
-| `hgvs`        | HGVS variant descriptions  | `NM_000546.6:c.215C>G`     |   ✓†    |   —   |   ✓    |      —        |
 | `mondo`       | MONDO disease ontology     | `MONDO:0005148`            |   ✓     |   ✓   |   ✓    |      —        |
 | `efo`         | Experimental Factor Ont.   | `EFO:0000400`              |   ✓     |   ✓   |   ✓    |      —        |
-| `opentargets` | Open Targets IDs           | `ENSG00000141510`          |   ✓     |   ✓   |   ✓    |      —        |
-| `uniprot`     | UniProt accessions         | `P04637`                   |   ✓     |   ✓   |   ✓    |      ✓        |
-| `chebi`       | ChEBI compounds            | `CHEBI:15377`              |   ✓     |   ✓   |   ✓    |      —        |
 | `go`          | Gene Ontology terms        | `GO:0006915`               |   ✓     |   ✓   |   ✓    |      —        |
+| `chebi`       | ChEBI compounds            | `CHEBI:15377`              |   ✓     |   ✓   |   ✓    |      —        |
+| `hgnc`        | HGNC gene symbols          | `TP53`                     |   ~     |   ✓   |   —    |      —        |
+| `ensembl`     | Ensembl gene/transcript    | `ENSG00000139618`          |   ✓     |   —   |   ✓    |      ✓        |
+| `refseq`      | RefSeq accessions          | `NM_000546.6`              |   ✓     |   —   |   ✓    |      —        |
+| `uniprot`     | UniProt accessions         | `P04637`                   |   ✓     |   —   |   ✓    |      ✓        |
+| `dbsnp`       | dbSNP variants             | `rs7412`                   |   ✓     |   —   |   ✓    |      —        |
+| `hgvs`        | HGVS variant syntax        | `NM_004006.2:c.4375C>T`    |   ✓†    |   —   |   ✓    |      —        |
 
-`✓` supported · `~` partial · `—` not applicable · `†` grammar-based, not a
-single regex. Identifier patterns are sourced from the maintained
-Identifiers.org / Bioregistry registries where available.
+`✓` supported · `~` shape check only, a loose token match · `—` not available ·
+`†` syntax only, a single regex (not coordinate-level validation). An Open Targets
+connector is planned. Identifier patterns come from the Identifiers.org /
+Bioregistry registries where available.
 
 ## Integrating with your stack
 
@@ -230,7 +233,8 @@ import pandera.pandas as pa
 import biogate as bg
 
 schema = pa.DataFrameSchema({
-    "disease_id": pa.Column(str, bg.checks.is_id(source_db="mondo", how="cache")),
+    "disease_id": pa.Column(str, bg.checks.is_id(source_db="mondo", how="cache",
+                                                 version="sample")),
     "target_id":  pa.Column(str, bg.checks.is_id(source_db="ensembl",
                                                  species="homo_sapiens")),
 })
@@ -244,14 +248,14 @@ from biogate.types import Id
 
 class Association(BaseModel):
     disease: Id("mondo", how="pattern")
-    target:  Id("ensembl", species="homo_sapiens", how="cache")
+    target:  Id("ensembl", species="homo_sapiens", how="pattern")
 ```
 
 **shinyvalidate (R)**
 
 ```r
 iv <- InputValidator$new()
-iv$add_rule("gene", sv_biogate(source_db = "hgnc", how = "cache"))
+iv$add_rule("gene", sv_biogate(source_db = "hgnc", how = "cache", version = "sample"))
 iv$enable()
 ```
 
@@ -259,10 +263,12 @@ iv$enable()
 
 ```r
 # stop early in a pipeline
-assert_id(df$disease, source_db = "mondo", how = "cache")
+assert_valid_id(df$disease, source_db = "mondo", how = "cache", version = "sample")
 
 # assertr verb inside a dplyr chain
-df |> assertr::verify(is_valid_id(disease, source_db = "mondo", how = "cache"))
+df |> assertr::verify(
+  is_valid_id(disease, source_db = "mondo", how = "cache", version = "sample")
+)
 ```
 
 ## Design principles
@@ -288,23 +294,34 @@ reproducible, and are distributed separately from the code so they can be
 refreshed without a package release:
 
 ```r
-biogate_snapshots()                       # list installed snapshots
-biogate_pull("mondo", version = "2024-09") # fetch/refresh a snapshot
-biogate_cache_dir()                        # where snapshots live
+biogate_snapshots()          # list installed snapshots
+biogate_pull("mondo")        # fetch the current MONDO snapshot
+biogate_cache_dir()          # where snapshots live
 ```
 
 `remote` mode caches responses locally and respects each source's rate limits.
 
 ## Roadmap
 
-- [ ] `pattern` mode + core API + result schema
-- [ ] Shared conformance corpus + R/Python parity CI
-- [ ] `cache` mode + snapshot tooling for the initial source set
-- [ ] `remote` resolvers (OLS, Ensembl REST, Open Targets, UniProt, dbSNP)
-- [ ] Species and version awareness across applicable sources
-- [ ] Framework adapters (pandera, pydantic, shinyvalidate, checkmate, assertr)
-- [ ] HGVS grammar validator
-- [ ] First tagged releases on PyPI and CRAN/R-universe
+Delivered:
+
+- [x] `pattern` mode, the core API, and the rich result schema
+- [x] Shared conformance corpus with R and Python parity
+- [x] `cache` mode and snapshot tooling for the OBO ontologies
+- [x] `remote` resolvers (OLS, Ensembl, UniProt, NCBI, EBI, and more: 17 resolvers across 39 sources)
+- [x] Species and version awareness
+- [x] Framework adapters (pandera, pydantic, Great Expectations, narwhals; shinyvalidate, checkmate, assertr/validate/pointblank)
+- [x] HGVS syntax validator
+- [x] Command-line interface
+
+Planned:
+
+- [ ] Real gene-symbol existence checks (a full HGNC snapshot and a genenames.org resolver)
+- [ ] A validate-and-repair report for data-frame columns
+- [ ] Fuzzy "did you mean" suggestions
+- [ ] Faster large-column remote checks (batching and concurrency)
+- [ ] An Open Targets connector
+- [ ] First tagged releases on PyPI and CRAN / R-universe
 
 ## Contributing
 
@@ -318,5 +335,5 @@ MIT © biogate authors.
 
 ## Citation
 
-If `biogate` supports your work, please cite it (a `CITATION` file will be
-provided with the first release).
+If `biogate` supports your work, please cite it. See `CITATION.cff` for citation
+metadata.

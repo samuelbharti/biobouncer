@@ -2,7 +2,7 @@
 
 biogate validates biological identifiers and inputs. It answers one question,
 "is this a valid identifier?", with the same verdict in Python and R. The R
-package is documented [here](https://samuelbharti.github.io/biogate/r/).
+package is documented [here](https://www.samuelbharti.com/biogate/r/).
 
 ## Install
 
