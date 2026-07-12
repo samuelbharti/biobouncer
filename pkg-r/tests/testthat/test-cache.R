@@ -27,10 +27,28 @@ test_that("a well-formed but absent suggestion is not offered in cache mode", {
   expect_true(is.na(res$suggestion))
 })
 
-test_that("cache mode requires a version", {
+test_that("cache mode defaults to the latest installed snapshot", {
   withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  # With no version, cache mode uses the latest installed snapshot instead of
+  # forcing a magic version = "sample". The bundled sample is the only one here.
+  res <- check_id("MONDO:0005148", source_db = "mondo", how = "cache")
+  expect_true(res$valid)
+  expect_identical(res$version, "sample")
+})
+
+test_that("cache default prefers the source's pinned default_version", {
+  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  # hgnc pins default_version; the default resolves to it, not the sample.
+  res <- check_id("TP53", source_db = "hgnc", how = "cache")
+  expect_true(res$valid)
+  expect_identical(res$version, "2026-07-07")
+})
+
+test_that("a defaulted cache check with nothing installed is actionable", {
+  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  # doid declares cache mode but ships no bundled snapshot.
   expect_error(
-    check_id("MONDO:0005148", source_db = "mondo", how = "cache"),
+    check_id("DOID:9352", source_db = "doid", how = "cache"),
     class = "biogate_error_missing_version"
   )
 })

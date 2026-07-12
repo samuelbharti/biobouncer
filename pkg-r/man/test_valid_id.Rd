@@ -22,8 +22,9 @@ different species is invalid: Ensembl is checked from its id prefix (in
 \code{pattern} and \code{remote} modes), and UniProt from the entry's organism in
 \code{remote} mode. A species outside the source map is not checked.}
 
-\item{version}{Snapshot version. Required for \code{cache} mode; selects the
-snapshot for \code{existence} mode; ignored in \code{pattern} and \code{remote} modes.}
+\item{version}{Snapshot version. In \code{cache} mode it selects the snapshot and
+defaults to the latest installed one when omitted; it selects the snapshot
+for \code{existence} mode; ignored in \code{pattern} and \code{remote} modes.}
 }
 \value{
 A single logical.

@@ -70,6 +70,28 @@
   sort(unique(versions))
 }
 
+# The snapshot version cache mode uses when the caller gives none. Prefers the
+# source's pinned default_version when a snapshot for it is installed, then the
+# newest installed non-sample version, then a bundled sample. Returns NULL when
+# nothing is installed. Newest is by sort order, which is chronological for the
+# dated (ISO-8601) versions snapshots use. Mirrors default_cache_version() in the
+# Python package.
+.default_cache_version <- function(source_db, source) {
+  installed <- .snapshot_versions(source_db)
+  if (!length(installed)) {
+    return(NULL)
+  }
+  dv <- source$default_version
+  if (!is.null(dv) && dv %in% installed) {
+    return(dv)
+  }
+  non_sample <- installed[installed != "sample"]
+  if (length(non_sample)) {
+    return(non_sample[length(non_sample)])
+  }
+  installed[length(installed)]
+}
+
 .snapshot_set <- function(source_db, version) {
   path <- .snapshot_file(source_db, version)
   if (is.na(path)) {

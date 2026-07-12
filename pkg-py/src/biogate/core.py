@@ -11,6 +11,7 @@ from ._cache import (
     _snapshot_retired,
     _snapshot_text,
     cache_check,
+    default_cache_version,
     snapshot_set,
 )
 from ._fuzzy import fuzzy_index
@@ -62,7 +63,9 @@ def check_id(
             snapshot when one is available for ``version`` and otherwise falls
             back to "remote".
         species: Optional species context, echoed in the result.
-        version: Optional version context. Ignored in pattern mode.
+        version: Optional version context. In cache mode it selects the snapshot
+            and defaults to the latest installed one when omitted; in existence
+            mode it selects a snapshot when available. Ignored in pattern mode.
         refresh: In remote checks, skip any cached response and refetch. Ignored
             by the offline modes.
 
@@ -96,10 +99,16 @@ def check_id(
 
     if how == "cache":
         if version is None:
-            raise MissingVersionError(
-                f"version is required for cache mode (source {source_db!r})."
-            )
-        version = str(version)
+            # Default to the latest installed snapshot rather than forcing the
+            # caller to name a version. Only raise when nothing is installed.
+            version = default_cache_version(source_db, source)
+            if version is None:
+                raise MissingVersionError(
+                    f"No snapshot is installed for {source_db!r} to default to. "
+                    f"Pass a version or run biogate.pull({source_db!r})."
+                )
+        else:
+            version = str(version)
         ids = snapshot_set(source_db, version)
         retired = _snapshot_retired(source_db, version)
         result_version = version

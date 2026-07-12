@@ -43,8 +43,9 @@
 #'   different species is invalid: Ensembl is checked from its id prefix (in
 #'   `pattern` and `remote` modes), and UniProt from the entry's organism in
 #'   `remote` mode. A species outside the source map is not checked.
-#' @param version Snapshot version. Required for `cache` mode; selects the
-#'   snapshot for `existence` mode; ignored in `pattern` and `remote` modes.
+#' @param version Snapshot version. In `cache` mode it selects the snapshot and
+#'   defaults to the latest installed one when omitted; it selects the snapshot
+#'   for `existence` mode; ignored in `pattern` and `remote` modes.
 #' @param refresh In remote checks, skip any cached response and refetch. Ignored
 #'   by the offline modes.
 #' @return A [tibble][tibble::tibble] with one row per element of `x` and the
@@ -73,16 +74,21 @@ check_id <- function(
 
   if (identical(how, "cache")) {
     if (is.null(version)) {
-      installed <- .snapshot_versions(source_db)
-      cli::cli_abort(
-        c(
-          "{.arg version} is required for {.val cache} mode.",
-          i = "Installed versions for {.val {source_db}}: {.val {installed}}."
-        ),
-        class = "biogate_error_missing_version"
-      )
+      # Default to the latest installed snapshot rather than forcing the caller
+      # to name a version. Only abort when nothing is installed.
+      version <- .default_cache_version(source_db, source)
+      if (is.null(version)) {
+        cli::cli_abort(
+          c(
+            "No snapshot is installed for {.val {source_db}} to default to.",
+            i = "Pass a {.arg version} or run {.code biogate_pull({source_db})}."
+          ),
+          class = "biogate_error_missing_version"
+        )
+      }
+    } else {
+      version <- as.character(version)
     }
-    version <- as.character(version)
     verdicts <- .cache_verdicts(
       source,
       x,

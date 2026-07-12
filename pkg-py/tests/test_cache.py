@@ -33,9 +33,26 @@ def test_absent_suggestion_is_not_offered():
     assert res.suggestion is None
 
 
-def test_cache_requires_version():
+def test_cache_defaults_to_latest_installed_snapshot():
+    # With no version, cache mode uses the latest installed snapshot instead of
+    # forcing a magic version="sample". The bundled sample is the only one here.
+    res = biogate.check_id("MONDO:0005148", source_db="mondo", how="cache")[0]
+    assert res.valid is True
+    assert res.version == "sample"
+
+
+def test_cache_default_prefers_pinned_default_version():
+    # hgnc pins default_version; the default resolves to it, not the sample.
+    res = biogate.check_id("TP53", source_db="hgnc", how="cache")[0]
+    assert res.valid is True
+    assert res.version == "2026-07-07"
+
+
+def test_cache_no_snapshot_installed_errors():
+    # doid declares cache mode but ships no bundled snapshot, so a defaulted
+    # cache check with nothing installed is an actionable error, not a crash.
     with pytest.raises(MissingVersionError):
-        biogate.check_id("MONDO:0005148", source_db="mondo", how="cache")
+        biogate.check_id("DOID:9352", source_db="doid", how="cache")
 
 
 def test_missing_snapshot_errors():

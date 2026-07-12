@@ -142,6 +142,26 @@ def _snapshot_versions(source_db: str) -> list[str]:
     return sorted(versions)
 
 
+def default_cache_version(source_db: str, source: Source) -> str | None:
+    """The snapshot version cache mode uses when the caller gives none.
+
+    Prefers the source's pinned ``default_version`` when a snapshot for it is
+    installed, then the newest installed non-sample version, then a bundled
+    sample. Returns ``None`` when nothing is installed, so the caller can raise an
+    actionable error. Newest is by sort order, which is chronological for the
+    dated (ISO-8601) versions snapshots use.
+    """
+    installed = _snapshot_versions(source_db)
+    if not installed:
+        return None
+    if source.default_version and source.default_version in installed:
+        return source.default_version
+    non_sample = [v for v in installed if v != "sample"]
+    if non_sample:
+        return non_sample[-1]
+    return installed[-1]
+
+
 def snapshot_set(source_db: str, version: str) -> set[str]:
     text = _snapshot_text(source_db, version)
     if text is None:
