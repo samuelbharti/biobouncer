@@ -13,3 +13,5 @@
 {"input": "MLL", "source_db": "hgnc", "how": "cache", "version": "2026-07-07", "expect": {"valid": false, "suggestion": "KMT2A"}, "note": "previous symbol maps to its approved successor"}
 {"input": "LEPRE1", "source_db": "hgnc", "how": "cache", "version": "2026-07-07", "expect": {"valid": false, "suggestion": "P3H1"}, "note": "previous symbol LEPRE1 was renamed P3H1"}
 {"input": "notagene", "source_db": "hgnc", "how": "cache", "version": "2026-07-07", "expect": {"valid": false}, "note": "well-formed shape but not an approved or previous symbol"}
+{"input": "TP52", "source_db": "hgnc", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "TP53"}, "note": "a one-edit typo suggests the nearest approved symbol"}
+{"input": "KMT2E", "source_db": "hgnc", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "KMT2A"}, "note": "a tie at the nearest distance breaks to the code-point-smallest, KMT2A over KMT2D"}

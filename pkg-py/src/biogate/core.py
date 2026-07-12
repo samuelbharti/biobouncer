@@ -13,6 +13,7 @@ from ._cache import (
     cache_check,
     snapshot_set,
 )
+from ._fuzzy import fuzzy_index
 from ._pattern import check_one
 from ._registry import get_source
 from ._remote import _utc_stamp, remote_verdicts
@@ -122,13 +123,21 @@ def check_id(
             remote_out = remote_verdicts(source, items, species, refresh)
             result_version = _utc_stamp()
 
+    # A source may offer fuzzy suggestions in the offline snapshot path. Build the
+    # length index once for the whole batch, not per input.
+    fuzzy = None
+    if ids is not None and source.suggest:
+        fuzzy_cfg = source.suggest.get("fuzzy")
+        if fuzzy_cfg:
+            fuzzy = (fuzzy_index(ids), int(fuzzy_cfg["max_distance"]))
+
     results = []
     for idx, s in enumerate(items):
         version = result_version
         if s is None:
             valid, normalized, suggestion = None, None, None
         elif ids is not None:
-            valid, normalized, suggestion = cache_check(source, s, ids, retired)
+            valid, normalized, suggestion = cache_check(source, s, ids, retired, fuzzy)
         elif remote_out is not None:
             valid, normalized, suggestion, fetched_at = remote_out[idx]
             if fetched_at is not None:

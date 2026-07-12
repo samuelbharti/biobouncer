@@ -148,6 +148,12 @@
         suggestion[i] <- sugg
       }
     }
+    if (isFALSE(valid[i]) && is.na(suggestion[i])) {
+      fz <- .fuzzy_suggest(source, x[i], ids)
+      if (!is.na(fz)) {
+        suggestion[i] <- fz
+      }
+    }
   }
   list(valid = valid, normalized = normalized, suggestion = suggestion)
 }

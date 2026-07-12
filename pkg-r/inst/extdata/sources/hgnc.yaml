@@ -21,6 +21,12 @@ cache:
 # remotely, and cache mode carries the successor map for suggestions.
 remote:
   resolver: genenames
+# In cache mode, a well-formed symbol that is neither approved nor a known
+# previous symbol falls back to the nearest approved symbol within this edit
+# distance, so a typo like TP52 suggests TP53.
+suggest:
+  fuzzy:
+    max_distance: 2
 provenance:
   pattern_source: hgnc
   homepage: https://www.genenames.org

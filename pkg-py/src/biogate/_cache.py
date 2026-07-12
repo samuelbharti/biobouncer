@@ -13,6 +13,7 @@ from pathlib import Path
 
 import platformdirs
 
+from ._fuzzy import fuzzy_suggest
 from ._pattern import _suggest, matches
 from ._registry import Source, get_source
 
@@ -157,13 +158,29 @@ def snapshot_set(source_db: str, version: str) -> set[str]:
     return _ids_from_text(text)
 
 
+def _fuzzy_fallback(
+    s: str, fuzzy: tuple[dict[int, list[str]], int] | None
+) -> str | None:
+    if fuzzy is None:
+        return None
+    index, max_distance = fuzzy
+    return fuzzy_suggest(s, index, max_distance)
+
+
 def cache_check(
-    source: Source, s: str, ids: set[str], retired: dict[str, str] | None = None
+    source: Source,
+    s: str,
+    ids: set[str],
+    retired: dict[str, str] | None = None,
+    fuzzy: tuple[dict[int, list[str]], int] | None = None,
 ) -> tuple[bool, str | None, str | None]:
     """Return ``(valid, normalized, suggestion)`` for a single input.
 
     A well-formed id absent from ``ids`` but present in ``retired`` with a
-    non-empty successor is invalid and suggests that successor.
+    non-empty successor is invalid and suggests that successor. ``fuzzy`` is an
+    optional ``(length index, max distance)`` pair; when set, an id with no exact,
+    retired, or normalized match falls back to the nearest id within that edit
+    distance.
     """
     retired = retired or {}
     if matches(source.pattern, s):
@@ -172,11 +189,11 @@ def cache_check(
         successor = retired.get(s)
         if successor:
             return False, None, successor
-        return False, None, None
+        return False, None, _fuzzy_fallback(s, fuzzy)
     suggestion = _suggest(source, s)
     if suggestion is not None and suggestion in ids:
         return False, None, suggestion
-    return False, None, None
+    return False, None, _fuzzy_fallback(s, fuzzy)
 
 
 def _snapshot_rows(base, location: str) -> list[dict]:
