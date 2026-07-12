@@ -20,8 +20,8 @@ FAIL  GO:0006915
 ```
 
 The exit code is `0` when every input is valid, `1` when any input is invalid,
-and `2` on a usage error such as an unknown source. That makes it usable as a
-gate:
+`2` on a usage error such as an unknown source, and `3` when a remote check
+cannot reach the source API. That makes it usable as a gate:
 
 ```bash
 biogate check --source mondo --file ids.txt || echo "some ids are invalid"
@@ -39,6 +39,9 @@ Pick the checking mode and, where it applies, a species or version:
 ```bash
 biogate check --source ensembl --how remote --species homo_sapiens ENSG00000139618
 ```
+
+Remote checks cache each answer. Add `--refresh` to skip the cache and look the
+id up live again.
 
 ## Output formats
 
@@ -70,3 +73,20 @@ mondo   MONDO Disease Ontology  MONDO:0005148   pattern,cache,remote    false
 ```
 
 See the [sources cookbook](sources.md) for the full list.
+
+## Cache snapshots
+
+Cache mode checks an id against a pinned local snapshot. `biogate snapshots`
+lists the snapshots you have, both the small bundled samples and any you have
+downloaded, and prints the cache directory they live in.
+
+```console
+$ biogate snapshots
+cache dir: /home/you/.cache/biogate
+source  version  n_ids  location
+mondo   sample   6      bundled
+```
+
+`biogate pull --source mondo` downloads a full snapshot for a source that has a
+builder (the OBO ontologies) and writes it to the cache directory. A source with
+no builder, such as `hgnc` or `ensembl`, exits `2`.

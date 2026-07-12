@@ -10,6 +10,8 @@ Examples:
     cat ids.txt | biogate check --source mondo
     biogate sources
     biogate info --source mondo
+    biogate snapshots
+    biogate pull --source mondo
 """
 
 from __future__ import annotations
@@ -18,7 +20,16 @@ import argparse
 import json
 import sys
 
-from . import RemoteError, __version__, check_id, source_info, sources
+from . import (
+    RemoteError,
+    __version__,
+    cache_dir,
+    check_id,
+    pull,
+    snapshots,
+    source_info,
+    sources,
+)
 
 _MODES = ("pattern", "cache", "remote", "existence")
 
@@ -134,6 +145,32 @@ def _cmd_info(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_snapshots(args: argparse.Namespace) -> int:
+    rows = snapshots()
+    if args.format == "json":
+        print(json.dumps({"cache_dir": str(cache_dir()), "snapshots": rows}, indent=2))
+        return 0
+    print(f"cache dir: {cache_dir()}")
+    if not rows:
+        print("no snapshots installed")
+        return 0
+    print("source\tversion\tn_ids\tlocation")
+    for r in rows:
+        print(f"{r['source']}\t{r['version']}\t{r['n_ids']}\t{r['location']}")
+    return 0
+
+
+def _cmd_pull(args: argparse.Namespace) -> int:
+    # pull() prints its own progress and writes the snapshot; a missing builder or
+    # version raises a ValueError that main() turns into exit 2.
+    try:
+        pull(args.source, version=args.version, quiet=args.quiet)
+    except OSError as exc:  # a download or write failure (network, timeout, disk)
+        print(f"biogate: download failed: {exc}", file=sys.stderr)
+        return 3
+    return 0
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="biogate",
@@ -182,6 +219,24 @@ def _build_parser() -> argparse.ArgumentParser:
         "--format", choices=("tsv", "json"), default="tsv", help="output format"
     )
     info.set_defaults(func=_cmd_info)
+
+    snaps = sub.add_parser("snapshots", help="list installed cache snapshots")
+    snaps.add_argument(
+        "--format", choices=("tsv", "json"), default="tsv", help="output format"
+    )
+    snaps.set_defaults(func=_cmd_snapshots)
+
+    pull_cmd = sub.add_parser("pull", help="download a cache snapshot for a source")
+    pull_cmd.add_argument(
+        "-s", "--source", required=True, help="source key, e.g. mondo"
+    )
+    pull_cmd.add_argument(
+        "--version", dest="version", default=None, help="snapshot version label"
+    )
+    pull_cmd.add_argument(
+        "-q", "--quiet", action="store_true", help="suppress progress messages"
+    )
+    pull_cmd.set_defaults(func=_cmd_pull)
 
     return parser
 

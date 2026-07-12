@@ -128,3 +128,38 @@ def test_remote_network_failure_exits_three(monkeypatch, tmp_path, capsys):
     code = main(["check", "-s", "mondo", "--how", "remote", "MONDO:0005148"])
     assert code == 3  # distinct from 1 (some invalid) and 2 (usage)
     assert "biogate: connection refused" in capsys.readouterr().err
+
+
+def test_snapshots_lists_bundled(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    code = main(["snapshots"])
+    assert code == 0
+    out = capsys.readouterr().out
+    assert "cache dir:" in out
+    assert "mondo" in out  # a bundled sample snapshot
+    assert "sample" in out
+
+
+def test_snapshots_json(tmp_path, monkeypatch, capsys):
+    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    code = main(["snapshots", "--format", "json"])
+    assert code == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["cache_dir"]
+    assert "mondo" in {row["source"] for row in payload["snapshots"]}
+
+
+def test_pull_no_builder_exits_two(capsys):
+    code = main(["pull", "-s", "ensembl"])
+    assert code == 2  # no download builder for this source
+    assert "No snapshot builder" in capsys.readouterr().err
+
+
+def test_pull_download_failure_exits_three(monkeypatch, capsys):
+    def _boom(source, version=None, quiet=False):
+        raise OSError("network down")
+
+    monkeypatch.setattr("biogate.cli.pull", _boom)
+    code = main(["pull", "-s", "mondo"])
+    assert code == 3
+    assert "download failed" in capsys.readouterr().err
