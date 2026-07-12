@@ -126,6 +126,18 @@
   ttl
 }
 
+# Concurrent remote lookups, from BIOGATE_REMOTE_WORKERS (default 1). One means
+# sequential, which keeps the offline suite and the conformance corpus
+# deterministic. A larger value checks a big column faster on the live path.
+.remote_workers <- function() {
+  raw <- Sys.getenv("BIOGATE_REMOTE_WORKERS", unset = "")
+  if (!nzchar(raw)) {
+    return(1L)
+  }
+  n <- suppressWarnings(as.integer(raw))
+  if (is.na(n) || n < 1L) 1L else n
+}
+
 # Whether a response fetched at fetched_at has aged past ttl seconds. A missing
 # or unparseable timestamp is treated as stale so it is refetched.
 .is_stale <- function(fetched_at, ttl) {
@@ -923,6 +935,115 @@
 # list(valid, suggestion, fetched_at) results. valid is TRUE only when the id
 # exists and matches the requested species; suggestion carries an obsolete
 # term's successor; fetched_at is when its response was retrieved.
+# Whether an id already has a fresh (not stale, per BIOGATE_REMOTE_TTL) cache
+# entry, so a concurrent prefetch can skip it.
+.remote_cache_is_fresh <- function(resolver, source, id, ttl) {
+  path <- .remote_cache_path(resolver$name, resolver$subkey(source), id)
+  if (!file.exists(path)) {
+    return(FALSE)
+  }
+  cached <- tryCatch(
+    jsonlite::fromJSON(path, simplifyVector = FALSE),
+    error = function(e) NULL
+  )
+  if (is.null(cached) || is.null(cached$status)) {
+    return(FALSE)
+  }
+  cached_at <- if (!is.null(cached$fetched_at)) {
+    as.character(cached$fetched_at)
+  } else {
+    NA_character_
+  }
+  !.is_stale(cached_at, ttl)
+}
+
+# Fetch the cache-missing ids concurrently with curl::multi_run and write each
+# one's cache file, so the sequential per-id resolver then reads them without
+# touching the network again. Live path only. A failed or undecidable fetch is
+# left uncached, and the sequential path refetches it and applies on_error, so
+# this only reorders I/O and never changes a verdict. Mirrors the ThreadPool
+# concurrency in the Python package.
+.prefetch_concurrent <- function(resolver, source, ids, workers) {
+  ttl <- .remote_ttl()
+  need <- ids[
+    !vapply(
+      ids,
+      function(id) .remote_cache_is_fresh(resolver, source, id, ttl),
+      logical(1)
+    )
+  ]
+  if (!length(need)) {
+    return(invisible())
+  }
+  if (interactive() && length(need) >= 50L) {
+    cli::cli_inform(
+      "Checking {length(need)} ids remotely over {workers} connections ..."
+    )
+  }
+  fetched <- new.env(parent = emptyenv())
+  pool <- curl::new_pool(total_con = workers, host_con = workers)
+  for (id in need) {
+    local({
+      this_id <- id
+      url <- resolver$url(source, this_id)
+      handle <- curl::new_handle(useragent = .remote_user_agent(), timeout = 30)
+      curl::handle_setheaders(handle, "Accept" = "application/json")
+      curl::multi_add(
+        handle,
+        done = function(resp) {
+          assign(
+            this_id,
+            list(
+              url = url,
+              status = resp$status_code,
+              body = .remote_parse_body(rawToChar(resp$content))
+            ),
+            envir = fetched
+          )
+        },
+        # A failed handle is left uncached; the sequential path refetches it.
+        fail = function(msg) NULL,
+        pool = pool
+      )
+    })
+  }
+  curl::multi_run(pool = pool)
+  for (id in need) {
+    if (!exists(id, envir = fetched, inherits = FALSE)) {
+      next
+    }
+    f <- get(id, envir = fetched)
+    # Only cache a status the resolver can decide; an undecidable one aborts, so
+    # skip it and let the sequential path refetch and apply on_error.
+    ok <- tryCatch(
+      {
+        resolver$exists(f$status, f$body)
+        TRUE
+      },
+      biogate_error_remote = function(e) FALSE
+    )
+    if (!ok) {
+      next
+    }
+    path <- .remote_cache_path(resolver$name, resolver$subkey(source), id)
+    dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+    .atomic_write_lines(
+      jsonlite::toJSON(
+        list(
+          status = f$status,
+          body = resolver$cache_body(f$status, f$body),
+          url = f$url,
+          fetched_at = .utc_stamp()
+        ),
+        auto_unbox = TRUE,
+        null = "null"
+      ),
+      path
+    )
+  }
+  invisible()
+}
+
 .resolve_ids <- function(
   resolver,
   source,
@@ -931,6 +1052,19 @@
   refresh = FALSE,
   on_error = "raise"
 ) {
+  # Concurrency is live-path only: with a test transport set, or one worker, or
+  # a refresh (which ignores the cache anyway), stay sequential so every offline
+  # fixture and conformance test remains deterministic.
+  workers <- .remote_workers()
+  transport <- getOption("biogate.remote_transport", NULL)
+  if (
+    workers > 1L &&
+      is.null(transport) &&
+      !refresh &&
+      length(ids) > 1L
+  ) {
+    .prefetch_concurrent(resolver, source, ids, workers)
+  }
   results <- lapply(
     ids,
     function(id) {

@@ -6,6 +6,10 @@
   column, and the rest of the batch is still checked. The result tibble now has
   that ninth `error` column, and `report_id()`/`repair_id()` accept `on_error`
   too.
+* Checking a large column with `remote` mode can now run several requests at
+  once. Set the `BIOGATE_REMOTE_WORKERS` environment variable to the number of
+  concurrent lookups (the default is `1`, sequential). Concurrency only changes
+  how fast the network is polled, never a verdict.
 * New `report_id()` and `repair_id()` clean a whole column in one call.
   `report_id()` returns the check table classed so it prints with a one-line
   summary of how many values are valid, repairable, invalid, or missing;
