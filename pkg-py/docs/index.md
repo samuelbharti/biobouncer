@@ -1,25 +1,25 @@
-# biogate
+# biobouncer
 
-biogate validates biological identifiers and inputs. It answers one question,
+biobouncer validates biological identifiers and inputs. It answers one question,
 "is this a valid identifier?", with the same verdict in Python and R. The R
-package is documented [here](https://www.samuelbharti.com/biogate/r/).
+package is documented [here](https://www.samuelbharti.com/biobouncer/r/).
 
 ## Install
 
 ```bash
-pip install biogate
+pip install biobouncer
 
 # development version from the monorepo subdirectory
-pip install "git+https://github.com/samuelbharti/biogate.git#subdirectory=pkg-py"
+pip install "git+https://github.com/samuelbharti/biobouncer.git#subdirectory=pkg-py"
 ```
 
 The framework adapters (pandera, pydantic) are an optional extra, as are the
 Great Expectations and narwhals adapters:
 
 ```bash
-pip install "biogate[adapters]"   # pandera, pydantic
-pip install "biogate[gx]"         # Great Expectations
-pip install "biogate[narwhals]"   # narwhals (pandas, polars, pyarrow)
+pip install "biobouncer[adapters]"   # pandera, pydantic
+pip install "biobouncer[gx]"         # Great Expectations
+pip install "biobouncer[narwhals]"   # narwhals (pandas, polars, pyarrow)
 ```
 
 ## A first check
@@ -29,7 +29,7 @@ identifier against the source's pattern. It does not check that the identifier
 exists.
 
 ```python
-import biogate as bg
+import biobouncer as bg
 
 bg.is_valid_id("MONDO:0005148", source_db="mondo")
 # True
@@ -63,7 +63,7 @@ suggestion.
 
 ## What can be checked
 
-`sources()` lists the source keys biogate knows about.
+`sources()` lists the source keys biobouncer knows about.
 
 ```python
 bg.sources()

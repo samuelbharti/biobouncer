@@ -4,10 +4,10 @@ title: "Sources cookbook"
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-library(biogate)
+library(biobouncer)
 ```
 
-biogate checks 46 sources. Each table below gives a valid example id, the
+biobouncer checks 46 sources. Each table below gives a valid example id, the
 checking modes a source supports, and whether it is species-aware. To check an
 id, pass the source key as `source_db`. The call is the same for every source:
 
@@ -24,7 +24,7 @@ source_info()
 
 Modes: `pattern` checks the shape offline, `cache` checks existence against a
 pinned snapshot, and `remote` checks existence against the live source. See
-`vignette("biogate")` for details.
+`vignette("biobouncer")` for details.
 
 ## Diseases
 

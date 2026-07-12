@@ -20,7 +20,7 @@ a network runs offline.
 The default. Offline shape check, no reference data.
 
 ```python
-import biogate as bg
+import biobouncer as bg
 
 bg.is_valid_id("MONDO:0005148", source_db="mondo", how="pattern")
 # True
@@ -71,7 +71,7 @@ bg.check_id(genes, source_db="hgnc", how="remote", on_error="indeterminate")
 ```
 
 Checking a large column live is faster with several requests in flight. Set
-`BIOGATE_REMOTE_WORKERS` to the number of concurrent lookups (the default is `1`,
+`BIOBOUNCER_REMOTE_WORKERS` to the number of concurrent lookups (the default is `1`,
 sequential). Concurrency never changes a verdict, only the order the network is
 touched, and per-host politeness still applies: NCBI E-utilities are held to
 three requests a second, or ten when `NCBI_API_KEY` is set.
@@ -118,16 +118,16 @@ against the Mutalyzer normalizer, which goes beyond the offline syntax check.
 
 The adapters wrap the core classifier so it plugs into common validation
 frameworks. They never reimplement any checks. Install them with
-`pip install "biogate[adapters]"`.
+`pip install "biobouncer[adapters]"`.
 
 ### pandera
 
-`biogate.checks.is_id` returns a pandera `Check` for a column of identifiers.
+`biobouncer.checks.is_id` returns a pandera `Check` for a column of identifiers.
 
 ```python
 import pandas as pd
 import pandera.pandas as pa
-from biogate.checks import is_id
+from biobouncer.checks import is_id
 
 schema = pa.DataFrameSchema(
     {
@@ -144,12 +144,12 @@ schema.validate(df)
 
 ### pydantic
 
-`biogate.types.Id` returns a validating string type. Use it as a field
+`biobouncer.types.Id` returns a validating string type. Use it as a field
 annotation, most readably through an alias.
 
 ```python
 from pydantic import BaseModel
-from biogate.types import Id
+from biobouncer.types import Id
 
 MondoId = Id("mondo")
 

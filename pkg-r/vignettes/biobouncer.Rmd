@@ -1,8 +1,8 @@
 ---
-title: "Getting started with biogate"
+title: "Getting started with biobouncer"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Getting started with biogate}
+  %\VignetteIndexEntry{Getting started with biobouncer}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -11,18 +11,18 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
-biogate validates biological identifiers and inputs. It answers one question,
+biobouncer validates biological identifiers and inputs. It answers one question,
 "is this a valid identifier?", with the same verdict in R and Python. This
 vignette walks through the sources, the checking modes, and the validation
 adapters using only offline data, so every chunk here runs without a network.
 
 ```{r setup}
-library(biogate)
+library(biobouncer)
 ```
 
 ## What can be checked
 
-`sources()` lists the source databases biogate knows about, and `source_info()`
+`sources()` lists the source databases biobouncer knows about, and `source_info()`
 returns a table with a short description of each.
 
 ```{r sources}
@@ -78,7 +78,7 @@ want the check to be.
 Snapshots are managed with a few helpers:
 
 ```{r snapshots}
-biogate_snapshots()
+biobouncer_snapshots()
 ```
 
 ## Remote mode
@@ -178,11 +178,11 @@ ids <- c("MONDO:0005148", "mondo:5148", "MONDO:0018076")
 ids[is_mondo(ids)]
 ```
 
-For Shiny apps, `sv_biogate()` returns a shinyvalidate rule. The rule returns
+For Shiny apps, `sv_biobouncer()` returns a shinyvalidate rule. The rule returns
 `NULL` for a valid input and a message otherwise:
 
 ```{r shiny}
-rule <- sv_biogate("mondo")
+rule <- sv_biobouncer("mondo")
 rule("MONDO:0005148")
 rule("mondo:5148")
 ```

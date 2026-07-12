@@ -12,12 +12,12 @@ frame and the repaired column come back on the same backend you passed in.
 ## A quick pass over a column
 
 ```python
-import biogate as bg
+import biobouncer as bg
 
 genes = ["TP53", "MLL", "notagene", None]
 rep = bg.report(genes, "hgnc", how="cache")
 rep
-# <biogate report on 'hgnc' (cache mode): 1 valid, 1 repairable, 1 invalid, 1 missing of 4>
+# <biobouncer report on 'hgnc' (cache mode): 1 valid, 1 repairable, 1 invalid, 1 missing of 4>
 ```
 
 `MLL` is a withdrawn symbol, so it is invalid but repairable: its successor is
@@ -66,7 +66,7 @@ rep.summary
 ```
 
 `to_frame` and repairing a native series use narwhals; install it with
-`pip install "biogate[narwhals]"`.
+`pip install "biobouncer[narwhals]"`.
 
 ## Report or enforce?
 

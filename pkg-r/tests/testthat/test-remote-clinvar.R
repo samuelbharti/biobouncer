@@ -1,5 +1,5 @@
 # Offline tests for clinvar remote mode. Existence is checked against NCBI
-# E-utilities esearch; the biogate.remote_transport option replaces it.
+# E-utilities esearch; the biobouncer.remote_transport option replaces it.
 
 .stub_clinvar <- function(status, body = NULL) {
   function(url, timeout) list(status = status, body = body)
@@ -20,9 +20,9 @@ test_that("the url builds the esearch endpoint", {
 })
 
 test_that("an existing accession is valid", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_clinvar(200, .clinvar_hits(1))
+    biobouncer.remote_transport = .stub_clinvar(200, .clinvar_hits(1))
   )
   res <- check_id("VCV000012345", "clinvar", how = "remote")
   expect_true(res$valid)
@@ -31,9 +31,9 @@ test_that("an existing accession is valid", {
 })
 
 test_that("an absent accession is invalid", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_clinvar(200, .clinvar_hits(0))
+    biobouncer.remote_transport = .stub_clinvar(200, .clinvar_hits(0))
   )
   res <- check_id("VCV999999999", "clinvar", how = "remote")
   expect_false(res$valid)
@@ -41,9 +41,9 @@ test_that("an absent accession is invalid", {
 })
 
 test_that("a lowercase id suggests the uppercase form", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_clinvar(200, .clinvar_hits(1))
+    biobouncer.remote_transport = .stub_clinvar(200, .clinvar_hits(1))
   )
   res <- check_id("vcv000012345", "clinvar", how = "remote")
   expect_false(res$valid)
@@ -51,9 +51,9 @@ test_that("a lowercase id suggests the uppercase form", {
 })
 
 test_that("a malformed id skips the network", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = function(url, timeout) {
+    biobouncer.remote_transport = function(url, timeout) {
       stop("a malformed id must not reach the network")
     }
   )
@@ -63,11 +63,11 @@ test_that("a malformed id skips the network", {
 })
 
 test_that("an unexpected status raises and is not cached", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
-  withr::local_options(biogate.remote_transport = .stub_clinvar(500))
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  withr::local_options(biobouncer.remote_transport = .stub_clinvar(500))
   expect_error(
     check_id("VCV000012345", "clinvar", how = "remote"),
-    class = "biogate_error_remote"
+    class = "biobouncer_error_remote"
   )
   expect_false(
     file.exists(.remote_cache_path("clinvar", "esearch", "VCV000012345"))

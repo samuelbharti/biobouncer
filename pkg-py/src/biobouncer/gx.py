@@ -1,13 +1,13 @@
 """Great Expectations integration: a column-map expectation for identifiers.
 
 This module requires Great Expectations, an optional dependency. Install it with
-``pip install "biogate[gx]"``. The adapter never duplicates validation logic; it
-calls :func:`biogate.is_valid_id`.
+``pip install "biobouncer[gx]"``. The adapter never duplicates validation logic; it
+calls :func:`biobouncer.is_valid_id`.
 
 Example:
     >>> import pandas as pd
     >>> import great_expectations as gx
-    >>> from biogate.gx import ExpectColumnValuesToBeValidId
+    >>> from biobouncer.gx import ExpectColumnValuesToBeValidId
     >>> context = gx.get_context(mode="ephemeral")
     >>> df = pd.DataFrame({"term": ["MONDO:0005148", "MONDO:0018076"]})
     >>> batch = (
@@ -46,10 +46,10 @@ except ModuleNotFoundError as exc:  # pragma: no cover - optional dependency
 from .core import is_valid_id
 
 
-class ColumnValuesBiogateValid(ColumnMapMetricProvider):
+class ColumnValuesBiobouncerValid(ColumnMapMetricProvider):
     """Column-map metric: is each value a valid identifier for the source?"""
 
-    condition_metric_name = "column_values.biogate_valid"
+    condition_metric_name = "column_values.biobouncer_valid"
     condition_value_keys = ("source_db", "how", "species")
 
     @column_condition_partial(engine=PandasExecutionEngine)
@@ -72,7 +72,7 @@ class ExpectColumnValuesToBeValidId(ColumnMapExpectation):
         mostly: The usual Great Expectations tolerance, a fraction in [0, 1].
     """
 
-    map_metric = "column_values.biogate_valid"
+    map_metric = "column_values.biobouncer_valid"
     success_keys = ("source_db", "how", "species", "mostly")
 
     source_db: str

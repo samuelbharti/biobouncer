@@ -42,7 +42,7 @@ class Source:
 
 @functools.lru_cache(maxsize=1)
 def _registry() -> dict[str, Source]:
-    root = files("biogate") / "_data" / "sources"
+    root = files("biobouncer") / "_data" / "sources"
     out: dict[str, Source] = {}
     for entry in sorted(root.iterdir(), key=lambda p: p.name):
         if not entry.name.endswith(".yaml"):
@@ -83,7 +83,7 @@ def source_info() -> list[dict]:
         ``species_aware``, and ``version_aware``.
 
     Example:
-        >>> import biogate as bg
+        >>> import biobouncer as bg
         >>> info = {row["key"]: row for row in bg.source_info()}
         >>> info["mondo"]["example"]
         'MONDO:0005148'

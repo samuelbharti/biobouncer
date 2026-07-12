@@ -29,8 +29,10 @@ test_that(".normalize_obo turns short forms and IRIs into colon obo_ids", {
 }
 
 test_that("remote mode marks an obsolete term invalid with its successor", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
-  withr::local_options(biogate.remote_transport = .stub_obsolete("GO_0006915"))
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  withr::local_options(
+    biobouncer.remote_transport = .stub_obsolete("GO_0006915")
+  )
 
   res <- check_id("GO:0006917", source_db = "go", how = "remote")
   expect_false(res$valid)
@@ -39,9 +41,9 @@ test_that("remote mode marks an obsolete term invalid with its successor", {
 })
 
 test_that("remote mode surfaces a cross-ontology successor from a full IRI", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_obsolete(
+    biobouncer.remote_transport = .stub_obsolete(
       "http://purl.obolibrary.org/obo/MONDO_0005016"
     )
   )
@@ -53,7 +55,7 @@ test_that("remote mode surfaces a cross-ontology successor from a full IRI", {
 })
 
 test_that("cache mode marks a retired id invalid with its successor", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
 
   res <- check_id(
     "GO:0006917",
@@ -67,7 +69,7 @@ test_that("cache mode marks a retired id invalid with its successor", {
 })
 
 test_that("a well-formed id neither in the snapshot nor retired has no suggestion", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
 
   res <- check_id(
     "GO:0000001",
@@ -80,7 +82,7 @@ test_that("a well-formed id neither in the snapshot nor retired has no suggestio
 })
 
 test_that(".snapshot_retired reads the bundled go retired sidecar", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
 
   retired <- .snapshot_retired("go", "sample")
   expect_true("GO:0006917" %in% names(retired))
@@ -88,7 +90,7 @@ test_that(".snapshot_retired reads the bundled go retired sidecar", {
 })
 
 test_that(".snapshot_retired returns an empty named vector with no sidecar", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
 
   retired <- .snapshot_retired("mondo", "sample")
   expect_identical(length(retired), 0L)

@@ -5,7 +5,7 @@ import pytest
 pytest.importorskip("narwhals")
 pd = pytest.importorskip("pandas")
 
-from biogate.narwhals import valid_id_mask  # noqa: E402
+from biobouncer.narwhals import valid_id_mask  # noqa: E402
 
 
 def test_pandas_column():
@@ -38,7 +38,7 @@ def test_null_cell_is_missing_not_invalid():
 
 
 def test_cache_mode_threads_through(tmp_path, monkeypatch):
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
     s = pd.Series(["MONDO:0005148", "MONDO:9999999"], name="term")
     mask = valid_id_mask(s, "mondo", how="cache", version="sample")
     assert list(mask) == [True, False]

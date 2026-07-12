@@ -1,17 +1,17 @@
-"""Command-line interface for biogate.
+"""Command-line interface for biobouncer.
 
-Installed as the ``biogate`` command. It validates identifiers from arguments,
+Installed as the ``biobouncer`` command. It validates identifiers from arguments,
 files, or standard input, and exits non-zero if any input is invalid, so it
 drops into shell pipelines and CI checks.
 
 Examples:
-    biogate check --source mondo MONDO:0005148 mondo:5148
-    biogate check --source mondo --file ids.txt
-    cat ids.txt | biogate check --source mondo
-    biogate sources
-    biogate info --source mondo
-    biogate snapshots
-    biogate pull --source mondo
+    biobouncer check --source mondo MONDO:0005148 mondo:5148
+    biobouncer check --source mondo --file ids.txt
+    cat ids.txt | biobouncer check --source mondo
+    biobouncer sources
+    biobouncer info --source mondo
+    biobouncer snapshots
+    biobouncer pull --source mondo
 """
 
 from __future__ import annotations
@@ -97,7 +97,7 @@ def _print_check(results, fmt: str, invalid_only: bool) -> None:
 def _cmd_check(args: argparse.Namespace) -> int:
     ids = _gather_ids(args)
     if not ids:
-        print("biogate check: no identifiers given", file=sys.stderr)
+        print("biobouncer check: no identifiers given", file=sys.stderr)
         return 2
     # Check the whole batch even when a remote id is unreachable: an
     # indeterminate id is reported and the run exits 3, so the determinate
@@ -143,7 +143,7 @@ def _cmd_info(args: argparse.Namespace) -> int:
     if args.source:
         rows = [r for r in rows if r["key"] == args.source]
         if not rows:
-            print(f"biogate info: unknown source {args.source!r}", file=sys.stderr)
+            print(f"biobouncer info: unknown source {args.source!r}", file=sys.stderr)
             return 2
     if args.format == "json":
         print(json.dumps(rows, indent=2))
@@ -178,17 +178,19 @@ def _cmd_pull(args: argparse.Namespace) -> int:
     try:
         pull(args.source, version=args.version, quiet=args.quiet)
     except OSError as exc:  # a download or write failure (network, timeout, disk)
-        print(f"biogate: download failed: {exc}", file=sys.stderr)
+        print(f"biobouncer: download failed: {exc}", file=sys.stderr)
         return 3
     return 0
 
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="biogate",
+        prog="biobouncer",
         description="Validate biological identifiers from the command line.",
     )
-    parser.add_argument("--version", action="version", version=f"biogate {__version__}")
+    parser.add_argument(
+        "--version", action="version", version=f"biobouncer {__version__}"
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     check = sub.add_parser("check", help="validate identifiers against a source")
@@ -265,10 +267,10 @@ def main(argv: list[str] | None = None) -> int:
     try:
         return args.func(args)
     except RemoteError as exc:
-        print(f"biogate: {exc}", file=sys.stderr)
+        print(f"biobouncer: {exc}", file=sys.stderr)
         return 3
     except (ValueError, FileNotFoundError) as exc:
-        print(f"biogate: {exc}", file=sys.stderr)
+        print(f"biobouncer: {exc}", file=sys.stderr)
         return 2
 
 

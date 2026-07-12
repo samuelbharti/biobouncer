@@ -1,4 +1,4 @@
-"""biogate: validate biological identifiers and inputs.
+"""biobouncer: validate biological identifiers and inputs.
 
 The public surface is small: ``check_id`` and ``is_valid_id``, plus ``sources``
 to list what can be checked. Offline ``pattern`` and ``cache`` modes and live
@@ -31,7 +31,7 @@ from .schema import SCHEMA_VERSION
 # Single-sourced from the package metadata (pyproject.toml), so the version is
 # declared in exactly one place.
 try:
-    __version__ = version("biogate")
+    __version__ = version("biobouncer")
 except PackageNotFoundError:  # pragma: no cover - running from an uninstalled tree
     __version__ = "0.0.0+unknown"
 

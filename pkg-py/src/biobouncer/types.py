@@ -1,12 +1,12 @@
 """pydantic integration: a validating string type for biological identifiers.
 
 This module requires pydantic, an optional dependency. Install it with
-``pip install biogate[adapters]``. The adapter never duplicates validation
-logic; it calls :func:`biogate.is_valid_id`.
+``pip install biobouncer[adapters]``. The adapter never duplicates validation
+logic; it calls :func:`biobouncer.is_valid_id`.
 
 Example:
     >>> from pydantic import BaseModel
-    >>> from biogate.types import Id
+    >>> from biobouncer.types import Id
     >>> MondoId = Id("mondo")
     >>> class Row(BaseModel):
     ...     term: MondoId

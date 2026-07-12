@@ -6,7 +6,7 @@ pytest.importorskip("pydantic")
 
 from pydantic import BaseModel, ValidationError  # noqa: E402
 
-from biogate.types import Id  # noqa: E402
+from biobouncer.types import Id  # noqa: E402
 
 
 def test_valid_identifier_passes():
@@ -29,7 +29,7 @@ def test_invalid_identifier_raises():
 
 
 def test_cache_mode_threads_through(tmp_path, monkeypatch):
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
     SampleMondo = Id("mondo", how="cache", version="sample")
 
     class Row(BaseModel):

@@ -6,8 +6,8 @@ focused checks on representative shapes and on the pattern-only contract.
 
 import pytest
 
-import biogate
-from biogate import MissingSnapshotError
+import biobouncer
+from biobouncer import MissingSnapshotError
 
 VALID = [
     "NM_004006.2:c.4375C>T",
@@ -31,17 +31,19 @@ INVALID = [
 
 @pytest.mark.parametrize("variant", VALID)
 def test_well_formed_variants_are_valid(variant):
-    assert biogate.is_valid_id(variant, "hgvs") is True
+    assert biobouncer.is_valid_id(variant, "hgvs") is True
 
 
 @pytest.mark.parametrize("variant", INVALID)
 def test_malformed_variants_are_invalid(variant):
-    assert biogate.is_valid_id(variant, "hgvs") is False
+    assert biobouncer.is_valid_id(variant, "hgvs") is False
 
 
 def test_hgvs_cache_mode_has_no_snapshot(tmp_path, monkeypatch):
     # hgvs supports pattern (syntax) and remote (Mutalyzer) modes. It ships no
     # cache snapshot, so cache mode reports the missing snapshot explicitly.
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
     with pytest.raises(MissingSnapshotError):
-        biogate.check_id("NM_004006.2:c.4375C>T", "hgvs", how="cache", version="sample")
+        biobouncer.check_id(
+            "NM_004006.2:c.4375C>T", "hgvs", how="cache", version="sample"
+        )

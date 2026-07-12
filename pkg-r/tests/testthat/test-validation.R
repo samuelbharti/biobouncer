@@ -44,11 +44,11 @@ test_that("argument validation rejects bad types", {
 test_that("mode and source errors carry a condition class", {
   expect_error(
     check_id("x", source_db = "mondo", how = "bogus"),
-    class = "biogate_error_invalid_mode"
+    class = "biobouncer_error_invalid_mode"
   )
   expect_error(
     check_id("x", source_db = "not_a_source"),
-    class = "biogate_error_unknown_source"
+    class = "biobouncer_error_unknown_source"
   )
 })
 

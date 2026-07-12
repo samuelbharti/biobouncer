@@ -51,8 +51,11 @@ test_that(".parse_hgnc_tsv extracts approved symbols and a retired map", {
   )
 })
 
-test_that("biogate_pull errors for a source without a builder", {
-  expect_error(biogate_pull("ensembl"), class = "biogate_error_no_builder")
+test_that("biobouncer_pull errors for a source without a builder", {
+  expect_error(
+    biobouncer_pull("ensembl"),
+    class = "biobouncer_error_no_builder"
+  )
 })
 
 test_that("hgnc resolves a dated snapshot url through its builder", {

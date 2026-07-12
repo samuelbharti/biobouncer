@@ -1,5 +1,5 @@
 # Offline tests for hgvs remote mode. Existence is checked against the Mutalyzer
-# normalizer; the biogate.remote_transport option replaces the network.
+# normalizer; the biobouncer.remote_transport option replaces the network.
 
 .stub_mutalyzer_status <- function(status) {
   function(url, timeout) list(status = status, body = NULL)
@@ -22,8 +22,10 @@ test_that("the remote cache path for a variant has no unsafe characters", {
 })
 
 test_that("a valid variant is valid", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
-  withr::local_options(biogate.remote_transport = .stub_mutalyzer_status(200))
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  withr::local_options(
+    biobouncer.remote_transport = .stub_mutalyzer_status(200)
+  )
   res <- check_id("NM_004006.2:c.4375C>T", "hgvs", how = "remote")
   expect_true(res$valid)
   expect_identical(res$normalized, "NM_004006.2:c.4375C>T")
@@ -31,8 +33,10 @@ test_that("a valid variant is valid", {
 })
 
 test_that("a reference-inconsistent variant is invalid", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
-  withr::local_options(biogate.remote_transport = .stub_mutalyzer_status(422))
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  withr::local_options(
+    biobouncer.remote_transport = .stub_mutalyzer_status(422)
+  )
   res <- check_id("NM_004006.2:c.4375A>T", "hgvs", how = "remote")
   expect_false(res$valid)
   expect_true(is.na(res$normalized))
@@ -40,9 +44,9 @@ test_that("a reference-inconsistent variant is invalid", {
 })
 
 test_that("a malformed variant skips the network", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = function(url, timeout) {
+    biobouncer.remote_transport = function(url, timeout) {
       stop("a malformed variant must not reach the network")
     }
   )
@@ -52,11 +56,13 @@ test_that("a malformed variant skips the network", {
 })
 
 test_that("an unexpected status raises and is not cached", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
-  withr::local_options(biogate.remote_transport = .stub_mutalyzer_status(500))
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  withr::local_options(
+    biobouncer.remote_transport = .stub_mutalyzer_status(500)
+  )
   expect_error(
     check_id("NM_004006.2:c.4375C>T", "hgvs", how = "remote"),
-    class = "biogate_error_remote"
+    class = "biobouncer_error_remote"
   )
   expect_false(file.exists(
     .remote_cache_path("mutalyzer", "normalize", "NM_004006.2:c.4375C>T")
@@ -64,11 +70,13 @@ test_that("an unexpected status raises and is not cached", {
 })
 
 test_that("the disk cache short-circuits the network", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
-  withr::local_options(biogate.remote_transport = .stub_mutalyzer_status(200))
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  withr::local_options(
+    biobouncer.remote_transport = .stub_mutalyzer_status(200)
+  )
   expect_true(check_id("NM_004006.2:c.4375C>T", "hgvs", how = "remote")$valid)
   withr::local_options(
-    biogate.remote_transport = function(url, timeout) {
+    biobouncer.remote_transport = function(url, timeout) {
       stop("network should not be called on a cache hit")
     }
   )

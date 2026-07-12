@@ -7,7 +7,7 @@ pd = pytest.importorskip("pandas")
 
 import great_expectations as gx  # noqa: E402
 
-from biogate.gx import ExpectColumnValuesToBeValidId  # noqa: E402
+from biobouncer.gx import ExpectColumnValuesToBeValidId  # noqa: E402
 
 
 def _batch(df):

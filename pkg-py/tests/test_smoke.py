@@ -1,6 +1,6 @@
-import biogate
+import biobouncer
 
 
 def test_package_has_version():
-    assert isinstance(biogate.__version__, str)
-    assert biogate.__version__
+    assert isinstance(biobouncer.__version__, str)
+    assert biobouncer.__version__

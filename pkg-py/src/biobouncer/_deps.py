@@ -16,5 +16,5 @@ class MissingDependencyError(ImportError):
         self.extra = extra
         super().__init__(
             f"The optional dependency {module!r} is required for this feature. "
-            f"Install it with: pip install 'biogate[{extra}]'."
+            f"Install it with: pip install 'biobouncer[{extra}]'."
         )

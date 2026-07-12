@@ -1,12 +1,12 @@
 # Sources cookbook
 
-biogate checks 46 sources. Each row below gives a valid example id, the
+biobouncer checks 46 sources. Each row below gives a valid example id, the
 [checking modes](guide.md#the-checking-modes) it supports, and whether it is
 species-aware. To check an id, pass the source key as `source_db`. The call is
 the same for every source:
 
 ```python
-import biogate as bg
+import biobouncer as bg
 
 bg.is_valid_id("MONDO:0005148", source_db="mondo")
 # True

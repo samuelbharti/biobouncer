@@ -1,5 +1,5 @@
 # Offline tests for mirbase remote mode. Existence is checked against RNAcentral
-# through EBI Search, which indexes miRBase; the biogate.remote_transport option
+# through EBI Search, which indexes miRBase; the biobouncer.remote_transport option
 # replaces it.
 
 .stub_mirbase <- function(status, body = NULL) {
@@ -21,9 +21,9 @@ test_that("the url builds the ebi search endpoint", {
 })
 
 test_that("an existing accession is valid", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_mirbase(200, .mirbase_hits(1))
+    biobouncer.remote_transport = .stub_mirbase(200, .mirbase_hits(1))
   )
   res <- check_id("MIMAT0000001", "mirbase", how = "remote")
   expect_true(res$valid)
@@ -32,9 +32,9 @@ test_that("an existing accession is valid", {
 })
 
 test_that("an absent accession is invalid", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_mirbase(200, .mirbase_hits(0))
+    biobouncer.remote_transport = .stub_mirbase(200, .mirbase_hits(0))
   )
   res <- check_id("MIMAT9999999", "mirbase", how = "remote")
   expect_false(res$valid)
@@ -42,9 +42,9 @@ test_that("an absent accession is invalid", {
 })
 
 test_that("a lowercase id suggests the uppercase form", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_mirbase(200, .mirbase_hits(1))
+    biobouncer.remote_transport = .stub_mirbase(200, .mirbase_hits(1))
   )
   res <- check_id("mimat0000001", "mirbase", how = "remote")
   expect_false(res$valid)
@@ -52,9 +52,9 @@ test_that("a lowercase id suggests the uppercase form", {
 })
 
 test_that("a malformed id skips the network", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = function(url, timeout) {
+    biobouncer.remote_transport = function(url, timeout) {
       stop("a malformed id must not reach the network")
     }
   )
@@ -64,11 +64,11 @@ test_that("a malformed id skips the network", {
 })
 
 test_that("an unexpected status raises and is not cached", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
-  withr::local_options(biogate.remote_transport = .stub_mirbase(500))
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  withr::local_options(biobouncer.remote_transport = .stub_mirbase(500))
   expect_error(
     check_id("MIMAT0000001", "mirbase", how = "remote"),
-    class = "biogate_error_remote"
+    class = "biobouncer_error_remote"
   )
   expect_false(
     file.exists(.remote_cache_path("mirbase", "rnacentral", "MIMAT0000001"))

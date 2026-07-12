@@ -21,14 +21,14 @@
 }
 
 .bundled_snapshots_dir <- function() {
-  system.file("extdata", "snapshots", package = "biogate")
+  system.file("extdata", "snapshots", package = "biobouncer")
 }
 
 # Locate a snapshot file, plain or gzipped, user cache before bundled. suffix is
 # ".txt" for the id set or ".retired.tsv" for the retired map. readLines() reads a
 # .gz path transparently, so only the lookup needs to know about compression.
 .find_snapshot <- function(source_db, version, suffix) {
-  roots <- c(biogate_cache_dir(), .bundled_snapshots_dir())
+  roots <- c(biobouncer_cache_dir(), .bundled_snapshots_dir())
   for (root in roots) {
     if (!nzchar(root)) {
       next
@@ -53,7 +53,7 @@
 
 .snapshot_versions <- function(source_db) {
   dirs <- c(
-    file.path(biogate_cache_dir(), source_db),
+    file.path(biobouncer_cache_dir(), source_db),
     if (nzchar(.bundled_snapshots_dir())) {
       file.path(.bundled_snapshots_dir(), source_db)
     }
@@ -104,9 +104,9 @@
         } else {
           "No snapshots are installed for this source."
         },
-        i = "Run {.code biogate_pull()} to download one."
+        i = "Run {.code biobouncer_pull()} to download one."
       ),
-      class = "biogate_error_missing_snapshot"
+      class = "biobouncer_error_missing_snapshot"
     )
   }
   .read_ids(path)
@@ -183,18 +183,18 @@
 #' Snapshot cache directory
 #'
 #' The directory where downloaded snapshots are stored. Set the environment
-#' variable `BIOGATE_CACHE_DIR` to override the default.
+#' variable `BIOBOUNCER_CACHE_DIR` to override the default.
 #'
 #' @return A path to the cache directory.
 #' @examples
-#' biogate_cache_dir()
+#' biobouncer_cache_dir()
 #' @export
-biogate_cache_dir <- function() {
-  override <- Sys.getenv("BIOGATE_CACHE_DIR", unset = "")
+biobouncer_cache_dir <- function() {
+  override <- Sys.getenv("BIOBOUNCER_CACHE_DIR", unset = "")
   if (nzchar(override)) {
     return(override)
   }
-  tools::R_user_dir("biogate", which = "cache")
+  tools::R_user_dir("biobouncer", which = "cache")
 }
 
 #' List installed snapshots
@@ -205,11 +205,11 @@ biogate_cache_dir <- function() {
 #' @return A [tibble][tibble::tibble] with columns `source`, `version`,
 #'   `n_ids`, and `location` (`"cache"` or `"bundled"`).
 #' @examples
-#' biogate_snapshots()
+#' biobouncer_snapshots()
 #' @export
-biogate_snapshots <- function() {
+biobouncer_snapshots <- function() {
   locations <- list(
-    cache = biogate_cache_dir(),
+    cache = biobouncer_cache_dir(),
     bundled = .bundled_snapshots_dir()
   )
   rows <- list()
@@ -401,9 +401,9 @@ biogate_snapshots <- function() {
 #' @param version Snapshot version label. Defaults to the builder's own version.
 #' @param quiet Suppress progress messages.
 #' @return The path to the written snapshot, invisibly.
-#' @seealso [biogate_snapshots()], [check_id()].
+#' @seealso [biobouncer_snapshots()], [check_id()].
 #' @export
-biogate_pull <- function(source_db, version = NULL, quiet = FALSE) {
+biobouncer_pull <- function(source_db, version = NULL, quiet = FALSE) {
   source <- .get_source(source_db)
   cache <- source$cache
   builder <- if (is.null(cache) || is.null(cache$builder)) {
@@ -414,7 +414,7 @@ biogate_pull <- function(source_db, version = NULL, quiet = FALSE) {
   if (is.null(builder)) {
     cli::cli_abort(
       "No snapshot builder is available for {.val {source_db}}.",
-      class = "biogate_error_no_builder"
+      class = "biobouncer_error_no_builder"
     )
   }
   url <- builder$url(source, version)
@@ -429,7 +429,7 @@ biogate_pull <- function(source_db, version = NULL, quiet = FALSE) {
     quiet = quiet,
     mode = "wb",
     headers = c(
-      "User-Agent" = "biogate/0.1 (+https://github.com/samuelbharti/biogate)"
+      "User-Agent" = "biobouncer/0.1 (+https://github.com/samuelbharti/biobouncer)"
     )
   )
   built <- builder$build(
@@ -446,10 +446,10 @@ biogate_pull <- function(source_db, version = NULL, quiet = FALSE) {
   if (is.null(version) || !nzchar(version)) {
     cli::cli_abort(
       "Could not determine a version for {.val {source_db}}; pass {.arg version}.",
-      class = "biogate_error_missing_version"
+      class = "biobouncer_error_missing_version"
     )
   }
-  dest_dir <- file.path(biogate_cache_dir(), source_db)
+  dest_dir <- file.path(biobouncer_cache_dir(), source_db)
   dir.create(dest_dir, recursive = TRUE, showWarnings = FALSE)
   dest <- file.path(dest_dir, paste0(version, ".txt"))
   .atomic_write_lines(built$ids, dest)

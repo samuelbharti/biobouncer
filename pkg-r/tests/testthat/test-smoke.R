@@ -1,3 +1,3 @@
-test_that("the biogate namespace is available", {
-  expect_true("biogate" %in% loadedNamespaces())
+test_that("the biobouncer namespace is available", {
+  expect_true("biobouncer" %in% loadedNamespaces())
 })

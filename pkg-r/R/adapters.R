@@ -118,11 +118,11 @@ test_valid_id <- function(
 #' @return A function of one argument suitable for `add_rule()`.
 #' @seealso [check_valid_id()].
 #' @examples
-#' rule <- sv_biogate("mondo")
+#' rule <- sv_biobouncer("mondo")
 #' rule("MONDO:0005148")
 #' rule("mondo:5148")
 #' @export
-sv_biogate <- function(
+sv_biobouncer <- function(
   source_db,
   how = "pattern",
   species = NULL,

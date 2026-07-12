@@ -34,7 +34,7 @@ from ._cache import _atomic_write_text, cache_dir
 from ._pattern import _species_ok, _suggest, matches
 from ._registry import Source
 
-_USER_AGENT = "biogate/0.1 (+https://github.com/samuelbharti/biogate)"
+_USER_AGENT = "biobouncer/0.1 (+https://github.com/samuelbharti/biobouncer)"
 _OLS_BASE = "https://www.ebi.ac.uk/ols4/api"
 _MUTALYZER_BASE = "https://mutalyzer.nl/api/normalize/"
 _RCSB_BASE = "https://data.rcsb.org/rest/v1/core/entry/"
@@ -227,13 +227,13 @@ def _utc_stamp() -> str:
 
 
 def _remote_ttl() -> float | None:
-    """Cache time-to-live in seconds from ``BIOGATE_REMOTE_TTL``, or None.
+    """Cache time-to-live in seconds from ``BIOBOUNCER_REMOTE_TTL``, or None.
 
     Unset, non-numeric, or non-positive means no expiry: a cached response is
     served regardless of age. A positive value makes a cached response older
     than that many seconds stale, so it is refetched.
     """
-    raw = os.environ.get("BIOGATE_REMOTE_TTL")
+    raw = os.environ.get("BIOBOUNCER_REMOTE_TTL")
     if not raw:
         return None
     try:
@@ -673,7 +673,7 @@ def _ncbi_suffix() -> str:
     key = os.environ.get("NCBI_API_KEY")
     if not key:
         return ""
-    parts = [f"api_key={urllib.parse.quote(key, safe='')}", "tool=biogate"]
+    parts = [f"api_key={urllib.parse.quote(key, safe='')}", "tool=biobouncer"]
     email = os.environ.get("NCBI_EMAIL")
     if email:
         parts.append(f"email={urllib.parse.quote(email, safe='')}")
@@ -821,7 +821,7 @@ _OPENTARGETS_URL = "https://api.platform.opentargets.org/api/v4/graphql"
 # A fixed, minimal query: fetch the target by its Ensembl gene id. A gene the
 # platform does not cover comes back as a null ``target``.
 _OPENTARGETS_QUERY = (
-    "query biogate($ensemblId: String!) { target(ensemblId: $ensemblId) { id } }"
+    "query biobouncer($ensemblId: String!) { target(ensemblId: $ensemblId) { id } }"
 )
 
 
@@ -1104,7 +1104,7 @@ def _remote_lookup(
 
     The cache is keyed by id only; species is compared at read time against the
     cached body, so one cached response answers any species. ``refresh`` skips
-    the cache and refetches; a cached response older than ``BIOGATE_REMOTE_TTL``
+    the cache and refetches; a cached response older than ``BIOBOUNCER_REMOTE_TTL``
     seconds is refetched too. An indeterminate status or an exhausted-retry
     network failure raises before the cache is written, so a response that gives
     no definite answer is never persisted. When ``on_error`` is
@@ -1167,13 +1167,13 @@ def _get_resolver(source: Source) -> Resolver:
 
 
 def _max_workers() -> int:
-    """Concurrent remote lookups, from ``BIOGATE_REMOTE_WORKERS`` (default 1).
+    """Concurrent remote lookups, from ``BIOBOUNCER_REMOTE_WORKERS`` (default 1).
 
     One means sequential, which keeps the offline test suite and the conformance
     corpus deterministic. A larger value checks a big column faster; per-host
     politeness still applies through the rate limiter.
     """
-    raw = os.environ.get("BIOGATE_REMOTE_WORKERS")
+    raw = os.environ.get("BIOBOUNCER_REMOTE_WORKERS")
     if not raw:
         return 1
     try:
@@ -1203,7 +1203,7 @@ class _StderrProgress:
     def update(self, n: int = 1) -> None:
         self._done += n
         print(
-            f"\rbiogate: checked {self._done}/{self._total}",
+            f"\rbiobouncer: checked {self._done}/{self._total}",
             end="",
             file=sys.stderr,
             flush=True,
@@ -1226,7 +1226,7 @@ def _make_progress(total: int, enabled: bool):
         from tqdm import tqdm
     except ModuleNotFoundError:  # pragma: no cover - optional, interactive only
         return _StderrProgress(total)
-    return tqdm(total=total, desc="biogate remote", unit="id")  # pragma: no cover
+    return tqdm(total=total, desc="biobouncer remote", unit="id")  # pragma: no cover
 
 
 def _resolve_ids(
@@ -1239,7 +1239,7 @@ def _resolve_ids(
 ) -> dict[str, tuple[bool | None, str | None, str | None, str | None]]:
     """Resolve each id to ``(valid, successor, fetched_at, error)``.
 
-    Sequential by default. With ``BIOGATE_REMOTE_WORKERS`` above one, the lookups
+    Sequential by default. With ``BIOBOUNCER_REMOTE_WORKERS`` above one, the lookups
     run on a bounded thread pool: the work is I/O-bound, the verdict logic is pure
     and per-id, and each id writes its own cache file, so concurrency only reorders
     the network and never changes a verdict. The returned mapping is keyed by id,

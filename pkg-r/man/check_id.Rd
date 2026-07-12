@@ -51,7 +51,7 @@ columns \code{input}, \code{valid}, \code{normalized}, \code{suggestion}, \code{
 \description{
 Validate a vector of identifiers against a source. \code{pattern} mode checks that
 each identifier is well-formed. \code{cache} mode also checks that it exists in a
-pinned local snapshot (see \code{\link[=biogate_snapshots]{biogate_snapshots()}}). \code{remote} mode checks live
+pinned local snapshot (see \code{\link[=biobouncer_snapshots]{biobouncer_snapshots()}}). \code{remote} mode checks live
 existence against the source API. \code{existence} mode uses a snapshot when one is
 available for \code{version}, otherwise falls back to \code{remote}, and for a source
 with no resolver falls back to \code{pattern}.
@@ -61,5 +61,5 @@ check_id(c("MONDO:0005148", "mondo:5148"), source_db = "mondo")
 check_id("MONDO:0005148", source_db = "mondo", how = "cache", version = "sample")
 }
 \seealso{
-\code{\link[=is_valid_id]{is_valid_id()}}, \code{\link[=sources]{sources()}}, \code{\link[=source_info]{source_info()}}, \code{\link[=biogate_snapshots]{biogate_snapshots()}}.
+\code{\link[=is_valid_id]{is_valid_id()}}, \code{\link[=sources]{sources()}}, \code{\link[=source_info]{source_info()}}, \code{\link[=biobouncer_snapshots]{biobouncer_snapshots()}}.
 }

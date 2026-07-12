@@ -1,4 +1,4 @@
-# biogate
+# biobouncer
 
 > A gate for biological inputs. Validate gene symbols, ontology terms, variant
 > formats, and database identifiers — the same way, with the same answer, in
@@ -6,21 +6,21 @@
 
 <!-- Badges (fill in once published) -->
 <!--
-[![CRAN status](https://www.r-pkg.org/badges/version/biogate)](https://cran.r-project.org/package=biogate)
-[![PyPI version](https://img.shields.io/pypi/v/biogate)](https://pypi.org/project/biogate/)
+[![CRAN status](https://www.r-pkg.org/badges/version/biobouncer)](https://cran.r-project.org/package=biobouncer)
+[![PyPI version](https://img.shields.io/pypi/v/biobouncer)](https://pypi.org/project/biobouncer/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 -->
 
 > **Status: early development.** The API described below is the intended public
 > surface and may change before the first tagged release.
 
-**Documentation:** [R package](https://www.samuelbharti.com/biogate/r/) (pkgdown)
-and [Python package](https://www.samuelbharti.com/biogate/py/) (MkDocs), from
-one [landing page](https://www.samuelbharti.com/biogate/).
+**Documentation:** [R package](https://www.samuelbharti.com/biobouncer/r/) (pkgdown)
+and [Python package](https://www.samuelbharti.com/biobouncer/py/) (MkDocs), from
+one [landing page](https://www.samuelbharti.com/biobouncer/).
 
 ---
 
-## Why biogate
+## Why biobouncer
 
 If you build analyses or Shiny/Dash apps in computational biology, you keep
 rewriting the same guards: *is this a real gene symbol? a well-formed MONDO ID?
@@ -28,7 +28,7 @@ a valid HGVS string? a UniProt accession that actually exists?* Those checks end
 up scattered across projects as ad-hoc regexes and utility functions, and the R
 version and the Python version quietly disagree on edge cases.
 
-`biogate` puts those checks in one place, behind one small API, and guarantees
+`biobouncer` puts those checks in one place, behind one small API, and guarantees
 that R and Python give the **same verdict** for the same input by testing both
 against a shared conformance corpus. It does not try to replace annotation
 engines like biomaRt, ensembldb, or mygene — it validates *inputs* before they
@@ -49,7 +49,7 @@ reach those tools.
   repair a column, not just reject one field.
 - **Plugs into the tools you already use.** Adapters for `pandera`, `pydantic`,
   `shinyvalidate`, `checkmate`, and `assertr`/`validate`/`pointblank`.
-- **Works from the shell.** The Python package installs a `biogate` command that
+- **Works from the shell.** The Python package installs a `biobouncer` command that
   validates ids from a file or a pipe and exits non-zero on any invalid input,
   for use in scripts and CI.
 - **Reproducible by design.** `pattern` and `cache` modes are pure functions of
@@ -57,7 +57,7 @@ reach those tools.
 
 ## Installation
 
-`biogate` lives in a monorepo; the R package is in the `pkg-r/` subdirectory and
+`biobouncer` lives in a monorepo; the R package is in the `pkg-r/` subdirectory and
 the Python package in `pkg-py/`. Users never see that — just point the installer at
 the right subdirectory (or use a published channel).
 
@@ -65,23 +65,23 @@ the right subdirectory (or use a published channel).
 
 ```r
 # R-universe — binary installs, recommended before the first CRAN release
-install.packages("biogate", repos = "https://samuelbharti.r-universe.dev")
+install.packages("biobouncer", repos = "https://samuelbharti.r-universe.dev")
 
 # CRAN (once released)
-install.packages("biogate")
+install.packages("biobouncer")
 
 # development version from GitHub (package is in the pkg-r/ subdirectory)
-pak::pak("samuelbharti/biogate/pkg-r")
-# or: remotes::install_github("samuelbharti/biogate", subdir = "pkg-r")
+pak::pak("samuelbharti/biobouncer/pkg-r")
+# or: remotes::install_github("samuelbharti/biobouncer", subdir = "pkg-r")
 ```
 
 **Python**
 
 ```bash
-pip install biogate
+pip install biobouncer
 
 # development version from GitHub (package is in the pkg-py/ subdirectory)
-pip install "git+https://github.com/samuelbharti/biogate.git#subdirectory=pkg-py"
+pip install "git+https://github.com/samuelbharti/biobouncer.git#subdirectory=pkg-py"
 ```
 
 ## Quickstart
@@ -89,7 +89,7 @@ pip install "git+https://github.com/samuelbharti/biogate.git#subdirectory=pkg-py
 **R**
 
 ```r
-library(biogate)
+library(biobouncer)
 
 # 1. pattern mode — offline, deterministic, no reference data
 is_valid_id("MONDO:0005148", source_db = "mondo", how = "pattern")
@@ -123,7 +123,7 @@ check_id(
 **Python**
 
 ```python
-import biogate as bg
+import biobouncer as bg
 
 bg.is_valid_id("MONDO:0005148", source_db="mondo", how="pattern")
 # True
@@ -156,7 +156,7 @@ so you do not have to name one.
 genes <- c("TP53", "MLL", "notagene", NA)
 
 report_id(genes, "hgnc", how = "cache")
-#> # biogate report on hgnc (cache mode): 1 valid, 1 repairable, 1 invalid, 1 missing of 4
+#> # biobouncer report on hgnc (cache mode): 1 valid, 1 repairable, 1 invalid, 1 missing of 4
 #> # A tibble: 4 x 8
 #>   input      valid normalized suggestion source_db version    species how
 #>   <chr>      <lgl> <chr>      <chr>      <chr>     <chr>      <chr>   <chr>
@@ -176,7 +176,7 @@ genes = ["TP53", "MLL", "notagene", None]
 
 rep = bg.report(genes, "hgnc", how="cache")
 rep
-# <biogate report on 'hgnc' (cache mode): 1 valid, 1 repairable, 1 invalid, 1 missing of 4>
+# <biobouncer report on 'hgnc' (cache mode): 1 valid, 1 repairable, 1 invalid, 1 missing of 4>
 
 rep.repair()
 # ['TP53', 'KMT2A', 'notagene', None]
@@ -205,7 +205,7 @@ records which mode and snapshot produced it.
 
 Identifiers are not valid in a vacuum. A symbol can be current in one species
 and meaningless in another; an ID can exist in one release of a source and be
-retired in the next. `biogate` makes these explicit arguments:
+retired in the next. `biobouncer` makes these explicit arguments:
 
 ```r
 # Same accession, different species contexts
@@ -223,7 +223,7 @@ check_id("MLL", source_db = "hgnc", how = "cache", version = "sample")
   is enforced by the sources for which it applies (such as Ensembl and UniProt)
   and ignored by the rest.
 - `version` selects the snapshot for `cache` mode. The packages ship a small
-  `sample` snapshot; `biogate_pull()` fetches full, dated snapshots for the OBO
+  `sample` snapshot; `biobouncer_pull()` fetches full, dated snapshots for the OBO
   ontologies.
 
 ## Result schema
@@ -243,8 +243,8 @@ Every `check_id()` row carries enough context to be self-describing:
 
 ## Supported sources (growing)
 
-biogate checks 46 sources. A selection is shown below; run `source_info()` or see
-the [sources cookbook](https://www.samuelbharti.com/biogate/py/sources/) for the
+biobouncer checks 46 sources. A selection is shown below; run `source_info()` or see
+the [sources cookbook](https://www.samuelbharti.com/biobouncer/py/sources/) for the
 full list with the modes each source supports.
 
 | `source_db`    | Source                     | Example ID                 | pattern | cache | remote | species-aware |
@@ -269,14 +269,14 @@ Identifiers.org / Bioregistry registries where available.
 
 ## Integrating with your stack
 
-`biogate` provides the domain checks; your existing validation framework
+`biobouncer` provides the domain checks; your existing validation framework
 provides the plumbing.
 
 **pandera (Python)**
 
 ```python
 import pandera.pandas as pa
-import biogate as bg
+import biobouncer as bg
 
 schema = pa.DataFrameSchema({
     "disease_id": pa.Column(str, bg.checks.is_id(source_db="mondo", how="cache",
@@ -290,7 +290,7 @@ schema = pa.DataFrameSchema({
 
 ```python
 from pydantic import BaseModel
-from biogate.types import Id
+from biobouncer.types import Id
 
 class Association(BaseModel):
     disease: Id("mondo", how="pattern")
@@ -301,7 +301,7 @@ class Association(BaseModel):
 
 ```r
 iv <- InputValidator$new()
-iv$add_rule("gene", sv_biogate(source_db = "hgnc", how = "cache", version = "sample"))
+iv$add_rule("gene", sv_biobouncer(source_db = "hgnc", how = "cache", version = "sample"))
 iv$enable()
 ```
 
@@ -340,9 +340,9 @@ reproducible, and are distributed separately from the code so they can be
 refreshed without a package release:
 
 ```r
-biogate_snapshots()          # list installed snapshots
-biogate_pull("mondo")        # fetch the current MONDO snapshot
-biogate_cache_dir()          # where snapshots live
+biobouncer_snapshots()          # list installed snapshots
+biobouncer_pull("mondo")        # fetch the current MONDO snapshot
+biobouncer_cache_dir()          # where snapshots live
 ```
 
 `remote` mode caches responses locally and respects each source's rate limits.
@@ -377,9 +377,9 @@ resolver. See `CONTRIBUTING.md` and the source-registry spec in `PLAN.md`.
 
 ## License
 
-MIT © biogate authors.
+MIT © biobouncer authors.
 
 ## Citation
 
-If `biogate` supports your work, please cite it. See `CITATION.cff` for citation
+If `biobouncer` supports your work, please cite it. See `CITATION.cff` for citation
 metadata.

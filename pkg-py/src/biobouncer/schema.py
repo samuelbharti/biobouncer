@@ -22,7 +22,9 @@ if TYPE_CHECKING:
     from ._result import Result
 
 _SCHEMA = json.loads(
-    (files("biogate") / "_data" / "schema" / "result.json").read_text(encoding="utf-8")
+    (files("biobouncer") / "_data" / "schema" / "result.json").read_text(
+        encoding="utf-8"
+    )
 )
 
 SCHEMA_VERSION: str = _SCHEMA["schema_version"]

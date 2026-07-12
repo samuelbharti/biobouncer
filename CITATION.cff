@@ -1,6 +1,6 @@
 cff-version: 1.2.0
-message: If you use biogate in your work, please cite it as below.
-title: "biogate: Validate Biological Identifiers and Inputs"
+message: If you use biobouncer in your work, please cite it as below.
+title: "biobouncer: Validate Biological Identifiers and Inputs"
 abstract: >-
   A cross-language validator for biological identifiers. One small API checks
   gene symbols, ontology terms, variant formats, and database identifiers, and
@@ -11,8 +11,8 @@ authors:
   - family-names: Bharti
     given-names: Samuel
 license: MIT
-repository-code: https://github.com/samuelbharti/biogate
-url: https://github.com/samuelbharti/biogate
+repository-code: https://github.com/samuelbharti/biobouncer
+url: https://github.com/samuelbharti/biobouncer
 keywords:
   - bioinformatics
   - validation

@@ -6,56 +6,56 @@ framework adapters.
 
 ## Checking identifiers
 
-::: biogate.check_id
+::: biobouncer.check_id
 
-::: biogate.is_valid_id
+::: biobouncer.is_valid_id
 
-::: biogate.Result
+::: biobouncer.Result
 
 ## Cleaning a column
 
 `report` is the recommended entry point for validating and repairing a whole
 column. See the [report cookbook](report.md).
 
-::: biogate.report
+::: biobouncer.report
 
-::: biogate.Report
+::: biobouncer.Report
 
 ## Sources
 
-::: biogate.sources
+::: biobouncer.sources
 
 ## Snapshots and cache
 
-::: biogate.pull
+::: biobouncer.pull
 
-::: biogate.snapshots
+::: biobouncer.snapshots
 
-::: biogate.cache_dir
+::: biobouncer.cache_dir
 
 ## Errors
 
 Extrinsic modes raise rather than returning a silent `False`.
 
-::: biogate.RemoteError
+::: biobouncer.RemoteError
 
-::: biogate.NoResolverError
+::: biobouncer.NoResolverError
 
-::: biogate.MissingSnapshotError
+::: biobouncer.MissingSnapshotError
 
-::: biogate.MissingVersionError
+::: biobouncer.MissingVersionError
 
-::: biogate.NoBuilderError
+::: biobouncer.NoBuilderError
 
-::: biogate.MissingDependencyError
+::: biobouncer.MissingDependencyError
 
 ## Framework adapters
 
-The pandera and pydantic adapters install with `pip install "biogate[adapters]"`;
-the narwhals adapter with `pip install "biogate[narwhals]"`.
+The pandera and pydantic adapters install with `pip install "biobouncer[adapters]"`;
+the narwhals adapter with `pip install "biobouncer[narwhals]"`.
 
-::: biogate.checks.is_id
+::: biobouncer.checks.is_id
 
-::: biogate.types.Id
+::: biobouncer.types.Id
 
-::: biogate.narwhals.valid_id_mask
+::: biobouncer.narwhals.valid_id_mask

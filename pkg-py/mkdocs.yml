@@ -1,8 +1,8 @@
-site_name: biogate (Python)
+site_name: biobouncer (Python)
 site_description: Validate biological identifiers and inputs the same way in R and Python.
-site_url: https://www.samuelbharti.com/biogate/py/
-repo_url: https://github.com/samuelbharti/biogate
-repo_name: samuelbharti/biogate
+site_url: https://www.samuelbharti.com/biobouncer/py/
+repo_url: https://github.com/samuelbharti/biobouncer
+repo_name: samuelbharti/biobouncer
 edit_uri: edit/main/pkg-py/docs/
 
 theme:
@@ -36,7 +36,7 @@ nav:
   - Command line: cli.md
   - Sources cookbook: sources.md
   - API reference: reference.md
-  - R docs: https://www.samuelbharti.com/biogate/r/
+  - R docs: https://www.samuelbharti.com/biobouncer/r/
 
 markdown_extensions:
   - admonition

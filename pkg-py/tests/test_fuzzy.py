@@ -1,6 +1,6 @@
 """Offline coverage for the fuzzy suggester used in cache mode."""
 
-from biogate._fuzzy import _bounded_levenshtein, fuzzy_index, fuzzy_suggest
+from biobouncer._fuzzy import _bounded_levenshtein, fuzzy_index, fuzzy_suggest
 
 
 def test_bounded_levenshtein_within_and_over_k():

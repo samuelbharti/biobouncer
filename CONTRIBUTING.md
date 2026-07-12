@@ -1,4 +1,4 @@
-# Contributing to biogate
+# Contributing to biobouncer
 
 Thanks for helping. This guide covers the workflow and the local tooling.
 
@@ -42,7 +42,7 @@ ruff and pytest in CI.
 ## Editing the shared spec
 
 Edit files under `shared/`, never the vendored copies under `pkg-r/inst/extdata/`
-or `pkg-py/src/biogate/_data/`. After editing, run:
+or `pkg-py/src/biobouncer/_data/`. After editing, run:
 
 ```sh
 python tools/sync_shared.py

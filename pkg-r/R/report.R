@@ -6,7 +6,7 @@
 #' Validate and report on a column of identifiers
 #'
 #' `report_id()` runs [check_id()] over a column and returns its result table
-#' with the extra class `biogate_report`, so it prints with a one-line summary of
+#' with the extra class `biobouncer_report`, so it prints with a one-line summary of
 #' how many values are valid, repairable, invalid, or missing. It is the
 #' recommended entry point for inspecting and cleaning a column. Use [repair_id()]
 #' inside `dplyr::mutate()` to substitute the fixable values. For enforcing
@@ -14,7 +14,7 @@
 #'
 #' @inheritParams check_id
 #' @return A [tibble][tibble::tibble], as returned by [check_id()], with the extra
-#'   class `biogate_report`. Calling `summary()` on it returns a one-row tibble of
+#'   class `biobouncer_report`. Calling `summary()` on it returns a one-row tibble of
 #'   counts.
 #' @seealso [repair_id()], [check_id()].
 #' @examples
@@ -38,7 +38,7 @@ report_id <- function(
     refresh = refresh,
     on_error = on_error
   )
-  class(res) <- c("biogate_report", class(res))
+  class(res) <- c("biobouncer_report", class(res))
   res
 }
 
@@ -94,11 +94,11 @@ repair_id <- function(
   )
 }
 
-#' @param object A `biogate_report`, as returned by [report_id()].
+#' @param object A `biobouncer_report`, as returned by [report_id()].
 #' @param ... Ignored.
 #' @rdname report_id
 #' @export
-summary.biogate_report <- function(object, ...) {
+summary.biobouncer_report <- function(object, ...) {
   # Shared schema semantics, matching the Python Report.summary: invalid counts
   # every failed value, and repairable is the subset of those with a suggestion.
   counts <- .summarize_results(object)
@@ -112,10 +112,10 @@ summary.biogate_report <- function(object, ...) {
   )
 }
 
-#' @param x A `biogate_report`, as returned by [report_id()].
+#' @param x A `biobouncer_report`, as returned by [report_id()].
 #' @rdname report_id
 #' @export
-print.biogate_report <- function(x, ...) {
+print.biobouncer_report <- function(x, ...) {
   counts <- .report_counts(x)
   src <- if (nrow(x)) x$source_db[[1L]] else NA_character_
   how_mode <- if (nrow(x)) x$how[[1L]] else NA_character_
@@ -130,7 +130,7 @@ print.biogate_report <- function(x, ...) {
     parts <- paste0(parts, sprintf(", %d indeterminate", counts$indeterminate))
   }
   cat(sprintf(
-    "# biogate report on %s (%s mode): %s of %d\n",
+    "# biobouncer report on %s (%s mode): %s of %d\n",
     src,
     how_mode,
     parts,

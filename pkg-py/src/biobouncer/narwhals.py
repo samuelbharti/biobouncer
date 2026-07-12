@@ -1,13 +1,13 @@
 """narwhals integration: validate a column of identifiers in any dataframe.
 
 This module requires narwhals, an optional dependency. Install it with
-``pip install biogate[narwhals]``. narwhals is a thin, dataframe-agnostic layer,
+``pip install biobouncer[narwhals]``. narwhals is a thin, dataframe-agnostic layer,
 so one check covers pandas, polars, and pyarrow alike. The adapter never
-duplicates validation logic; it calls :func:`biogate.is_valid_id`.
+duplicates validation logic; it calls :func:`biobouncer.is_valid_id`.
 
 Example:
     >>> import polars as pl
-    >>> from biogate.narwhals import valid_id_mask
+    >>> from biobouncer.narwhals import valid_id_mask
     >>> s = pl.Series("term", ["MONDO:0005148", "mondo:5148"])
     >>> valid_id_mask(s, "mondo").to_list()
     [True, False]

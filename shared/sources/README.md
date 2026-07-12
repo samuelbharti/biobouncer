@@ -10,5 +10,5 @@ The schema for a source file is described in `PLAN.md`, section 5, and the
 this directory.
 
 Do not edit the vendored copies under `pkg-r/inst/extdata/` or
-`pkg-py/src/biogate/_data/` by hand. Edit files here and run
+`pkg-py/src/biobouncer/_data/` by hand. Edit files here and run
 `python tools/sync_shared.py`.

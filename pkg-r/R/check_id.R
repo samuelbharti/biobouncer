@@ -19,7 +19,7 @@
         "Invalid {.arg how} value {.val {how}}.",
         i = "Choose one of {.val {known}}."
       ),
-      class = "biogate_error_invalid_mode"
+      class = "biobouncer_error_invalid_mode"
     )
   }
 }
@@ -32,7 +32,7 @@
         "Invalid {.arg on_error} value {.val {on_error}}.",
         i = "Choose one of {.val {known}}."
       ),
-      class = "biogate_error_invalid_on_error"
+      class = "biobouncer_error_invalid_on_error"
     )
   }
 }
@@ -41,7 +41,7 @@
 #'
 #' Validate a vector of identifiers against a source. `pattern` mode checks that
 #' each identifier is well-formed. `cache` mode also checks that it exists in a
-#' pinned local snapshot (see [biogate_snapshots()]). `remote` mode checks live
+#' pinned local snapshot (see [biobouncer_snapshots()]). `remote` mode checks live
 #' existence against the source API. `existence` mode uses a snapshot when one is
 #' available for `version`, otherwise falls back to `remote`, and for a source
 #' with no resolver falls back to `pattern`.
@@ -70,7 +70,7 @@
 #' @return A [tibble][tibble::tibble] with one row per element of `x` and the
 #'   columns `input`, `valid`, `normalized`, `suggestion`, `source_db`,
 #'   `version`, `species`, `how`, and `error`.
-#' @seealso [is_valid_id()], [sources()], [source_info()], [biogate_snapshots()].
+#' @seealso [is_valid_id()], [sources()], [source_info()], [biobouncer_snapshots()].
 #' @examples
 #' check_id(c("MONDO:0005148", "mondo:5148"), source_db = "mondo")
 #' check_id("MONDO:0005148", source_db = "mondo", how = "cache", version = "sample")
@@ -102,9 +102,9 @@ check_id <- function(
         cli::cli_abort(
           c(
             "No snapshot is installed for {.val {source_db}} to default to.",
-            i = "Pass a {.arg version} or run {.code biogate_pull({source_db})}."
+            i = "Pass a {.arg version} or run {.code biobouncer_pull({source_db})}."
           ),
-          class = "biogate_error_missing_version"
+          class = "biobouncer_error_missing_version"
         )
       }
     } else {

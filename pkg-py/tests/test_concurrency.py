@@ -1,7 +1,7 @@
 """Bounded concurrency and per-host politeness for remote checks."""
 
-import biogate
-import biogate._remote as remote
+import biobouncer
+import biobouncer._remote as remote
 
 
 def _stub(present):
@@ -17,23 +17,23 @@ def _stub(present):
 
 
 def test_max_workers_reads_the_env(monkeypatch):
-    monkeypatch.delenv("BIOGATE_REMOTE_WORKERS", raising=False)
+    monkeypatch.delenv("BIOBOUNCER_REMOTE_WORKERS", raising=False)
     assert remote._max_workers() == 1
-    monkeypatch.setenv("BIOGATE_REMOTE_WORKERS", "8")
+    monkeypatch.setenv("BIOBOUNCER_REMOTE_WORKERS", "8")
     assert remote._max_workers() == 8
-    monkeypatch.setenv("BIOGATE_REMOTE_WORKERS", "0")
+    monkeypatch.setenv("BIOBOUNCER_REMOTE_WORKERS", "0")
     assert remote._max_workers() == 1  # clamped to at least one
-    monkeypatch.setenv("BIOGATE_REMOTE_WORKERS", "junk")
+    monkeypatch.setenv("BIOBOUNCER_REMOTE_WORKERS", "junk")
     assert remote._max_workers() == 1
 
 
 def test_concurrent_resolution_preserves_order_and_verdicts(monkeypatch, tmp_path):
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
-    monkeypatch.setenv("BIOGATE_REMOTE_WORKERS", "4")
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("BIOBOUNCER_REMOTE_WORKERS", "4")
     ids = [f"MONDO:{i:07d}" for i in range(20)]
     present = set(ids[::2])  # every other id exists
     monkeypatch.setattr(remote, "_http_get", _stub(present))
-    res = biogate.check_id(ids, source_db="mondo", how="remote")
+    res = biobouncer.check_id(ids, source_db="mondo", how="remote")
     assert [r.input for r in res] == ids  # completion order does not leak in
     assert [r.valid for r in res] == [r.input in present for r in res]
 
@@ -44,13 +44,13 @@ def test_concurrent_matches_sequential(monkeypatch, tmp_path):
     monkeypatch.setattr(remote, "_http_get", _stub(present))
 
     def _verdicts():
-        return [r.valid for r in biogate.check_id(ids, "mondo", how="remote")]
+        return [r.valid for r in biobouncer.check_id(ids, "mondo", how="remote")]
 
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path / "seq"))
-    monkeypatch.setenv("BIOGATE_REMOTE_WORKERS", "1")
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path / "seq"))
+    monkeypatch.setenv("BIOBOUNCER_REMOTE_WORKERS", "1")
     sequential = _verdicts()
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path / "conc"))
-    monkeypatch.setenv("BIOGATE_REMOTE_WORKERS", "8")
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path / "conc"))
+    monkeypatch.setenv("BIOBOUNCER_REMOTE_WORKERS", "8")
     concurrent = _verdicts()
     assert sequential == concurrent
 

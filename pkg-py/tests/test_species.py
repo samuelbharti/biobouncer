@@ -1,16 +1,16 @@
 """Offline, species-aware validation for Ensembl in pattern mode."""
 
-import biogate
-from biogate._pattern import _ensembl_id_prefix
+import biobouncer
+from biobouncer._pattern import _ensembl_id_prefix
 
 HUMAN = "ENSG00000139618"
 MOUSE = "ENSMUSG00000059552"
 
 
 def _check(ident, species, source_db="ensembl"):
-    return biogate.check_id(ident, source_db=source_db, how="pattern", species=species)[
-        0
-    ]
+    return biobouncer.check_id(
+        ident, source_db=source_db, how="pattern", species=species
+    )[0]
 
 
 def test_human_id_with_human_species_is_valid():

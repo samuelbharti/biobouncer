@@ -7,7 +7,7 @@ pytest.importorskip("pandera")
 import pandas as pd  # noqa: E402
 import pandera.pandas as pa  # noqa: E402
 
-from biogate.checks import is_id  # noqa: E402
+from biobouncer.checks import is_id  # noqa: E402
 
 
 def _schema(**kwargs):
@@ -47,7 +47,7 @@ def test_null_cell_passes_when_column_is_nullable():
 
 
 def test_cache_mode_threads_through(tmp_path, monkeypatch):
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
     schema = _schema(how="cache", version="sample")
     good = pd.DataFrame({"term": ["MONDO:0005148"]})
     assert list(schema.validate(good)["term"]) == ["MONDO:0005148"]

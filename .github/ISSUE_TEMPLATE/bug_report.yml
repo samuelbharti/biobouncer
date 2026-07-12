@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a problem with biogate
+description: Report a problem with biobouncer
 labels: [bug]
 body:
   - type: markdown
@@ -9,8 +9,8 @@ body:
     id: version
     attributes:
       label: Version and language
-      description: Which biogate version, and R or Python
-      placeholder: "biogate 0.0.0.9000, R"
+      description: Which biobouncer version, and R or Python
+      placeholder: "biobouncer 0.0.0.9000, R"
     validations:
       required: true
   - type: textarea

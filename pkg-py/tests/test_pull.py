@@ -2,10 +2,10 @@
 
 import pytest
 
-import biogate
-from biogate import NoBuilderError
-from biogate._cache import parse_hgnc_tsv, parse_obo
-from biogate._registry import get_source
+import biobouncer
+from biobouncer import NoBuilderError
+from biobouncer._cache import parse_hgnc_tsv, parse_obo
+from biobouncer._registry import get_source
 
 
 def test_parse_obo_extracts_version_and_only_matching_ids():
@@ -73,13 +73,13 @@ def test_parse_hgnc_tsv_extracts_approved_and_retired():
 
 def test_pull_errors_without_builder():
     with pytest.raises(NoBuilderError):
-        biogate.pull("ensembl")
+        biobouncer.pull("ensembl")
 
 
 def test_hgnc_builds_a_dated_snapshot_url():
     # hgnc refreshes through the non-OBO hgnc_tsv builder, which fills the archive
     # date into the download url. The network fetch itself is not exercised here.
-    from biogate._cache import _BUILDERS
+    from biobouncer._cache import _BUILDERS
 
     src = get_source("hgnc")
     assert src.cache["builder"] == "hgnc_tsv"

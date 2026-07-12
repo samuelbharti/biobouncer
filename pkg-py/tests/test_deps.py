@@ -5,8 +5,8 @@ import sys
 
 import pytest
 
-import biogate
-from biogate import MissingDependencyError
+import biobouncer
+from biobouncer import MissingDependencyError
 
 
 def test_error_is_an_importerror_with_the_install_command():
@@ -14,11 +14,11 @@ def test_error_is_an_importerror_with_the_install_command():
     assert isinstance(err, ImportError)
     assert err.module == "narwhals"
     assert err.extra == "narwhals"
-    assert "pip install 'biogate[narwhals]'" in str(err)
+    assert "pip install 'biobouncer[narwhals]'" in str(err)
 
 
 def test_error_is_exported():
-    assert biogate.MissingDependencyError is MissingDependencyError
+    assert biobouncer.MissingDependencyError is MissingDependencyError
 
 
 class _Block:
@@ -36,7 +36,7 @@ class _Block:
 def test_adapter_import_without_its_dependency_is_friendly():
     # Importing the narwhals adapter with narwhals uninstalled raises the friendly
     # error, naming the extra to install, instead of a bare ModuleNotFoundError.
-    import biogate.narwhals as nwmod
+    import biobouncer.narwhals as nwmod
 
     dep = "narwhals"
     saved = {
@@ -51,7 +51,7 @@ def test_adapter_import_without_its_dependency_is_friendly():
     try:
         with pytest.raises(MissingDependencyError) as exc:
             importlib.reload(nwmod)
-        assert "biogate[narwhals]" in str(exc.value)
+        assert "biobouncer[narwhals]" in str(exc.value)
     finally:
         sys.meta_path.remove(block)
         sys.modules.update(saved)

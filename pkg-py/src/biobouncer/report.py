@@ -131,7 +131,7 @@ class Report:
         if counts["indeterminate"]:
             parts.append(f"{counts['indeterminate']} indeterminate")
         return (
-            f"<biogate report on {self.source_db!r} ({self.how} mode): "
+            f"<biobouncer report on {self.source_db!r} ({self.how} mode): "
             f"{', '.join(parts)} of {counts['total']}>"
         )
 

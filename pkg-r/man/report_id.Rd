@@ -2,8 +2,8 @@
 % Please edit documentation in R/report.R
 \name{report_id}
 \alias{report_id}
-\alias{summary.biogate_report}
-\alias{print.biogate_report}
+\alias{summary.biobouncer_report}
+\alias{print.biobouncer_report}
 \title{Validate and report on a column of identifiers}
 \usage{
 report_id(
@@ -16,12 +16,12 @@ report_id(
   on_error = "raise"
 )
 
-\method{summary}{biogate_report}(object, ...)
+\method{summary}{biobouncer_report}(object, ...)
 
-\method{print}{biogate_report}(x, ...)
+\method{print}{biobouncer_report}(x, ...)
 }
 \arguments{
-\item{x}{A \code{biogate_report}, as returned by \code{\link[=report_id]{report_id()}}.}
+\item{x}{A \code{biobouncer_report}, as returned by \code{\link[=report_id]{report_id()}}.}
 
 \item{source_db}{Source key, for example \code{"mondo"}. See \code{\link[=sources]{sources()}}.}
 
@@ -49,18 +49,18 @@ just that id \code{NA} with the reason in its \code{error} column and checks the
 of the batch, so one unreachable id does not lose the others. Ignored by the
 offline modes.}
 
-\item{object}{A \code{biogate_report}, as returned by \code{\link[=report_id]{report_id()}}.}
+\item{object}{A \code{biobouncer_report}, as returned by \code{\link[=report_id]{report_id()}}.}
 
 \item{...}{Ignored.}
 }
 \value{
 A \link[tibble:tibble]{tibble}, as returned by \code{\link[=check_id]{check_id()}}, with the extra
-class \code{biogate_report}. Calling \code{summary()} on it returns a one-row tibble of
+class \code{biobouncer_report}. Calling \code{summary()} on it returns a one-row tibble of
 counts.
 }
 \description{
 \code{report_id()} runs \code{\link[=check_id]{check_id()}} over a column and returns its result table
-with the extra class \code{biogate_report}, so it prints with a one-line summary of
+with the extra class \code{biobouncer_report}, so it prints with a one-line summary of
 how many values are valid, repairable, invalid, or missing. It is the
 recommended entry point for inspecting and cleaning a column. Use \code{\link[=repair_id]{repair_id()}}
 inside \code{dplyr::mutate()} to substitute the fixable values. For enforcing

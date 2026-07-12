@@ -1,9 +1,9 @@
-# biogate (development version)
+# biobouncer (development version)
 
 * Eight more sources now ship a bundled cache snapshot, so their `cache` mode
   works offline out of the box: `bto`, `cl`, `doid`, `hp`, `mp`, `pato`, `so`,
   and `uberon`. Each snapshot is a small set of real, current terms; a fuller
-  snapshot is still available through `biogate_pull()`.
+  snapshot is still available through `biobouncer_pull()`.
 * New `opentargets` source. It checks whether a human Ensembl gene id is a target
   the Open Targets Platform covers, through the platform's GraphQL API. This is
   the first resolver that queries over a POST body rather than a URL.
@@ -14,7 +14,7 @@
   that ninth `error` column, and `report_id()`/`repair_id()` accept `on_error`
   too.
 * Checking a large column with `remote` mode can now run several requests at
-  once. Set the `BIOGATE_REMOTE_WORKERS` environment variable to the number of
+  once. Set the `BIOBOUNCER_REMOTE_WORKERS` environment variable to the number of
   concurrent lookups (the default is `1`, sequential). Concurrency only changes
   how fast the network is polled, never a verdict.
 * New `report_id()` and `repair_id()` clean a whole column in one call.
@@ -23,20 +23,20 @@
   `repair_id()` substitutes the fixable values (a withdrawn gene symbol becomes
   its successor) and leaves valid, unmappable, and missing values untouched, so
   it drops into `dplyr::mutate()`.
-* `cache` mode no longer requires a `version`. When you omit it, biogate uses the
+* `cache` mode no longer requires a `version`. When you omit it, biobouncer uses the
   latest installed snapshot (preferring a source's pinned default), so a plain
   `check_id(x, "hgnc", how = "cache")` just works.
 * `existence` mode now degrades to a `pattern` check for a source with no
   resolver, instead of raising, so it always returns a verdict.
 * The adapters no longer treat a missing cell as a failure. `check_valid_id()`,
-  `assert_valid_id()`, `test_valid_id()`, `sv_biogate()`, and `id_predicate()`
+  `assert_valid_id()`, `test_valid_id()`, `sv_biobouncer()`, and `id_predicate()`
   now pass an `NA` value, matching the Python column checks, so a missing cell is
   never dropped by a filter or flagged by a data-frame rule.
 * `hgnc` gene-symbol validation is now real in every mode. Cache mode ships a
   pinned approved-symbol snapshot of about 45,000 symbols, so it validates real
   gene symbols offline out of the box; a withdrawn or previous symbol still maps
   to its approved successor.
-* `biogate_pull("hgnc")` now works. It refreshes the snapshot from a dated HGNC
+* `biobouncer_pull("hgnc")` now works. It refreshes the snapshot from a dated HGNC
   "complete set" archive through a new non-OBO builder, and the version label is
   the archive's release date.
 * Remote mode now covers `hgnc`. It checks live existence against the
@@ -51,7 +51,7 @@
   looked up live again.
 * Remote checks now record when each response was retrieved. A cached verdict
   reports its original fetch time in the `version` column instead of the time of
-  the current run. Set the `BIOGATE_REMOTE_TTL` environment variable to a number
+  the current run. Set the `BIOBOUNCER_REMOTE_TTL` environment variable to a number
   of seconds to refetch a cached response once it is older than that.
 * Snapshot and remote-cache files are written atomically, so an interrupted write
   can no longer leave a truncated file that reports valid ids as invalid.
@@ -124,19 +124,19 @@
   existence against the RCSB PDB data API. This is an existence check only; an
   obsoleted structure that was superseded is not yet reported with its
   successor.
-* The Python package installs a `biogate` command-line tool. It validates
+* The Python package installs a `biobouncer` command-line tool. It validates
   identifiers from arguments, a file, or standard input, prints per-id results
   as text, TSV, or JSON, and exits non-zero when any input is invalid, so it
-  drops into shell pipelines and CI. It also has `biogate sources` and
-  `biogate info`.
+  drops into shell pipelines and CI. It also has `biobouncer sources` and
+  `biobouncer info`.
 * The Python package adds a Great Expectations column-map expectation,
-  `biogate.gx.ExpectColumnValuesToBeValidId`, for validating a data frame
-  column. Install it with `pip install "biogate[gx]"`.
+  `biobouncer.gx.ExpectColumnValuesToBeValidId`, for validating a data frame
+  column. Install it with `pip install "biobouncer[gx]"`.
 * `id_predicate()` now documents its use as a pointblank `col_vals_expr()` step,
   alongside assertr and validate. The predicate is unchanged; pointblank
   consumes it directly.
 
-# biogate 0.1.0
+# biobouncer 0.1.0
 
 * First numbered release. Sets the version to 0.1.0 in both the R and Python
   packages so they track together.
@@ -196,7 +196,7 @@
   that a variant exists, and it requires a reference sequence.
 * Adds validation-framework adapters that wrap the core classifier:
   `assert_valid_id()`, `check_valid_id()`, and `test_valid_id()` in the checkmate
-  style, `sv_biogate()`, a shinyvalidate rule, and `id_predicate()`, an
+  style, `sv_biobouncer()`, a shinyvalidate rule, and `id_predicate()`, an
   elementwise predicate for data-frame validation with assertr or validate. The
   Python package pairs these with a pandera check.
 * Adds an `hgnc` source for HUGO gene symbols. `cache` mode checks a symbol
@@ -226,8 +226,8 @@
   not valid.
 * `check_id()` gains offline `cache` mode: existence checks against a pinned
   snapshot. A small `sample` snapshot for the ontology sources ships with the
-  package, and `biogate_cache_dir()` and `biogate_snapshots()` manage snapshots.
-* `biogate_pull()` downloads a full snapshot from a source's OBO release into the
+  package, and `biobouncer_cache_dir()` and `biobouncer_snapshots()` manage snapshots.
+* `biobouncer_pull()` downloads a full snapshot from a source's OBO release into the
   cache directory (mondo, efo, go, chebi).
 * `check_id()` and `is_valid_id()` implement offline `pattern` mode for an
   initial set of sources (mondo, efo, go, chebi, ensembl, uniprot).

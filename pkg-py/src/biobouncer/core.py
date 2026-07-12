@@ -117,7 +117,7 @@ def check_id(
             if version is None:
                 raise MissingVersionError(
                     f"No snapshot is installed for {source_db!r} to default to. "
-                    f"Pass a version or run biogate.pull({source_db!r})."
+                    f"Pass a version or run biobouncer.pull({source_db!r})."
                 )
         else:
             version = str(version)

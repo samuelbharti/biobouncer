@@ -9,7 +9,7 @@ pattern: "[A-Za-z0-9][A-Za-z0-9._@-]*"
 example: 'TP53'
 species_aware: false
 version_aware: true
-# Cache mode reads the bundled approved-symbol snapshot. biogate.pull() refreshes
+# Cache mode reads the bundled approved-symbol snapshot. biobouncer.pull() refreshes
 # it from a dated HGNC "complete set" archive through the hgnc_tsv builder; the
 # version is the archive's release date.
 default_version: '2026-07-07'

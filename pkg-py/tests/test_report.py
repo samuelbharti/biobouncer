@@ -2,7 +2,7 @@
 
 import pytest
 
-import biogate as bg
+import biobouncer as bg
 
 # A fixed hgnc column exercised across backends: one valid, one repairable
 # (retired to a successor), one unmappable, one missing.

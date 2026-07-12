@@ -1,4 +1,4 @@
-# Offline species-gating tests for remote mode. The biogate.remote_transport
+# Offline species-gating tests for remote mode. The biobouncer.remote_transport
 # option replaces the network seam so no request ever leaves the machine.
 
 # Ensembl answers 200 for a known id and 400 for a well-formed but unknown one.
@@ -36,9 +36,9 @@
 )
 
 test_that("an ensembl id is gated by its encoded species", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_ensembl_species("ENSMUSG00000059552")
+    biobouncer.remote_transport = .stub_ensembl_species("ENSMUSG00000059552")
   )
 
   match <- check_id(
@@ -61,9 +61,11 @@ test_that("an ensembl id is gated by its encoded species", {
 })
 
 test_that("a uniprot accession is gated by the entry's organism taxon", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_uniprot_species(list(P01308 = .human_body))
+    biobouncer.remote_transport = .stub_uniprot_species(list(
+      P01308 = .human_body
+    ))
   )
 
   expect_true(
@@ -93,9 +95,11 @@ test_that("a uniprot accession is gated by the entry's organism taxon", {
 })
 
 test_that("a species outside the source map is not checked", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_uniprot_species(list(P01308 = .human_body))
+    biobouncer.remote_transport = .stub_uniprot_species(list(
+      P01308 = .human_body
+    ))
   )
 
   res <- check_id(
@@ -108,9 +112,11 @@ test_that("a species outside the source map is not checked", {
 })
 
 test_that("a uniprot species verdict round-trips through the cache", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_uniprot_species(list(P04925 = .mouse_body))
+    biobouncer.remote_transport = .stub_uniprot_species(list(
+      P04925 = .mouse_body
+    ))
   )
 
   # The first lookup populates the cache with the organism taxon.
@@ -125,7 +131,7 @@ test_that("a uniprot species verdict round-trips through the cache", {
 
   # A forbidding transport proves the species verdict reads from the cache.
   withr::local_options(
-    biogate.remote_transport = function(url, timeout) {
+    biobouncer.remote_transport = function(url, timeout) {
       stop("network must not be used when a cached response exists")
     }
   )

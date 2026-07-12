@@ -10,9 +10,9 @@
 }
 
 test_that("a covered Open Targets target is valid", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport_post = .ot_post_stub("ENSG00000139618")
+    biobouncer.remote_transport_post = .ot_post_stub("ENSG00000139618")
   )
   res <- check_id("ENSG00000139618", source_db = "opentargets", how = "remote")
   expect_true(res$valid)
@@ -20,18 +20,18 @@ test_that("a covered Open Targets target is valid", {
 })
 
 test_that("a gene the platform does not cover is absent", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport_post = .ot_post_stub(character(0))
+    biobouncer.remote_transport_post = .ot_post_stub(character(0))
   )
   res <- check_id("ENSG00000000000", source_db = "opentargets", how = "remote")
   expect_false(res$valid)
 })
 
 test_that("a malformed case suggests the covered form", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport_post = .ot_post_stub("ENSG00000139618")
+    biobouncer.remote_transport_post = .ot_post_stub("ENSG00000139618")
   )
   res <- check_id("ensg00000139618", source_db = "opentargets", how = "remote")
   expect_false(res$valid)
@@ -39,9 +39,9 @@ test_that("a malformed case suggests the covered form", {
 })
 
 test_that("an unexpected status is left indeterminate under on_error", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport_post = function(url, body, timeout) {
+    biobouncer.remote_transport_post = function(url, body, timeout) {
       list(status = 500, body = NULL)
     }
   )

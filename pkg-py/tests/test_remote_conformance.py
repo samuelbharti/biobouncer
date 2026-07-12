@@ -11,12 +11,12 @@ from importlib.resources import files
 
 import pytest
 
-import biogate
-import biogate._remote as remote
+import biobouncer
+import biobouncer._remote as remote
 
 
 def _load_cases():
-    root = files("biogate") / "_data" / "corpus" / "remote"
+    root = files("biobouncer") / "_data" / "corpus" / "remote"
     cases = []
     for entry in sorted(root.iterdir(), key=lambda p: p.name):
         if not entry.name.endswith(".jsonl"):
@@ -49,7 +49,7 @@ def _fixture_index():
     (Open Targets) shares one endpoint URL across ids, so it is keyed by its
     ``id`` too, matched from the request body at replay time.
     """
-    root = files("biogate") / "_data" / "fixtures" / "remote"
+    root = files("biobouncer") / "_data" / "fixtures" / "remote"
     index = {}
     for path in _iter_fixture_files(root):
         record = json.loads(path.read_text(encoding="utf-8"))
@@ -78,12 +78,12 @@ def _fixture_http_post(url, data, timeout=30):
 
 @pytest.fixture(autouse=True)
 def _isolate_cache(tmp_path, monkeypatch):
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
 
 
 def _assert_case(case):
     expect = case["expect"]
-    result = biogate.check_id(
+    result = biobouncer.check_id(
         case["input"],
         source_db=case["source_db"],
         how="remote",
@@ -112,8 +112,8 @@ def test_remote_conformance_offline(case, monkeypatch):
 
 
 @pytest.mark.skipif(
-    not os.environ.get("BIOGATE_REMOTE_TESTS"),
-    reason="live remote tests are opt-in; set BIOGATE_REMOTE_TESTS to run them",
+    not os.environ.get("BIOBOUNCER_REMOTE_TESTS"),
+    reason="live remote tests are opt-in; set BIOBOUNCER_REMOTE_TESTS to run them",
 )
 @pytest.mark.parametrize("case", CASES, ids=_IDS)
 def test_remote_conformance_live(case):

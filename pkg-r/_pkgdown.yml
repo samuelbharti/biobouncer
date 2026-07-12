@@ -1,4 +1,4 @@
-url: https://www.samuelbharti.com/biogate/r
+url: https://www.samuelbharti.com/biobouncer/r
 
 template:
   bootstrap: 5
@@ -6,7 +6,7 @@ template:
     primary: "#1a6b54"
 
 home:
-  title: biogate
+  title: biobouncer
   description: >
     Validate biological identifiers and inputs the same way in R and Python.
 
@@ -17,10 +17,10 @@ navbar:
   components:
     python:
       text: Python docs
-      href: https://www.samuelbharti.com/biogate/py/
+      href: https://www.samuelbharti.com/biobouncer/py/
     github:
       icon: fab fa-github
-      href: https://github.com/samuelbharti/biogate
+      href: https://github.com/samuelbharti/biobouncer
 
 reference:
   - title: Check identifiers
@@ -41,9 +41,9 @@ reference:
   - title: Snapshots and cache
     desc: Manage the offline snapshots that back cache mode.
     contents:
-      - biogate_pull
-      - biogate_snapshots
-      - biogate_cache_dir
+      - biobouncer_pull
+      - biobouncer_snapshots
+      - biobouncer_cache_dir
   - title: Validation framework adapters
     desc: >
       Thin wrappers over the core classifier for checkmate, shinyvalidate, and
@@ -52,17 +52,17 @@ reference:
       - assert_valid_id
       - check_valid_id
       - test_valid_id
-      - sv_biogate
+      - sv_biobouncer
       - id_predicate
   - title: Package
     contents:
-      - biogate-package
+      - biobouncer-package
 
 articles:
   - title: Get started
     navbar: ~
     contents:
-      - biogate
+      - biobouncer
   - title: Recipes
     contents:
       - articles/examples

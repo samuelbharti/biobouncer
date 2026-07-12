@@ -3,7 +3,7 @@
 # "exists via the resolver". Results carry a UTC retrieval timestamp.
 
 .remote_user_agent <- function() {
-  "biogate/0.1 (+https://github.com/samuelbharti/biogate)"
+  "biobouncer/0.1 (+https://github.com/samuelbharti/biobouncer)"
 }
 
 # Parse a JSON body, tolerating an empty or non-json payload. A proxy or outage
@@ -48,11 +48,11 @@
   resp
 }
 
-# Single network seam. Tests replace it with the biogate.remote_transport option,
+# Single network seam. Tests replace it with the biobouncer.remote_transport option,
 # which is used directly. The real path retries a transient failure with
 # exponential backoff before giving up.
 .remote_http_get <- function(url, timeout = 30) {
-  transport <- getOption("biogate.remote_transport", NULL)
+  transport <- getOption("biobouncer.remote_transport", NULL)
   if (is.function(transport)) {
     return(transport(url, timeout))
   }
@@ -80,17 +80,17 @@
         "Remote request failed for {.url {url}}.",
         i = "The request did not complete after retrying."
       ),
-      class = "biogate_error_remote"
+      class = "biobouncer_error_remote"
     )
   }
   resp
 }
 
 # POST network seam for GraphQL resolvers (Open Targets), where the query travels
-# in the body. Tests replace it with the biogate.remote_transport_post option.
+# in the body. Tests replace it with the biobouncer.remote_transport_post option.
 # Mirrors .remote_http_get, retrying a transient failure before giving up.
 .remote_http_post <- function(url, body, timeout = 30) {
-  transport <- getOption("biogate.remote_transport_post", NULL)
+  transport <- getOption("biobouncer.remote_transport_post", NULL)
   if (is.function(transport)) {
     return(transport(url, body, timeout))
   }
@@ -123,7 +123,7 @@
         "Remote request failed for {.url {url}}.",
         i = "The request did not complete after retrying."
       ),
-      class = "biogate_error_remote"
+      class = "biobouncer_error_remote"
     )
   }
   resp
@@ -140,7 +140,7 @@
 # Cache path for a resolved id, keyed by resolver and its subdirectory.
 .remote_cache_path <- function(resolver, subkey, id) {
   file.path(
-    biogate_cache_dir(),
+    biobouncer_cache_dir(),
     "remote",
     resolver,
     subkey,
@@ -153,12 +153,12 @@
   format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
 }
 
-# Cache time-to-live in seconds from BIOGATE_REMOTE_TTL, or NULL. Unset,
+# Cache time-to-live in seconds from BIOBOUNCER_REMOTE_TTL, or NULL. Unset,
 # non-numeric, or non-positive means no expiry: a cached response is served
 # regardless of age. A positive value makes a cached response older than that
 # many seconds stale, so it is refetched.
 .remote_ttl <- function() {
-  raw <- Sys.getenv("BIOGATE_REMOTE_TTL", unset = "")
+  raw <- Sys.getenv("BIOBOUNCER_REMOTE_TTL", unset = "")
   if (!nzchar(raw)) {
     return(NULL)
   }
@@ -169,11 +169,11 @@
   ttl
 }
 
-# Concurrent remote lookups, from BIOGATE_REMOTE_WORKERS (default 1). One means
+# Concurrent remote lookups, from BIOBOUNCER_REMOTE_WORKERS (default 1). One means
 # sequential, which keeps the offline suite and the conformance corpus
 # deterministic. A larger value checks a big column faster on the live path.
 .remote_workers <- function() {
-  raw <- Sys.getenv("BIOGATE_REMOTE_WORKERS", unset = "")
+  raw <- Sys.getenv("BIOBOUNCER_REMOTE_WORKERS", unset = "")
   if (!nzchar(raw)) {
     return(1L)
   }
@@ -241,7 +241,7 @@
       "Unexpected remote status {.val {status}}.",
       i = "Existence could not be determined."
     ),
-    class = "biogate_error_remote"
+    class = "biobouncer_error_remote"
   )
 }
 
@@ -319,7 +319,7 @@
   }
   parts <- c(
     paste0("api_key=", utils::URLencode(key, reserved = TRUE)),
-    "tool=biogate"
+    "tool=biobouncer"
   )
   email <- Sys.getenv("NCBI_EMAIL", unset = "")
   if (nzchar(email)) {
@@ -366,7 +366,7 @@
 
 # A fixed, minimal Open Targets query: fetch the target by its Ensembl gene id.
 .opentargets_query <- paste(
-  "query biogate($ensemblId: String!)",
+  "query biobouncer($ensemblId: String!)",
   "{ target(ensemblId: $ensemblId) { id } }"
 )
 
@@ -898,7 +898,7 @@
         "No remote resolver for {.val {source$key}}.",
         i = "Remote mode needs a source with a supported resolver."
       ),
-      class = "biogate_error_no_resolver"
+      class = "biobouncer_error_no_resolver"
     )
   }
   .remote_resolvers[[remote$resolver]]
@@ -907,7 +907,7 @@
 # Resolve one id, reading an on-disk cached response when present and definitive.
 # exists() raises for an indeterminate status, so it runs before the cache write
 # and such a response is never cached. A corrupt cache file is ignored and
-# refetched, as is one older than BIOGATE_REMOTE_TTL seconds; refresh skips the
+# refetched, as is one older than BIOBOUNCER_REMOTE_TTL seconds; refresh skips the
 # cache outright. The returned fetched_at is the UTC stamp of the response the
 # verdict came from, fresh or cached, so a caller can report when the check
 # happened. The cache is keyed only by id; species is compared at read time
@@ -942,7 +942,7 @@
   }
   if (is.null(resp)) {
     url <- resolver$url(source, id)
-    # An unreachable or undecidable id aborts with class biogate_error_remote.
+    # An unreachable or undecidable id aborts with class biobouncer_error_remote.
     # Under on_error = "indeterminate" that becomes an indeterminate verdict for
     # this id alone, and is never cached, so the rest of the batch still runs.
     out <- tryCatch(
@@ -954,7 +954,7 @@
         }
         list(resp = r, exists = resolver$exists(r$status, r$body))
       },
-      biogate_error_remote = function(e) {
+      biobouncer_error_remote = function(e) {
         if (!identical(on_error, "indeterminate")) {
           stop(e)
         }
@@ -1026,7 +1026,7 @@
 # list(valid, suggestion, fetched_at) results. valid is TRUE only when the id
 # exists and matches the requested species; suggestion carries an obsolete
 # term's successor; fetched_at is when its response was retrieved.
-# Whether an id already has a fresh (not stale, per BIOGATE_REMOTE_TTL) cache
+# Whether an id already has a fresh (not stale, per BIOBOUNCER_REMOTE_TTL) cache
 # entry, so a concurrent prefetch can skip it.
 .remote_cache_is_fresh <- function(resolver, source, id, ttl) {
   path <- .remote_cache_path(resolver$name, resolver$subkey(source), id)
@@ -1111,7 +1111,7 @@
         resolver$exists(f$status, f$body)
         TRUE
       },
-      biogate_error_remote = function(e) FALSE
+      biobouncer_error_remote = function(e) FALSE
     )
     if (!ok) {
       next
@@ -1147,7 +1147,7 @@
   # a refresh (which ignores the cache anyway), stay sequential so every offline
   # fixture and conformance test remains deterministic.
   workers <- .remote_workers()
-  transport <- getOption("biogate.remote_transport", NULL)
+  transport <- getOption("biobouncer.remote_transport", NULL)
   if (
     workers > 1L &&
       is.null(transport) &&

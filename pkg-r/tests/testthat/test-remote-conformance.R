@@ -1,8 +1,8 @@
 # Cross-language conformance for remote mode. The default run is backed by the
-# recorded fixtures; the live run is opt-in via BIOGATE_REMOTE_TESTS.
+# recorded fixtures; the live run is opt-in via BIOBOUNCER_REMOTE_TESTS.
 
 .remote_corpus_files <- function() {
-  dir <- system.file("extdata", "corpus", "remote", package = "biogate")
+  dir <- system.file("extdata", "corpus", "remote", package = "biobouncer")
   sort(list.files(dir, pattern = "\\.jsonl$", full.names = TRUE))
 }
 
@@ -58,7 +58,12 @@
   cache <- NULL
   function() {
     if (is.null(cache)) {
-      root <- system.file("extdata", "fixtures", "remote", package = "biogate")
+      root <- system.file(
+        "extdata",
+        "fixtures",
+        "remote",
+        package = "biobouncer"
+      )
       paths <- list.files(
         root,
         pattern = "\\.json$",
@@ -103,16 +108,16 @@
 }
 
 test_that("remote conformance corpus passes against recorded fixtures", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .fixture_transport,
-    biogate.remote_transport_post = .fixture_transport_post
+    biobouncer.remote_transport = .fixture_transport,
+    biobouncer.remote_transport_post = .fixture_transport_post
   )
   .check_remote_corpus("remote")
 })
 
 test_that("remote conformance corpus passes against the live API", {
-  skip_if(Sys.getenv("BIOGATE_REMOTE_TESTS") == "")
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  skip_if(Sys.getenv("BIOBOUNCER_REMOTE_TESTS") == "")
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   .check_remote_corpus("remote live", live = TRUE)
 })

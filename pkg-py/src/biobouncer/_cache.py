@@ -29,12 +29,12 @@ class MissingSnapshotError(FileNotFoundError):
 def cache_dir() -> Path:
     """Directory where downloaded snapshots are stored.
 
-    Set the ``BIOGATE_CACHE_DIR`` environment variable to override the default.
+    Set the ``BIOBOUNCER_CACHE_DIR`` environment variable to override the default.
     """
-    override = os.environ.get("BIOGATE_CACHE_DIR")
+    override = os.environ.get("BIOBOUNCER_CACHE_DIR")
     if override:
         return Path(override)
-    return Path(platformdirs.user_cache_dir("biogate"))
+    return Path(platformdirs.user_cache_dir("biobouncer"))
 
 
 def _atomic_write_text(path: Path, text: str, encoding: str = "utf-8") -> None:
@@ -52,7 +52,7 @@ def _atomic_write_text(path: Path, text: str, encoding: str = "utf-8") -> None:
 
 
 def _bundled_root():
-    return files("biogate") / "_data" / "snapshots"
+    return files("biobouncer") / "_data" / "snapshots"
 
 
 def _ids_from_text(text: str) -> set[str]:
@@ -173,7 +173,7 @@ def snapshot_set(source_db: str, version: str) -> set[str]:
         )
         raise MissingSnapshotError(
             f"No snapshot for {source_db!r} version {version!r}. {detail} "
-            "Run biogate.pull() to download one."
+            "Run biobouncer.pull() to download one."
         )
     return _ids_from_text(text)
 
@@ -245,7 +245,7 @@ def snapshots() -> list[dict]:
     )
 
 
-_USER_AGENT = "biogate/0.1 (+https://github.com/samuelbharti/biogate)"
+_USER_AGENT = "biobouncer/0.1 (+https://github.com/samuelbharti/biobouncer)"
 
 
 class NoBuilderError(ValueError):

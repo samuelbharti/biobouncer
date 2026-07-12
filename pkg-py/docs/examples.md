@@ -8,7 +8,7 @@ and a valid example id for each, see the [sources cookbook](sources.md).
 Split a list into the ones that pass and the ones that do not, keeping order.
 
 ```python
-import biogate as bg
+import biobouncer as bg
 
 ids = ["MONDO:0005148", "mondo:5148", "MONDO:0018076", "banana"]
 verdicts = bg.is_valid_id(ids, source_db="mondo")
@@ -67,13 +67,13 @@ bg.is_valid_id("ENSMUSG00000059552", source_db="ensembl", species="homo_sapiens"
 
 ## Validate a DataFrame with pandera
 
-`biogate.checks.is_id` returns a pandera `Check`, so a whole column is validated
-against a source. Install the adapters with `pip install "biogate[adapters]"`.
+`biobouncer.checks.is_id` returns a pandera `Check`, so a whole column is validated
+against a source. Install the adapters with `pip install "biobouncer[adapters]"`.
 
 ```python
 import pandas as pd
 import pandera.pandas as pa
-from biogate.checks import is_id
+from biobouncer.checks import is_id
 
 schema = pa.DataFrameSchema(
     {
@@ -90,11 +90,11 @@ schema.validate(df)  # raises pandera.errors.SchemaError on a bad value
 
 ## Validate a model with pydantic
 
-`biogate.types.Id` returns a validating string type for a field.
+`biobouncer.types.Id` returns a validating string type for a field.
 
 ```python
 from pydantic import BaseModel
-from biogate.types import Id
+from biobouncer.types import Id
 
 MondoId = Id("mondo")
 EnsemblId = Id("ensembl", species="homo_sapiens")
@@ -111,13 +111,13 @@ Association(disease="MONDO:0005148", gene="ENSG00000139618")
 
 ## Validate a batch with Great Expectations
 
-`biogate.gx.ExpectColumnValuesToBeValidId` is a Great Expectations column-map
-expectation. Install it with `pip install "biogate[gx]"`.
+`biobouncer.gx.ExpectColumnValuesToBeValidId` is a Great Expectations column-map
+expectation. Install it with `pip install "biobouncer[gx]"`.
 
 ```python
 import pandas as pd
 import great_expectations as gx
-from biogate.gx import ExpectColumnValuesToBeValidId
+from biobouncer.gx import ExpectColumnValuesToBeValidId
 
 context = gx.get_context(mode="ephemeral")
 df = pd.DataFrame({"term": ["MONDO:0005148", "mondo:5148", "MONDO:0018076"]})
@@ -140,15 +140,15 @@ with a reserved Great Expectations field.
 
 ## Validate any dataframe with narwhals
 
-`biogate.narwhals.valid_id_mask` validates one column with a single call that
+`biobouncer.narwhals.valid_id_mask` validates one column with a single call that
 works the same across pandas, polars, and pyarrow. Install it with
-`pip install "biogate[narwhals]"`. It returns a native boolean series: `False`
+`pip install "biobouncer[narwhals]"`. It returns a native boolean series: `False`
 marks an invalid identifier, while a missing cell stays `True`, since a missing
 value is not a failed id.
 
 ```python
 import polars as pl
-from biogate.narwhals import valid_id_mask
+from biobouncer.narwhals import valid_id_mask
 
 df = pl.DataFrame({"term": ["MONDO:0005148", "mondo:5148", None]})
 mask = valid_id_mask(df["term"], "mondo")

@@ -15,5 +15,5 @@ Python serializations cannot drift.
   indeterminate`.
 
 This file is vendored into `pkg-r/inst/extdata/schema/` and
-`pkg-py/src/biogate/_data/schema/` by `tools/sync_shared.py`. Edit it here, never
+`pkg-py/src/biobouncer/_data/schema/` by `tools/sync_shared.py`. Edit it here, never
 in a vendored copy.

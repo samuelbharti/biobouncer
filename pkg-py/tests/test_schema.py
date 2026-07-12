@@ -2,9 +2,9 @@
 
 import dataclasses
 
-from biogate import SCHEMA_VERSION
-from biogate._result import Result
-from biogate.schema import (
+from biobouncer import SCHEMA_VERSION
+from biobouncer._result import Result
+from biobouncer.schema import (
     RESULT_FIELDS,
     SUMMARY_FIELDS,
     payload,

@@ -5,12 +5,17 @@
 # hand-build a result payload.
 
 .result_schema <- function() {
-  if (!is.null(.biogate_cache$schema)) {
-    return(.biogate_cache$schema)
+  if (!is.null(.biobouncer_cache$schema)) {
+    return(.biobouncer_cache$schema)
   }
-  path <- system.file("extdata", "schema", "result.json", package = "biogate")
+  path <- system.file(
+    "extdata",
+    "schema",
+    "result.json",
+    package = "biobouncer"
+  )
   schema <- jsonlite::fromJSON(path, simplifyVector = TRUE)
-  .biogate_cache$schema <- schema
+  .biobouncer_cache$schema <- schema
   schema
 }
 

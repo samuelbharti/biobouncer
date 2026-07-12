@@ -2,8 +2,8 @@
 
 import json
 
-import biogate
-import biogate._remote as remote
+import biobouncer
+import biobouncer._remote as remote
 
 
 def _stub(covered):
@@ -19,24 +19,30 @@ def _stub(covered):
 
 
 def test_covered_target_is_valid(monkeypatch, tmp_path):
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
     monkeypatch.setattr(remote, "_http_post", _stub({"ENSG00000139618"}))
-    res = biogate.check_id("ENSG00000139618", source_db="opentargets", how="remote")[0]
+    res = biobouncer.check_id("ENSG00000139618", source_db="opentargets", how="remote")[
+        0
+    ]
     assert res.valid is True
     assert res.normalized == "ENSG00000139618"
 
 
 def test_uncovered_gene_is_absent(monkeypatch, tmp_path):
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
     monkeypatch.setattr(remote, "_http_post", _stub(set()))
-    res = biogate.check_id("ENSG00000000000", source_db="opentargets", how="remote")[0]
+    res = biobouncer.check_id("ENSG00000000000", source_db="opentargets", how="remote")[
+        0
+    ]
     assert res.valid is False
 
 
 def test_malformed_case_suggests_the_covered_form(monkeypatch, tmp_path):
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
     monkeypatch.setattr(remote, "_http_post", _stub({"ENSG00000139618"}))
-    res = biogate.check_id("ensg00000139618", source_db="opentargets", how="remote")[0]
+    res = biobouncer.check_id("ensg00000139618", source_db="opentargets", how="remote")[
+        0
+    ]
     assert res.valid is False
     assert res.suggestion == "ENSG00000139618"
 
@@ -49,13 +55,13 @@ def test_body_carries_the_graphql_query_and_id():
 
 
 def test_unexpected_status_is_indeterminate(monkeypatch, tmp_path):
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
 
     def _boom(url, data, timeout=30):
         return 500, None
 
     monkeypatch.setattr(remote, "_http_post", _boom)
-    res = biogate.check_id(
+    res = biobouncer.check_id(
         "ENSG00000139618",
         source_db="opentargets",
         how="remote",
@@ -66,6 +72,6 @@ def test_unexpected_status_is_indeterminate(monkeypatch, tmp_path):
 
 
 def test_opentargets_is_a_registered_source():
-    info = {row["key"]: row for row in biogate.source_info()}
+    info = {row["key"]: row for row in biobouncer.source_info()}
     assert "opentargets" in info
     assert info["opentargets"]["modes"] == ["pattern", "remote"]
