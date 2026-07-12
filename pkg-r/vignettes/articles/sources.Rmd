@@ -7,7 +7,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(biogate)
 ```
 
-biogate checks 37 sources. Each table below gives a valid example id, the
+biogate checks 39 sources. Each table below gives a valid example id, the
 checking modes a source supports, and whether it is species-aware. To check an
 id, pass the source key as `source_db`. The call is the same for every source:
 
@@ -34,6 +34,7 @@ pinned snapshot, and `remote` checks existence against the live source. See
 | Human Disease Ontology. Human diseases, mapped to other disease vocabularies. | `doid` | `DOID:9352` | pattern, cache, remote | no |
 | Experimental Factor Ontology. Diseases, traits, and measurements from the GWAS Catalog and Open Targets. | `efo` | `EFO:0000400` | pattern, cache, remote | no |
 | Orphanet. Rare diseases. | `orphanet` | `ORPHA:558` | pattern, remote | no |
+| NCI Thesaurus. Cancer and biomedical concepts. | `ncit` | `NCIT:C3224` | pattern, remote | no |
 
 Check any id in the group the same way:
 
@@ -146,6 +147,7 @@ is_valid_id("PF00001", source_db = "pfam")
 | Gene Ontology. Gene Ontology terms for function, process, and component. | `go` | `GO:0006915` | pattern, cache, remote | no |
 | Sequence Ontology. Sequence Ontology features. | `so` | `SO:0000704` | pattern, cache, remote | no |
 | EC number. Enzyme Commission numbers. | `ec` | `1.1.1.1` | pattern | no |
+| Evidence and Conclusion Ontology. Evidence types for annotations. | `eco` | `ECO:0000269` | pattern, remote | no |
 
 Check any id in the group the same way:
 

@@ -25,6 +25,10 @@
   `BSYNRYMUTXBXSQ-UHFFFAOYSA-N`. This is pattern mode only; a lowercase input is
   suggested in its canonical uppercase form. An existence check would need a
   UniChem or PubChem lookup, which is not offered yet.
+* `ncit` is a new source for NCI Thesaurus concept codes such as `NCIT:C3224`,
+  and `eco` for Evidence and Conclusion Ontology terms such as `ECO:0000269`.
+  Both check the pattern offline and existence against their ontology in the
+  Ontology Lookup Service, reusing the OLS resolver.
 * `mirbase` gains `remote` mode. A mature accession is checked for existence
   against RNAcentral through EBI Search, which indexes miRBase. miRBase has no
   existence API of its own. This is an existence check only; a withdrawn

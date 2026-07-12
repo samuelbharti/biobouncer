@@ -1,0 +1,19 @@
+key: eco
+name: Evidence and Conclusion Ontology
+description: Evidence and Conclusion Ontology terms for evidence and assertions.
+# ECO, a colon, and a seven-digit number. A different-case prefix or a short
+# number is suggested in canonical, zero-padded CURIE form.
+pattern: 'ECO:[0-9]{7}'
+example: 'ECO:0000269'
+curie:
+  prefix: ECO
+  pad_to: 7
+# remote mode checks existence against the Evidence and Conclusion Ontology in
+# the EBI Ontology Lookup Service, reusing the OLS resolver. This is an existence
+# check only.
+remote:
+  resolver: ols
+  ols_ontology: eco
+provenance:
+  pattern_source: bioregistry
+  homepage: https://evidenceontology.org
