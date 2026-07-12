@@ -25,7 +25,9 @@ snapshot for \code{existence} mode; ignored in \code{pattern} and \code{remote} 
 }
 \value{
 A function of one argument that returns a logical vector the same
-length as its input.
+length as its input. A missing cell (\code{NA}) passes, so it is never dropped by
+a filter or flagged by a data-frame rule; only a malformed or non-existent
+id is \code{FALSE}.
 }
 \description{
 Returns a function of one argument that reports, element by element, whether

@@ -31,7 +31,8 @@ snapshot for \code{existence} mode; ignored in \code{pattern} and \code{remote} 
 \description{
 A checkmate-style check function. Returns \code{TRUE} when every element of \code{x} is
 a valid identifier for \code{source_db}, otherwise a message describing the
-failure. Pairs with \code{\link[=assert_valid_id]{assert_valid_id()}} and \code{\link[=test_valid_id]{test_valid_id()}}.
+failure. A missing element (\code{NA}) is not a failure. Pairs with
+\code{\link[=assert_valid_id]{assert_valid_id()}} and \code{\link[=test_valid_id]{test_valid_id()}}.
 }
 \examples{
 check_valid_id(c("MONDO:0005148", "MONDO:0018076"), "mondo")

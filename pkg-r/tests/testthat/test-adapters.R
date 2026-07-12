@@ -25,6 +25,32 @@ test_that("sv_biogate produces a shinyvalidate-style rule", {
   expect_identical(custom("mondo:5148"), "bad id")
 })
 
+test_that("a missing cell is not a failure across the adapters", {
+  # NA is missing, not a failed id, matching the pandera and narwhals column
+  # checks in the Python package.
+  expect_true(check_valid_id(c("MONDO:0005148", NA), "mondo"))
+  expect_identical(
+    assert_valid_id(c("MONDO:0005148", NA), "mondo"),
+    c("MONDO:0005148", NA)
+  )
+  expect_true(test_valid_id(c("MONDO:0005148", NA), "mondo"))
+  expect_null(sv_biogate("mondo")(NA))
+  is_mondo <- id_predicate("mondo")
+  expect_identical(
+    is_mondo(c("MONDO:0005148", NA, "mondo:5148")),
+    c(TRUE, TRUE, FALSE)
+  )
+  # a missing cell survives a filter rather than being dropped or NA-indexed.
+  ids <- c("MONDO:0005148", NA, "mondo:5148")
+  expect_identical(ids[is_mondo(ids)], c("MONDO:0005148", NA))
+})
+
+test_that("check_valid_id still flags a real failure alongside a missing cell", {
+  msg <- check_valid_id(c("MONDO:0005148", NA, "mondo:5148"), "mondo")
+  expect_type(msg, "character")
+  expect_match(msg, "1 of 3 failed")
+})
+
 test_that("adapters thread how and version to the core", {
   withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
   expect_true(

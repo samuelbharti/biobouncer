@@ -9,7 +9,7 @@ biogate_pull(source_db, version = NULL, quiet = FALSE)
 \arguments{
 \item{source_db}{Source key, for example \code{"mondo"}.}
 
-\item{version}{Snapshot version label. Defaults to the ontology data-version.}
+\item{version}{Snapshot version label. Defaults to the builder's own version.}
 
 \item{quiet}{Suppress progress messages.}
 }
@@ -17,9 +17,12 @@ biogate_pull(source_db, version = NULL, quiet = FALSE)
 The path to the written snapshot, invisibly.
 }
 \description{
-Fetches the source's OBO release, keeps the identifiers that match the source
-pattern, and writes them to the cache directory as a snapshot. The version
-defaults to the ontology's own data-version.
+Dispatches on the source's \code{cache$builder}: \code{obo} fetches the ontology
+release, \code{hgnc_tsv} fetches the HGNC complete set. Identifiers that match the
+source pattern are written to the cache directory as a snapshot, and a
+retired-id map, when the builder produces one, to the matching
+\verb{<version>.retired.tsv} sidecar. An OBO version defaults to the ontology's own
+data-version; an HGNC version defaults to the source's \code{default_version}.
 }
 \seealso{
 \code{\link[=biogate_snapshots]{biogate_snapshots()}}, \code{\link[=check_id]{check_id()}}.

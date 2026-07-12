@@ -166,11 +166,14 @@ def is_valid_id(
     species: str | None = None,
     version: str | None = None,
     refresh: bool = False,
-) -> bool | list[bool]:
+) -> bool | None | list[bool | None]:
     """Return just the validity verdict.
 
-    Returns a single bool for a scalar input, or a list of bool for an iterable,
-    matching the shape of ``x``.
+    Returns a single verdict for a scalar input, or a list of verdicts for an
+    iterable, matching the shape of ``x``. A verdict is ``True`` (valid),
+    ``False`` (invalid), or ``None`` for a missing input (``None``, a float
+    ``NaN``, or pandas ``NA``). A missing input is deliberately not ``False``, so
+    callers can tell "absent" apart from "present but wrong".
     """
     results = check_id(
         x, source_db, how=how, species=species, version=version, refresh=refresh
