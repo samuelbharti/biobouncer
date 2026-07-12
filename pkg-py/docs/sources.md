@@ -1,6 +1,6 @@
 # Sources cookbook
 
-biogate checks 35 sources. Each row below gives a valid example id, the
+biogate checks 36 sources. Each row below gives a valid example id, the
 [checking modes](guide.md#the-checking-modes) it supports, and whether it is
 species-aware. To check an id, pass the source key as `source_db`. The call is
 the same for every source:
@@ -65,6 +65,18 @@ Check any id in the group the same way:
 
 ```python
 bg.is_valid_id("UBERON:0002107", source_db="uberon")
+```
+
+## Organisms and taxa
+
+| Source | `source_db` | Example | Modes | Species-aware |
+|---|---|---|---|---|
+| NCBI Taxonomy. Organisms and other taxa. | `ncbitaxon` | `NCBITaxon:9606` | pattern, remote | no |
+
+Check any id in the group the same way:
+
+```python
+bg.is_valid_id("NCBITaxon:9606", source_db="ncbitaxon")
 ```
 
 ## Genes

@@ -15,6 +15,12 @@
 * The NCBI E-utilities checks (`refseq`, `clinvar`) send an API key when the
   `NCBI_API_KEY` environment variable is set, which raises NCBI's rate limit from
   three to ten requests a second. `NCBI_EMAIL` is included when set.
+* `ncbitaxon` is a new source for NCBI Taxonomy identifiers such as
+  `NCBITaxon:9606`. It checks the pattern offline and existence against NCBI
+  Taxonomy in the Ontology Lookup Service, reusing the OLS resolver. A bare taxon
+  number or a different-case prefix is suggested in canonical CURIE form. No cache
+  builder is offered, since the NCBI Taxonomy OBO release is far too large to
+  snapshot.
 * `mirbase` gains `remote` mode. A mature accession is checked for existence
   against RNAcentral through EBI Search, which indexes miRBase. miRBase has no
   existence API of its own. This is an existence check only; a withdrawn
