@@ -44,13 +44,13 @@ test_that("cache default prefers the source's pinned default_version", {
   expect_identical(res$version, "2026-07-07")
 })
 
-test_that("a defaulted cache check with nothing installed is actionable", {
+test_that("a defaulted cache check resolves to a newly bundled snapshot", {
   withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
-  # doid declares cache mode but ships no bundled snapshot.
-  expect_error(
-    check_id("DOID:9352", source_db = "doid", how = "cache"),
-    class = "biogate_error_missing_version"
-  )
+  # doid now ships a bundled sample snapshot, so a defaulted cache check
+  # resolves to it instead of erroring.
+  res <- check_id("DOID:9352", source_db = "doid", how = "cache")
+  expect_true(res$valid)
+  expect_identical(res$version, "sample")
 })
 
 test_that("a missing snapshot is an actionable error", {
@@ -83,4 +83,15 @@ test_that("biogate_snapshots lists the bundled samples", {
   expect_identical(nrow(mondo_sample), 1L)
   expect_gt(mondo_sample$n_ids, 0L)
   expect_identical(mondo_sample$location, "bundled")
+})
+
+test_that("biogate_snapshots lists the new obo samples", {
+  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  snaps <- biogate_snapshots()
+  bundled <- snaps$source[
+    snaps$version == "sample" & snaps$location == "bundled"
+  ]
+  expect_true(all(
+    c("bto", "cl", "doid", "hp", "mp", "pato", "so", "uberon") %in% bundled
+  ))
 })

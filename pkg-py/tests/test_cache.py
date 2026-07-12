@@ -3,7 +3,7 @@
 import pytest
 
 import biogate
-from biogate import MissingSnapshotError, MissingVersionError
+from biogate import MissingSnapshotError
 
 
 @pytest.fixture(autouse=True)
@@ -48,11 +48,12 @@ def test_cache_default_prefers_pinned_default_version():
     assert res.version == "2026-07-07"
 
 
-def test_cache_no_snapshot_installed_errors():
-    # doid declares cache mode but ships no bundled snapshot, so a defaulted
-    # cache check with nothing installed is an actionable error, not a crash.
-    with pytest.raises(MissingVersionError):
-        biogate.check_id("DOID:9352", source_db="doid", how="cache")
+def test_cache_defaults_for_newly_snapshotted_obo_source():
+    # doid now ships a bundled sample snapshot, so a defaulted cache check
+    # resolves to it instead of erroring.
+    res = biogate.check_id("DOID:9352", source_db="doid", how="cache")[0]
+    assert res.valid is True
+    assert res.version == "sample"
 
 
 def test_missing_snapshot_errors():
@@ -73,3 +74,13 @@ def test_snapshots_lists_bundled_sample():
     assert len(mondo) == 1
     assert mondo[0]["location"] == "bundled"
     assert mondo[0]["n_ids"] > 0
+
+
+def test_snapshots_include_the_new_obo_samples():
+    snaps = biogate.snapshots()
+    bundled = {
+        s["source"]
+        for s in snaps
+        if s["version"] == "sample" and s["location"] == "bundled"
+    }
+    assert {"bto", "cl", "doid", "hp", "mp", "pato", "so", "uberon"} <= bundled
