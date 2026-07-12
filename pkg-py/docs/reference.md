@@ -40,8 +40,11 @@ Extrinsic modes raise rather than returning a silent `False`.
 
 ## Framework adapters
 
-Install with `pip install "biogate[adapters]"`.
+The pandera and pydantic adapters install with `pip install "biogate[adapters]"`;
+the narwhals adapter with `pip install "biogate[narwhals]"`.
 
 ::: biogate.checks.is_id
 
 ::: biogate.types.Id
+
+::: biogate.narwhals.valid_id_mask

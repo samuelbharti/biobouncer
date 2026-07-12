@@ -25,6 +25,9 @@ dependencies = ["platformdirs>=3", "pyyaml>=6"]
 adapters = ["pydantic>=2", "pandera[pandas]>=0.20"]
 # Great Expectations expectation. Install with: pip install biogate[gx]
 gx = ["great-expectations>=1"]
+# narwhals column check across pandas, polars, and pyarrow. Install with:
+# pip install biogate[narwhals]
+narwhals = ["narwhals>=2"]
 
 [project.scripts]
 biogate = "biogate.cli:main"
@@ -40,6 +43,9 @@ dev = [
     "pydantic>=2",
     "pandera[pandas]>=0.20",
     "great-expectations>=1",
+    "narwhals>=2",
+    "polars>=1",
+    "pyarrow>=15",
 ]
 docs = [
     "mkdocs-material>=9.5",

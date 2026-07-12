@@ -138,6 +138,25 @@ It takes `source_db`, `how`, `species`, and the usual `mostly` tolerance. To pin
 a snapshot `version`, validate with the core API first, since `version` collides
 with a reserved Great Expectations field.
 
+## Validate any dataframe with narwhals
+
+`biogate.narwhals.valid_id_mask` validates one column with a single call that
+works the same across pandas, polars, and pyarrow. Install it with
+`pip install "biogate[narwhals]"`. It returns a native boolean series: `False`
+marks an invalid identifier, while a missing cell stays `True`, since a missing
+value is not a failed id.
+
+```python
+import polars as pl
+from biogate.narwhals import valid_id_mask
+
+df = pl.DataFrame({"term": ["MONDO:0005148", "mondo:5148", None]})
+mask = valid_id_mask(df["term"], "mondo")
+df.filter(~mask)  # the failing rows: just "mondo:5148"
+```
+
+It takes the same `source_db`, `how`, `species`, and `version` as `is_valid_id`.
+
 ## Discover sources in code
 
 You never need to hard-code a key or guess an example. `source_info` lists every

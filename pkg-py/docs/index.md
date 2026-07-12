@@ -13,10 +13,13 @@ pip install biogate
 pip install "git+https://github.com/samuelbharti/biogate.git#subdirectory=pkg-py"
 ```
 
-The framework adapters (pandera, pydantic) are an optional extra:
+The framework adapters (pandera, pydantic) are an optional extra, as are the
+Great Expectations and narwhals adapters:
 
 ```bash
-pip install "biogate[adapters]"
+pip install "biogate[adapters]"   # pandera, pydantic
+pip install "biogate[gx]"         # Great Expectations
+pip install "biogate[narwhals]"   # narwhals (pandas, polars, pyarrow)
 ```
 
 ## A first check
