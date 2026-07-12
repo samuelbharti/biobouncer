@@ -33,3 +33,10 @@ def test_parse_obo_extracts_version_and_only_matching_ids():
 def test_pull_errors_without_builder():
     with pytest.raises(NoBuilderError):
         biogate.pull("ensembl")
+
+
+def test_pull_errors_for_a_bundled_only_source():
+    # hgnc has a cache block, so it offers cache mode, but no download builder, so
+    # pull must still refuse rather than pretend it can refresh the snapshot.
+    with pytest.raises(NoBuilderError):
+        biogate.pull("hgnc")

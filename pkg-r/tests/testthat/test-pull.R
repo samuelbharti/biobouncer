@@ -21,3 +21,9 @@ test_that(".parse_obo extracts the version and only matching ids", {
 test_that("biogate_pull errors for a source without a builder", {
   expect_error(biogate_pull("ensembl"), class = "biogate_error_no_builder")
 })
+
+test_that("biogate_pull errors for a bundled-only source", {
+  # hgnc offers cache mode from a bundled snapshot but has no download builder,
+  # so pull must still refuse rather than pretend it can refresh the snapshot.
+  expect_error(biogate_pull("hgnc"), class = "biogate_error_no_builder")
+})

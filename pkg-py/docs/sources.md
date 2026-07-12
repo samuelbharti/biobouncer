@@ -84,7 +84,7 @@ bg.is_valid_id("NCBITaxon:9606", source_db="ncbitaxon")
 
 | Source | `source_db` | Example | Modes | Species-aware |
 |---|---|---|---|---|
-| HGNC gene symbols. Approved symbols. A withdrawn symbol maps to its successor. | `hgnc` | `TP53` | pattern | no |
+| HGNC gene symbols. Approved symbols. A withdrawn symbol maps to its successor. | `hgnc` | `TP53` | pattern, cache | no |
 | Ensembl. Ensembl gene, transcript, and protein ids. Species-aware. | `ensembl` | `ENSG00000139618` | pattern, remote | yes |
 | RefSeq. NCBI RefSeq accessions, with an optional version. | `refseq` | `NM_000546.6` | pattern, remote | no |
 

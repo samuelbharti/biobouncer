@@ -1,5 +1,9 @@
 # biogate (development version)
 
+* `hgnc` now reports `cache` mode. It has always shipped an approved-symbol
+  snapshot that cache mode can use, but it did not advertise the mode, so
+  `source_info()` hid it. `biogate_pull()` still refuses `hgnc`, since there is no
+  download builder for it.
 * `check_id()` and `is_valid_id()` gain a `refresh` argument for `remote` and
   `existence` checks. When `TRUE`, a cached response is ignored and the id is
   looked up live again.

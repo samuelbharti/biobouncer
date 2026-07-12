@@ -9,6 +9,12 @@ pattern: "[A-Za-z0-9][A-Za-z0-9._@-]*"
 example: 'TP53'
 species_aware: false
 version_aware: true
+# The approved-symbol snapshot ships bundled with the package, so cache mode is
+# available out of the box. There is no download builder (HGNC is not an OBO
+# ontology), so biogate.pull() does not apply; refreshing the bundled snapshot is
+# a future, non-OBO builder.
+cache:
+  bundled: true
 provenance:
   pattern_source: hgnc
   homepage: https://www.genenames.org

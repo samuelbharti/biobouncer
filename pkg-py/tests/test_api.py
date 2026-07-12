@@ -56,6 +56,8 @@ def test_source_info_has_example_and_modes():
     assert info["mondo"]["example"] == "MONDO:0005148"
     assert info["mondo"]["modes"] == ["pattern", "cache", "remote"]
     assert info["drugbank"]["modes"] == ["pattern"]
+    # hgnc bundles a snapshot, so it reports cache mode honestly (no remote).
+    assert info["hgnc"]["modes"] == ["pattern", "cache"]
 
 
 def test_every_source_example_is_valid_in_pattern_mode():

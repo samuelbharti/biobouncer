@@ -64,6 +64,8 @@ test_that("source_info returns a tibble of metadata", {
   expect_equal(info$example[info$key == "mondo"], "MONDO:0005148")
   expect_equal(info$modes[info$key == "mondo"], "pattern, cache, remote")
   expect_equal(info$modes[info$key == "drugbank"], "pattern")
+  # hgnc bundles a snapshot, so it reports cache mode honestly (no remote).
+  expect_equal(info$modes[info$key == "hgnc"], "pattern, cache")
 })
 
 test_that("every source example is valid in pattern mode", {
