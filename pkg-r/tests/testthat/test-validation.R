@@ -11,7 +11,8 @@ test_that("check_id returns a tibble with the documented columns", {
       "source_db",
       "version",
       "species",
-      "how"
+      "how",
+      "error"
     )
   )
 })
@@ -19,7 +20,7 @@ test_that("check_id returns a tibble with the documented columns", {
 test_that("empty input yields a zero-row result with the right columns", {
   res <- check_id(character(0), source_db = "mondo")
   expect_identical(nrow(res), 0L)
-  expect_identical(ncol(res), 8L)
+  expect_identical(ncol(res), 9L)
 })
 
 test_that("NA input yields an NA verdict and no normalized or suggestion", {

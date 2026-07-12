@@ -964,8 +964,9 @@ def _remote_lookup(
     ident: str,
     species=None,
     refresh: bool = False,
-) -> tuple[bool, str | None, str | None]:
-    """Return ``(valid, suggestion, fetched_at)`` for ``ident``, cache backed.
+    on_error: str = "raise",
+) -> tuple[bool | None, str | None, str | None, str | None]:
+    """Return ``(valid, suggestion, fetched_at, error)`` for ``ident``.
 
     An id that exists, matches ``species``, and is not obsolete is valid with no
     suggestion. An id that exists but is obsolete is not valid and carries its
@@ -977,8 +978,12 @@ def _remote_lookup(
     The cache is keyed by id only; species is compared at read time against the
     cached body, so one cached response answers any species. ``refresh`` skips
     the cache and refetches; a cached response older than ``BIOGATE_REMOTE_TTL``
-    seconds is refetched too. An indeterminate status raises before the cache is
-    written, so a response that gives no definite answer is never persisted.
+    seconds is refetched too. An indeterminate status or an exhausted-retry
+    network failure raises before the cache is written, so a response that gives
+    no definite answer is never persisted. When ``on_error`` is
+    ``"indeterminate"`` that failure is caught and returned as
+    ``(None, None, <stamp>, <message>)`` instead, so one unreachable id does not
+    unwind the whole batch.
     """
     path = _remote_cache_path(resolver.name, resolver.subkey(source), ident)
     if not refresh and path.is_file():
@@ -991,14 +996,20 @@ def _remote_lookup(
         else:
             if not _is_stale(fetched_at, _remote_ttl()):
                 if not resolver.exists(status, body):
-                    return False, None, fetched_at
+                    return False, None, fetched_at, None
                 valid, successor = _post_existence(
                     resolver, source, ident, body, species
                 )
-                return valid, successor, fetched_at
+                return valid, successor, fetched_at, None
     url = resolver.url(source, ident)
-    status, body = _http_get(url)
-    result = resolver.exists(status, body)
+    try:
+        status, body = _http_get(url)
+        result = resolver.exists(status, body)
+    except RemoteError as error:
+        if on_error != "indeterminate":
+            raise
+        # An unreachable or undecidable id is left indeterminate, not cached.
+        return None, None, _utc_stamp(), str(error)
     fetched_at = _utc_stamp()
     _atomic_write_text(
         path,
@@ -1012,9 +1023,9 @@ def _remote_lookup(
         ),
     )
     if not result:
-        return False, None, fetched_at
+        return False, None, fetched_at, None
     valid, successor = _post_existence(resolver, source, ident, body, species)
-    return valid, successor, fetched_at
+    return valid, successor, fetched_at, None
 
 
 def _get_resolver(source: Source) -> Resolver:
@@ -1026,19 +1037,28 @@ def _get_resolver(source: Source) -> Resolver:
 
 
 def _resolve_ids(
-    resolver: Resolver, source: Source, ids: list[str], species, refresh: bool = False
-) -> dict[str, tuple[bool, str | None, str | None]]:
-    """Resolve each id in a batch to ``(valid, successor, fetched_at)``."""
+    resolver: Resolver,
+    source: Source,
+    ids: list[str],
+    species,
+    refresh: bool = False,
+    on_error: str = "raise",
+) -> dict[str, tuple[bool | None, str | None, str | None, str | None]]:
+    """Resolve each id to ``(valid, successor, fetched_at, error)``."""
     return {
-        ident: _remote_lookup(resolver, source, ident, species, refresh)
+        ident: _remote_lookup(resolver, source, ident, species, refresh, on_error)
         for ident in ids
     }
 
 
 def remote_verdicts(
-    source: Source, items: list[str], species=None, refresh: bool = False
-) -> list[tuple[bool | None, str | None, str | None, str | None]]:
-    """Return ``(valid, normalized, suggestion, fetched_at)`` per item.
+    source: Source,
+    items: list[str],
+    species=None,
+    refresh: bool = False,
+    on_error: str = "raise",
+) -> list[tuple[bool | None, str | None, str | None, str | None, str | None]]:
+    """Return ``(valid, normalized, suggestion, fetched_at, error)`` per item.
 
     Well-formed inputs are looked up directly; one that exists but is obsolete is
     not valid and carries its successor as the suggestion. Malformed inputs offer
@@ -1046,8 +1066,10 @@ def remote_verdicts(
     ``species`` is given, an id that exists but belongs to a different species is
     not valid. ``fetched_at`` is the UTC stamp of the response the id's verdict
     came from, or None for a missing input or one that was never fetched.
-    ``refresh`` skips any cached response and refetches. Existence is resolved
-    for the whole batch in a single resolver call.
+    ``refresh`` skips any cached response and refetches. Existence is resolved for
+    the whole batch in a single resolver call. Under ``on_error="indeterminate"``
+    a well-formed id whose lookup could not complete is ``valid=None`` with the
+    failure message in ``error``; a malformed input stays invalid regardless.
     """
     resolver = _get_resolver(source)
     plans: list[tuple[bool | None, str | None]] = []
@@ -1065,21 +1087,31 @@ def remote_verdicts(
             if candidate is not None:
                 need.add(candidate)
     resolved = (
-        _resolve_ids(resolver, source, sorted(need), species, refresh) if need else {}
+        _resolve_ids(resolver, source, sorted(need), species, refresh, on_error)
+        if need
+        else {}
     )
-    verdicts: list[tuple[bool | None, str | None, str | None, str | None]] = []
+    verdicts: list[tuple[bool | None, str | None, str | None, str | None, str | None]]
+    verdicts = []
     for well_formed, value in plans:
         if well_formed is None:
-            verdicts.append((None, None, None, None))
+            verdicts.append((None, None, None, None, None))
             continue
-        valid, successor, fetched_at = resolved.get(value, (False, None, None))
+        valid, successor, fetched_at, error = resolved.get(
+            value, (False, None, None, None)
+        )
         if well_formed:
-            if valid:
-                verdicts.append((True, value, None, fetched_at))
+            if error is not None:
+                # The id's own lookup could not be determined.
+                verdicts.append((None, None, None, fetched_at, error))
+            elif valid:
+                verdicts.append((True, value, None, fetched_at, None))
             else:
-                verdicts.append((False, None, successor, fetched_at))
+                verdicts.append((False, None, successor, fetched_at, None))
+        # A malformed input is invalid regardless; only offer a suggestion when
+        # the correction candidate was confirmed to exist.
         elif value is not None and valid:
-            verdicts.append((False, None, value, fetched_at))
+            verdicts.append((False, None, value, fetched_at, None))
         else:
-            verdicts.append((False, None, None, fetched_at))
+            verdicts.append((False, None, None, fetched_at, None))
     return verdicts

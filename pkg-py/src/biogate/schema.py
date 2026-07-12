@@ -38,10 +38,11 @@ def result_dict(result: Result) -> dict:
 def summarize(results: Sequence[Result]) -> dict:
     """Count a batch of results into the shared summary fields.
 
-    ``total`` is ``valid + invalid + missing``. ``repairable`` is the subset of
-    ``invalid`` that carries a suggestion, so it is not added on top of the other
-    counts. A missing input (``valid is None``) is counted as ``missing``, never
-    as valid or invalid.
+    ``total`` is ``valid + invalid + missing + indeterminate``. ``repairable`` is
+    the subset of ``invalid`` that carries a suggestion, so it is not added on top
+    of the other counts. A ``valid is None`` result is ``indeterminate`` when it
+    carries an ``error`` (a value that could not be checked) and ``missing``
+    otherwise (an absent input).
     """
     total = len(results)
     valid = sum(1 for r in results if r.valid is True)
@@ -49,13 +50,15 @@ def summarize(results: Sequence[Result]) -> dict:
     repairable = sum(
         1 for r in results if r.valid is False and r.suggestion is not None
     )
-    missing = sum(1 for r in results if r.valid is None)
+    indeterminate = sum(1 for r in results if r.valid is None and r.error is not None)
+    missing = sum(1 for r in results if r.valid is None and r.error is None)
     return {
         "total": total,
         "valid": valid,
         "invalid": invalid,
         "repairable": repairable,
         "missing": missing,
+        "indeterminate": indeterminate,
     }
 
 

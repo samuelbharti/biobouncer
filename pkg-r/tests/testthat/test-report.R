@@ -18,6 +18,7 @@ test_that("report_id returns a classed table with a summary", {
   expect_identical(counts$invalid, 2L)
   expect_identical(counts$repairable, 1L)
   expect_identical(counts$missing, 1L)
+  expect_identical(counts$indeterminate, 0L)
 })
 
 test_that("report_id prints a one-line summary above the table", {

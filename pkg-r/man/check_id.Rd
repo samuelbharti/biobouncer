@@ -10,7 +10,8 @@ check_id(
   how = "pattern",
   species = NULL,
   version = NULL,
-  refresh = FALSE
+  refresh = FALSE,
+  on_error = "raise"
 )
 }
 \arguments{
@@ -35,11 +36,17 @@ for \code{existence} mode; ignored in \code{pattern} and \code{remote} modes.}
 
 \item{refresh}{In remote checks, skip any cached response and refetch. Ignored
 by the offline modes.}
+
+\item{on_error}{How a per-id remote failure is handled. \code{"raise"} (the
+default) lets the failure unwind the whole call. \code{"indeterminate"} leaves
+just that id \code{NA} with the reason in its \code{error} column and checks the rest
+of the batch, so one unreachable id does not lose the others. Ignored by the
+offline modes.}
 }
 \value{
 A \link[tibble:tibble]{tibble} with one row per element of \code{x} and the
 columns \code{input}, \code{valid}, \code{normalized}, \code{suggestion}, \code{source_db},
-\code{version}, \code{species}, and \code{how}.
+\code{version}, \code{species}, \code{how}, and \code{error}.
 }
 \description{
 Validate a vector of identifiers against a source. \code{pattern} mode checks that

@@ -13,7 +13,7 @@ from biogate.schema import (
 )
 
 
-def _result(input_, valid, suggestion=None):
+def _result(input_, valid, suggestion=None, error=None):
     return Result(
         input=input_,
         valid=valid,
@@ -23,11 +23,12 @@ def _result(input_, valid, suggestion=None):
         version=None,
         species=None,
         how="pattern",
+        error=error,
     )
 
 
 def test_schema_version_is_exported_and_stable():
-    assert SCHEMA_VERSION == "1"
+    assert SCHEMA_VERSION == "2"
 
 
 def test_result_fields_match_the_dataclass_order():
@@ -48,19 +49,26 @@ def test_summarize_counts_each_class():
         _result("MONDO:0005148", True),
         _result("mondo:5148", False, suggestion="MONDO:0005148"),  # repairable
         _result("nope", False),  # invalid, unmappable
-        _result(None, None),  # missing
+        _result(None, None),  # missing (valid None, error None)
+        _result("X", None, error="boom"),  # indeterminate (valid None, error set)
     ]
     counts = summarize(results)
     assert set(counts) == set(SUMMARY_FIELDS)
     assert counts == {
-        "total": 4,
+        "total": 5,
         "valid": 1,
         "invalid": 2,
         "repairable": 1,
         "missing": 1,
+        "indeterminate": 1,
     }
-    # total is valid + invalid + missing; repairable is a subset of invalid.
-    assert counts["total"] == counts["valid"] + counts["invalid"] + counts["missing"]
+    # total is valid + invalid + missing + indeterminate; repairable subsets invalid.
+    assert counts["total"] == (
+        counts["valid"]
+        + counts["invalid"]
+        + counts["missing"]
+        + counts["indeterminate"]
+    )
     assert counts["repairable"] <= counts["invalid"]
 
 

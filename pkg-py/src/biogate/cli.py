@@ -73,14 +73,18 @@ def _print_check(results, fmt: str, invalid_only: bool) -> None:
         print(json.dumps(envelope, indent=2))
         return
     if fmt == "tsv":
-        print("input\tvalid\tnormalized\tsuggestion")
+        print("input\tvalid\tnormalized\tsuggestion\terror")
         for r in rows:
+            valid = "" if r.valid is None else str(r.valid).lower()
             print(
-                f"{r.input}\t{str(r.valid).lower()}\t"
-                f"{r.normalized or ''}\t{r.suggestion or ''}"
+                f"{r.input}\t{valid}\t"
+                f"{r.normalized or ''}\t{r.suggestion or ''}\t{r.error or ''}"
             )
         return
     for r in rows:
+        if r.valid is None and r.error is not None:
+            print(f"ERR   {r.input}  ({r.error})")
+            continue
         mark = "ok  " if r.valid else "FAIL"
         extra = ""
         if r.valid and r.normalized and r.normalized != r.input:
@@ -95,6 +99,9 @@ def _cmd_check(args: argparse.Namespace) -> int:
     if not ids:
         print("biogate check: no identifiers given", file=sys.stderr)
         return 2
+    # Check the whole batch even when a remote id is unreachable: an
+    # indeterminate id is reported and the run exits 3, so the determinate
+    # verdicts are never lost to one failure.
     results = check_id(
         ids,
         source_db=args.source,
@@ -102,15 +109,26 @@ def _cmd_check(args: argparse.Namespace) -> int:
         species=args.species,
         version=args.version,
         refresh=args.refresh,
+        on_error="indeterminate",
     )
     _print_check(results, args.format, args.invalid_only)
-    n_invalid = sum(not r.valid for r in results)
-    if not args.quiet and n_invalid:
-        print(
-            f"{n_invalid} of {len(results)} invalid for {args.source} "
-            f"({args.how} mode)",
-            file=sys.stderr,
-        )
+    n_invalid = sum(r.valid is False for r in results)
+    n_error = sum(r.error is not None for r in results)
+    if not args.quiet:
+        if n_invalid:
+            print(
+                f"{n_invalid} of {len(results)} invalid for {args.source} "
+                f"({args.how} mode)",
+                file=sys.stderr,
+            )
+        if n_error:
+            print(
+                f"{n_error} of {len(results)} could not be checked for "
+                f"{args.source} ({args.how} mode)",
+                file=sys.stderr,
+            )
+    if n_error:
+        return 3
     return 1 if n_invalid else 0
 
 

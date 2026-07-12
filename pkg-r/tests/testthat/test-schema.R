@@ -1,5 +1,5 @@
 test_that("the schema version is read from the shared file", {
-  expect_identical(.schema_version(), "1")
+  expect_identical(.schema_version(), "2")
 })
 
 test_that("result fields match the check_id column order", {
@@ -19,7 +19,11 @@ test_that("summarize counts each class of result", {
   expect_identical(counts$invalid, 2L)
   expect_identical(counts$repairable, 1L)
   expect_identical(counts$missing, 1L)
-  # total is valid + invalid + missing; repairable is a subset of invalid.
-  expect_identical(counts$total, counts$valid + counts$invalid + counts$missing)
+  expect_identical(counts$indeterminate, 0L)
+  # total is valid + invalid + missing + indeterminate; repairable subsets invalid.
+  expect_identical(
+    counts$total,
+    counts$valid + counts$invalid + counts$missing + counts$indeterminate
+  )
   expect_lte(counts$repairable, counts$invalid)
 })

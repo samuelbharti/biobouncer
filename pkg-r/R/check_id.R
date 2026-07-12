@@ -24,6 +24,19 @@
   }
 }
 
+.assert_on_error <- function(on_error) {
+  known <- c("raise", "indeterminate")
+  if (!on_error %in% known) {
+    cli::cli_abort(
+      c(
+        "Invalid {.arg on_error} value {.val {on_error}}.",
+        i = "Choose one of {.val {known}}."
+      ),
+      class = "biogate_error_invalid_on_error"
+    )
+  }
+}
+
 #' Check biological identifiers
 #'
 #' Validate a vector of identifiers against a source. `pattern` mode checks that
@@ -49,9 +62,14 @@
 #'   for `existence` mode; ignored in `pattern` and `remote` modes.
 #' @param refresh In remote checks, skip any cached response and refetch. Ignored
 #'   by the offline modes.
+#' @param on_error How a per-id remote failure is handled. `"raise"` (the
+#'   default) lets the failure unwind the whole call. `"indeterminate"` leaves
+#'   just that id `NA` with the reason in its `error` column and checks the rest
+#'   of the batch, so one unreachable id does not lose the others. Ignored by the
+#'   offline modes.
 #' @return A [tibble][tibble::tibble] with one row per element of `x` and the
 #'   columns `input`, `valid`, `normalized`, `suggestion`, `source_db`,
-#'   `version`, `species`, and `how`.
+#'   `version`, `species`, `how`, and `error`.
 #' @seealso [is_valid_id()], [sources()], [source_info()], [biogate_snapshots()].
 #' @examples
 #' check_id(c("MONDO:0005148", "mondo:5148"), source_db = "mondo")
@@ -63,10 +81,12 @@ check_id <- function(
   how = "pattern",
   species = NULL,
   version = NULL,
-  refresh = FALSE
+  refresh = FALSE,
+  on_error = "raise"
 ) {
   .assert_check_args(x, source_db, how, species, version, refresh)
   .assert_mode_supported(how)
+  .assert_on_error(on_error)
   source <- .get_source(source_db)
 
   x <- as.character(x)
@@ -99,7 +119,7 @@ check_id <- function(
     )
     version_col <- rep(version, n)
   } else if (identical(how, "remote")) {
-    verdicts <- .remote_verdicts(source, x, is_na, species, refresh)
+    verdicts <- .remote_verdicts(source, x, is_na, species, refresh, on_error)
     call_stamp <- .utc_stamp()
     version_col <- ifelse(is.na(verdicts$version), call_stamp, verdicts$version)
   } else if (identical(how, "existence")) {
@@ -126,7 +146,7 @@ check_id <- function(
       )
       version_col <- rep(snap_version, n)
     } else if (!is.null(source$remote)) {
-      verdicts <- .remote_verdicts(source, x, is_na, species, refresh)
+      verdicts <- .remote_verdicts(source, x, is_na, species, refresh, on_error)
       call_stamp <- .utc_stamp()
       version_col <- ifelse(
         is.na(verdicts$version),
@@ -143,6 +163,11 @@ check_id <- function(
   }
 
   species_val <- if (is.null(species)) NA_character_ else as.character(species)
+  error_col <- if (is.null(verdicts$error)) {
+    rep(NA_character_, n)
+  } else {
+    verdicts$error
+  }
   tibble::tibble(
     input = x,
     valid = verdicts$valid,
@@ -151,7 +176,8 @@ check_id <- function(
     source_db = rep(source_db, n),
     version = version_col,
     species = rep(species_val, n),
-    how = rep(how, n)
+    how = rep(how, n),
+    error = error_col
   )
 }
 

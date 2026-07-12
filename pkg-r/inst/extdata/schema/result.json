@@ -1,5 +1,5 @@
 {
-  "schema_version": "1",
+  "schema_version": "2",
   "result_fields": [
     "input",
     "valid",
@@ -8,13 +8,15 @@
     "source_db",
     "version",
     "species",
-    "how"
+    "how",
+    "error"
   ],
   "summary_fields": [
     "total",
     "valid",
     "invalid",
     "repairable",
-    "missing"
+    "missing",
+    "indeterminate"
   ]
 }

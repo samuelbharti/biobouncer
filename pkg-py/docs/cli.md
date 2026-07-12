@@ -21,7 +21,9 @@ FAIL  GO:0006915
 
 The exit code is `0` when every input is valid, `1` when any input is invalid,
 `2` on a usage error such as an unknown source, and `3` when a remote check
-cannot reach the source API. That makes it usable as a gate:
+cannot reach the source API. A remote id that cannot be checked does not sink the
+whole run: it prints as `ERR` with the reason, the ids that could be checked
+still print their verdicts, and the run exits `3`. That makes it usable as a gate:
 
 ```bash
 biogate check --source mondo --file ids.txt || echo "some ids are invalid"
@@ -51,10 +53,13 @@ id up live again.
 
 ```console
 $ biogate check --source uniprot --format tsv -q P04637 p04637
-input   valid   normalized      suggestion
+input   valid   normalized      suggestion      error
 P04637  true    P04637
 p04637  false           P04637
 ```
+
+The `error` column and, in the JSON output, an `indeterminate` count carry the
+ids a remote check could not reach.
 
 The JSON output is a versioned envelope: a `schema_version`, a `summary` with the
 counts over the whole batch, and a `results` list with one object per id carrying

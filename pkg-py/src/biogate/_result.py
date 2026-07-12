@@ -19,6 +19,10 @@ class Result:
         species: Species context, when applicable.
         how: The checking mode used: "pattern", "cache", "remote", or
             "existence".
+        error: Why the value could not be checked, else None. Set only for an
+            indeterminate verdict (``valid is None`` with a non-None ``error``),
+            which a remote failure under ``on_error="indeterminate"`` produces. A
+            missing input is ``valid is None`` with ``error is None``.
     """
 
     input: str | None
@@ -29,3 +33,4 @@ class Result:
     version: str | None
     species: str | None
     how: str
+    error: str | None = None

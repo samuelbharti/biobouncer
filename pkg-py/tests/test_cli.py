@@ -27,13 +27,14 @@ def test_check_json_format(capsys):
     code = main(["check", "-s", "mondo", "--format", "json", "-q", "mondo:5148"])
     assert code == 1
     payload = json.loads(capsys.readouterr().out)
-    assert payload["schema_version"] == "1"
+    assert payload["schema_version"] == "2"
     assert payload["summary"] == {
         "total": 1,
         "valid": 0,
         "invalid": 1,
         "repairable": 1,
         "missing": 0,
+        "indeterminate": 0,
     }
     row = payload["results"][0]
     assert row["input"] == "mondo:5148"
@@ -129,7 +130,9 @@ def test_missing_subcommand_errors():
 def test_refresh_flag_threads_to_the_core(monkeypatch):
     seen = {}
 
-    def _fake_check_id(ids, source_db, how, species, version, refresh):
+    def _fake_check_id(
+        ids, source_db, how, species, version, refresh, on_error="raise"
+    ):
         seen["refresh"] = refresh
         return []
 
@@ -162,7 +165,11 @@ def test_remote_network_failure_exits_three(monkeypatch, tmp_path, capsys):
     monkeypatch.setattr(remote, "_http_get", _boom)
     code = main(["check", "-s", "mondo", "--how", "remote", "MONDO:0005148"])
     assert code == 3  # distinct from 1 (some invalid) and 2 (usage)
-    assert "biogate: connection refused" in capsys.readouterr().err
+    captured = capsys.readouterr()
+    # The id is reported as ERR with the reason, and a summary counts it.
+    assert "ERR" in captured.out
+    assert "connection refused" in captured.out
+    assert "could not be checked" in captured.err
 
 
 def test_snapshots_lists_bundled(tmp_path, monkeypatch, capsys):

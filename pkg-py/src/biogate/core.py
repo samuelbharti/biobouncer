@@ -21,6 +21,7 @@ from ._remote import _utc_stamp, remote_verdicts
 from ._result import Result
 
 _KNOWN_MODES = ("pattern", "cache", "remote", "existence")
+_ON_ERROR = ("raise", "indeterminate")
 
 
 class InvalidModeError(ValueError):
@@ -52,6 +53,7 @@ def check_id(
     species: str | None = None,
     version: str | None = None,
     refresh: bool = False,
+    on_error: str = "raise",
 ) -> list[Result]:
     """Check one or more identifiers against a source.
 
@@ -69,6 +71,11 @@ def check_id(
             mode it selects a snapshot when available. Ignored in pattern mode.
         refresh: In remote checks, skip any cached response and refetch. Ignored
             by the offline modes.
+        on_error: How a per-id remote failure is handled. "raise" (the default)
+            lets the failure unwind the whole call. "indeterminate" leaves just
+            that id ``valid=None`` with the reason in its ``error`` field and
+            checks the rest of the batch, so one unreachable id does not lose the
+            others. Ignored by the offline modes.
 
     Returns:
         A list of ``Result``, one per input, in the input order.
@@ -84,6 +91,10 @@ def check_id(
     if how not in _KNOWN_MODES:
         raise InvalidModeError(
             f"Invalid mode how={how!r}. Choose one of {', '.join(_KNOWN_MODES)}."
+        )
+    if on_error not in _ON_ERROR:
+        raise ValueError(
+            f"Invalid on_error={on_error!r}. Choose one of {', '.join(_ON_ERROR)}."
         )
     source = get_source(source_db)
     raw = [x] if _is_scalar(x) else list(x)
@@ -114,7 +125,7 @@ def check_id(
         retired = _snapshot_retired(source_db, version)
         result_version = version
     elif how == "remote":
-        remote_out = remote_verdicts(source, items, species, refresh)
+        remote_out = remote_verdicts(source, items, species, refresh, on_error)
         result_version = _utc_stamp()
     elif how == "existence":
         # Cache-then-remote fallback: answer from a pinned snapshot when one is
@@ -130,7 +141,7 @@ def check_id(
             retired = _snapshot_retired(source_db, version)
             result_version = version
         elif source.remote:
-            remote_out = remote_verdicts(source, items, species, refresh)
+            remote_out = remote_verdicts(source, items, species, refresh, on_error)
             result_version = _utc_stamp()
         # else: no snapshot and no resolver. Fall through to the pattern path
         # below, so existence degrades to a shape check rather than raising, which
@@ -147,12 +158,13 @@ def check_id(
     results = []
     for idx, s in enumerate(items):
         version = result_version
+        error = None
         if s is None:
             valid, normalized, suggestion = None, None, None
         elif ids is not None:
             valid, normalized, suggestion = cache_check(source, s, ids, retired, fuzzy)
         elif remote_out is not None:
-            valid, normalized, suggestion, fetched_at = remote_out[idx]
+            valid, normalized, suggestion, fetched_at, error = remote_out[idx]
             if fetched_at is not None:
                 version = fetched_at
         else:
@@ -167,6 +179,7 @@ def check_id(
                 version=version,
                 species=species,
                 how=how,
+                error=error,
             )
         )
     return results

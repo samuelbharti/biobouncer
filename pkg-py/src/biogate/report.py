@@ -21,7 +21,7 @@ from .schema import summarize
 # The per-row columns of the report frame: the result fields that vary within one
 # column checked against one source (source_db, version, species, how are
 # constant, so they live on the Report, not in every row).
-_FRAME_COLUMNS = ("input", "valid", "normalized", "suggestion")
+_FRAME_COLUMNS = ("input", "valid", "normalized", "suggestion", "error")
 
 
 def _require_narwhals():
@@ -122,11 +122,17 @@ class Report:
     def __repr__(self) -> str:
         counts = self.summary
         unmappable = counts["invalid"] - counts["repairable"]
+        parts = [
+            f"{counts['valid']} valid",
+            f"{counts['repairable']} repairable",
+            f"{unmappable} invalid",
+            f"{counts['missing']} missing",
+        ]
+        if counts["indeterminate"]:
+            parts.append(f"{counts['indeterminate']} indeterminate")
         return (
             f"<biogate report on {self.source_db!r} ({self.how} mode): "
-            f"{counts['valid']} valid, {counts['repairable']} repairable, "
-            f"{unmappable} invalid, {counts['missing']} missing "
-            f"of {counts['total']}>"
+            f"{', '.join(parts)} of {counts['total']}>"
         )
 
 
@@ -137,6 +143,7 @@ def report(
     species: str | None = None,
     version: str | None = None,
     refresh: bool = False,
+    on_error: str = "raise",
 ) -> Report:
     """Check a whole column and return a :class:`Report`.
 
@@ -148,6 +155,9 @@ def report(
         version: Optional version context. In cache mode it defaults to the
             latest installed snapshot.
         refresh: In remote checks, skip any cached response and refetch.
+        on_error: How a per-id remote failure is handled, as in
+            :func:`check_id`. Pass ``"indeterminate"`` so an unreachable id lands
+            in the report as indeterminate instead of failing the whole column.
 
     Returns:
         A :class:`Report`. Use ``.to_frame()`` for a data frame of verdicts,
@@ -162,5 +172,6 @@ def report(
         species=species,
         version=version,
         refresh=refresh,
+        on_error=on_error,
     )
     return Report(results, source_db=source_db, how=how, backend=backend, name=name)

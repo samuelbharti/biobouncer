@@ -12,7 +12,8 @@ report_id(
   how = "pattern",
   species = NULL,
   version = NULL,
-  refresh = FALSE
+  refresh = FALSE,
+  on_error = "raise"
 )
 
 \method{summary}{biogate_report}(object, ...)
@@ -41,6 +42,12 @@ for \code{existence} mode; ignored in \code{pattern} and \code{remote} modes.}
 
 \item{refresh}{In remote checks, skip any cached response and refetch. Ignored
 by the offline modes.}
+
+\item{on_error}{How a per-id remote failure is handled. \code{"raise"} (the
+default) lets the failure unwind the whole call. \code{"indeterminate"} leaves
+just that id \code{NA} with the reason in its \code{error} column and checks the rest
+of the batch, so one unreachable id does not lose the others. Ignored by the
+offline modes.}
 
 \item{object}{A \code{biogate_report}, as returned by \code{\link[=report_id]{report_id()}}.}
 

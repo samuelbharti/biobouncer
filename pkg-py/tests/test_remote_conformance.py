@@ -77,10 +77,16 @@ def _assert_case(case):
         source_db=case["source_db"],
         how="remote",
         species=case.get("species"),
+        on_error=case.get("on_error", "raise"),
     )[0]
     assert result.valid == expect["valid"]
     assert result.normalized == expect.get("normalized")
     assert result.suggestion == expect.get("suggestion")
+    # An indeterminate case carries an error; every other case must not.
+    if expect.get("error"):
+        assert result.error is not None
+    else:
+        assert result.error is None
 
 
 def test_remote_corpus_is_not_empty():
@@ -99,4 +105,7 @@ def test_remote_conformance_offline(case, monkeypatch):
 )
 @pytest.mark.parametrize("case", CASES, ids=_IDS)
 def test_remote_conformance_live(case):
+    if case.get("offline_only"):
+        # A simulated failure (an unexpected status) cannot be reproduced live.
+        pytest.skip("offline-only case")
     _assert_case(case)

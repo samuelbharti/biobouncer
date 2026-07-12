@@ -22,6 +22,7 @@ def test_report_from_a_list_needs_no_frame_dependency():
         "invalid": 2,
         "repairable": 1,
         "missing": 1,
+        "indeterminate": 0,
     }
     assert "1 repairable" in repr(rep)
 
@@ -37,7 +38,13 @@ def test_to_frame_defaults_to_pandas_for_a_list():
     pd = pytest.importorskip("pandas")
     frame = bg.report(_COLUMN, "hgnc", how="cache").to_frame()
     assert isinstance(frame, pd.DataFrame)
-    assert list(frame.columns) == ["input", "valid", "normalized", "suggestion"]
+    assert list(frame.columns) == [
+        "input",
+        "valid",
+        "normalized",
+        "suggestion",
+        "error",
+    ]
     assert frame["suggestion"].iloc[1] == "KMT2A"
     assert bool(frame["valid"].iloc[0]) is True
 

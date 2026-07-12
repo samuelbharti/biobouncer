@@ -818,7 +818,8 @@
   source,
   id,
   species = NULL,
-  refresh = FALSE
+  refresh = FALSE,
+  on_error = "raise"
 ) {
   path <- .remote_cache_path(resolver$name, resolver$subkey(source), id)
   resp <- NULL
@@ -842,8 +843,31 @@
   }
   if (is.null(resp)) {
     url <- resolver$url(source, id)
-    resp <- .remote_http_get(url)
-    exists <- resolver$exists(resp$status, resp$body)
+    # An unreachable or undecidable id aborts with class biogate_error_remote.
+    # Under on_error = "indeterminate" that becomes an indeterminate verdict for
+    # this id alone, and is never cached, so the rest of the batch still runs.
+    out <- tryCatch(
+      {
+        r <- .remote_http_get(url)
+        list(resp = r, exists = resolver$exists(r$status, r$body))
+      },
+      biogate_error_remote = function(e) {
+        if (!identical(on_error, "indeterminate")) {
+          stop(e)
+        }
+        list(error = conditionMessage(e))
+      }
+    )
+    if (!is.null(out$error)) {
+      return(list(
+        valid = NA,
+        suggestion = NULL,
+        fetched_at = .utc_stamp(),
+        error = out$error
+      ))
+    }
+    resp <- out$resp
+    exists <- out$exists
     fetched_at <- .utc_stamp()
     dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
     .atomic_write_lines(
@@ -863,30 +887,55 @@
     exists <- resolver$exists(resp$status, resp$body)
   }
   if (!isTRUE(exists)) {
-    return(list(valid = FALSE, suggestion = NULL, fetched_at = fetched_at))
+    return(list(
+      valid = FALSE,
+      suggestion = NULL,
+      fetched_at = fetched_at,
+      error = NA_character_
+    ))
   }
   if (!isTRUE(resolver$species_ok(source, id, resp$body, species))) {
-    return(list(valid = FALSE, suggestion = NULL, fetched_at = fetched_at))
+    return(list(
+      valid = FALSE,
+      suggestion = NULL,
+      fetched_at = fetched_at,
+      error = NA_character_
+    ))
   }
   ret <- resolver$retired(source, resp$body)
   if (isTRUE(ret$retired)) {
     return(list(
       valid = FALSE,
       suggestion = ret$successor,
-      fetched_at = fetched_at
+      fetched_at = fetched_at,
+      error = NA_character_
     ))
   }
-  list(valid = TRUE, suggestion = NULL, fetched_at = fetched_at)
+  list(
+    valid = TRUE,
+    suggestion = NULL,
+    fetched_at = fetched_at,
+    error = NA_character_
+  )
 }
 
 # Batch a resolver over a set of ids, returning a named list of the per-id
 # list(valid, suggestion, fetched_at) results. valid is TRUE only when the id
 # exists and matches the requested species; suggestion carries an obsolete
 # term's successor; fetched_at is when its response was retrieved.
-.resolve_ids <- function(resolver, source, ids, species, refresh = FALSE) {
+.resolve_ids <- function(
+  resolver,
+  source,
+  ids,
+  species,
+  refresh = FALSE,
+  on_error = "raise"
+) {
   results <- lapply(
     ids,
-    function(id) .remote_lookup(resolver, source, id, species, refresh)
+    function(id) {
+      .remote_lookup(resolver, source, id, species, refresh, on_error)
+    }
   )
   names(results) <- ids
   results
@@ -902,7 +951,8 @@
   x,
   is_na,
   species = NULL,
-  refresh = FALSE
+  refresh = FALSE,
+  on_error = "raise"
 ) {
   resolver <- .get_resolver(source)
   n <- length(x)
@@ -910,6 +960,7 @@
   normalized <- rep(NA_character_, n)
   suggestion <- rep(NA_character_, n)
   version <- rep(NA_character_, n)
+  error <- rep(NA_character_, n)
   wellformed <- rep(NA, n)
   wellformed[!is_na] <- .matches(source$pattern, x[!is_na])
 
@@ -923,7 +974,7 @@
     candidate[!is.na(candidate)]
   ))
   results <- if (length(need)) {
-    .resolve_ids(resolver, source, need, species, refresh)
+    .resolve_ids(resolver, source, need, species, refresh, on_error)
   } else {
     list()
   }
@@ -935,7 +986,11 @@
     if (isTRUE(wellformed[i])) {
       res <- results[[x[i]]]
       version[i] <- res$fetched_at
-      if (isTRUE(res$valid)) {
+      if (!is.na(res$error)) {
+        # The id's own lookup could not be determined; leave it indeterminate.
+        valid[i] <- NA
+        error[i] <- res$error
+      } else if (isTRUE(res$valid)) {
         valid[i] <- TRUE
         normalized[i] <- x[i]
       } else {
@@ -945,6 +1000,8 @@
         }
       }
     } else {
+      # A malformed input is invalid regardless; only offer a suggestion when the
+      # correction candidate was confirmed to exist.
       valid[i] <- FALSE
       cand <- candidate[i]
       if (!is.na(cand)) {
@@ -959,6 +1016,7 @@
     valid = valid,
     normalized = normalized,
     suggestion = suggestion,
-    version = version
+    version = version,
+    error = error
   )
 }

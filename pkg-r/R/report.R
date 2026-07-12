@@ -26,7 +26,8 @@ report_id <- function(
   how = "pattern",
   species = NULL,
   version = NULL,
-  refresh = FALSE
+  refresh = FALSE,
+  on_error = "raise"
 ) {
   res <- check_id(
     x,
@@ -34,7 +35,8 @@ report_id <- function(
     how = how,
     species = species,
     version = version,
-    refresh = refresh
+    refresh = refresh,
+    on_error = on_error
   )
   class(res) <- c("biogate_report", class(res))
   res
@@ -60,7 +62,8 @@ repair_id <- function(
   how = "pattern",
   species = NULL,
   version = NULL,
-  refresh = FALSE
+  refresh = FALSE,
+  on_error = "raise"
 ) {
   res <- check_id(
     x,
@@ -68,7 +71,8 @@ repair_id <- function(
     how = how,
     species = species,
     version = version,
-    refresh = refresh
+    refresh = refresh,
+    on_error = on_error
   )
   repaired <- res$input
   fixable <- !is.na(res$valid) & !res$valid & !is.na(res$suggestion)
@@ -77,7 +81,7 @@ repair_id <- function(
 }
 
 # Disjoint display buckets that sum to the total: valid, repairable (an invalid
-# value with a suggestion), invalid (no suggestion), and missing.
+# value with a suggestion), invalid (no suggestion), missing, and indeterminate.
 .report_counts <- function(x) {
   counts <- .summarize_results(x)
   list(
@@ -85,7 +89,8 @@ repair_id <- function(
     valid = counts$valid,
     repairable = counts$repairable,
     invalid = counts$invalid - counts$repairable,
-    missing = counts$missing
+    missing = counts$missing,
+    indeterminate = counts$indeterminate
   )
 }
 
@@ -102,7 +107,8 @@ summary.biogate_report <- function(object, ...) {
     valid = counts$valid,
     invalid = counts$invalid,
     repairable = counts$repairable,
-    missing = counts$missing
+    missing = counts$missing,
+    indeterminate = counts$indeterminate
   )
 }
 
@@ -113,21 +119,23 @@ print.biogate_report <- function(x, ...) {
   counts <- .report_counts(x)
   src <- if (nrow(x)) x$source_db[[1L]] else NA_character_
   how_mode <- if (nrow(x)) x$how[[1L]] else NA_character_
-  cat(
-    sprintf(
-      paste0(
-        "# biogate report on %s (%s mode): ",
-        "%d valid, %d repairable, %d invalid, %d missing of %d\n"
-      ),
-      src,
-      how_mode,
-      counts$valid,
-      counts$repairable,
-      counts$invalid,
-      counts$missing,
-      counts$total
-    )
+  parts <- sprintf(
+    "%d valid, %d repairable, %d invalid, %d missing",
+    counts$valid,
+    counts$repairable,
+    counts$invalid,
+    counts$missing
   )
+  if (counts$indeterminate > 0) {
+    parts <- paste0(parts, sprintf(", %d indeterminate", counts$indeterminate))
+  }
+  cat(sprintf(
+    "# biogate report on %s (%s mode): %s of %d\n",
+    src,
+    how_mode,
+    parts,
+    counts$total
+  ))
   NextMethod()
   invisible(x)
 }

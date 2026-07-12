@@ -1,5 +1,11 @@
 # biogate (development version)
 
+* `check_id()` gains an `on_error` argument for remote and existence checks. With
+  the default `"raise"` a network failure still unwinds the call; with
+  `"indeterminate"` just that id is left `NA` with the reason in a new `error`
+  column, and the rest of the batch is still checked. The result tibble now has
+  that ninth `error` column, and `report_id()`/`repair_id()` accept `on_error`
+  too.
 * New `report_id()` and `repair_id()` clean a whole column in one call.
   `report_id()` returns the check table classed so it prints with a one-line
   summary of how many values are valid, repairable, invalid, or missing;
