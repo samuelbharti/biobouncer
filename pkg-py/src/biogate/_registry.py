@@ -27,6 +27,7 @@ class Source:
     remote: dict | None
     species: dict | None = None
     example: str | None = None
+    default_version: str | None = None
 
     def modes(self) -> list[str]:
         """Return the checking modes this source supports, in order."""
@@ -59,6 +60,7 @@ def _registry() -> dict[str, Source]:
             remote=spec.get("remote"),
             species=spec.get("species"),
             example=spec.get("example"),
+            default_version=spec.get("default_version"),
         )
     return out
 

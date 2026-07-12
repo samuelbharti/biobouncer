@@ -5,6 +5,8 @@ from __future__ import annotations
 import os
 import re
 import urllib.request
+from collections.abc import Callable
+from dataclasses import dataclass
 from importlib.resources import files
 from pathlib import Path
 
@@ -206,33 +208,145 @@ def parse_obo(text: str, pattern: str) -> tuple[str | None, list[str]]:
     return version, sorted(ids)
 
 
+def _split_pipe(field: str) -> list[str]:
+    """Split an HGNC multi-value field on ``|``, trimming quotes and spaces."""
+    field = field.strip().strip('"')
+    if not field:
+        return []
+    return [tok.strip().strip('"') for tok in field.split("|") if tok.strip()]
+
+
+def parse_hgnc_tsv(
+    text: str, pattern: str
+) -> tuple[str | None, list[str], dict[str, str]]:
+    """Extract (version, approved ids, retired map) from an HGNC complete-set TSV.
+
+    Columns are looked up by name, never by position. The approved set is every
+    ``symbol`` whose ``status`` is ``Approved`` and matches the source pattern.
+    The retired map sends a previous or alias symbol to its approved successor:
+    a previous symbol wins over an alias, a symbol that is itself approved is
+    never retired, and an ambiguous mapping (two or more approved successors) is
+    dropped. Ids and retired keys are sorted by Unicode code point so R and
+    Python write byte-identical snapshots. The version is always ``None`` here
+    (an HGNC snapshot is dated by its download, not by its content).
+    """
+    lines = text.splitlines()
+    if not lines:
+        return None, [], {}
+    header = lines[0].split("\t")
+    index = {name: i for i, name in enumerate(header)}
+    if "symbol" not in index or "status" not in index:
+        raise ValueError("HGNC TSV is missing the 'symbol' or 'status' column.")
+    c_symbol, c_status = index["symbol"], index["status"]
+    c_prev, c_alias = index.get("prev_symbol"), index.get("alias_symbol")
+
+    approved: set[str] = set()
+    prev_map: dict[str, set[str]] = {}
+    alias_map: dict[str, set[str]] = {}
+    for line in lines[1:]:
+        if not line.strip():
+            continue
+        fields = line.split("\t")
+        if len(fields) <= max(c_symbol, c_status):
+            continue
+        if fields[c_status].strip() != "Approved":
+            continue
+        symbol = fields[c_symbol].strip()
+        if not symbol or not matches(pattern, symbol):
+            continue
+        approved.add(symbol)
+        if c_prev is not None and c_prev < len(fields):
+            for old in _split_pipe(fields[c_prev]):
+                prev_map.setdefault(old, set()).add(symbol)
+        if c_alias is not None and c_alias < len(fields):
+            for old in _split_pipe(fields[c_alias]):
+                alias_map.setdefault(old, set()).add(symbol)
+
+    retired: dict[str, str] = {}
+    for old in sorted(set(prev_map) | set(alias_map)):
+        if not old or old in approved or not matches(pattern, old):
+            continue
+        targets = prev_map.get(old) or alias_map.get(old)
+        if targets and len(targets) == 1:
+            retired[old] = next(iter(targets))
+    return None, sorted(approved), retired
+
+
+@dataclass(frozen=True)
+class _Builder:
+    url: Callable[[Source, str | None], str]
+    build: Callable[[str, Source], tuple[str | None, list[str], dict[str, str]]]
+
+
+def _obo_url(source: Source, version: str | None) -> str:
+    return source.cache["obo_url"]
+
+
+def _obo_build(
+    text: str, source: Source
+) -> tuple[str | None, list[str], dict[str, str]]:
+    version, ids = parse_obo(text, source.pattern)
+    return version, ids, {}
+
+
+def _hgnc_url(source: Source, version: str | None) -> str:
+    template = source.cache["tsv_url"]
+    resolved = version if version is not None else source.default_version
+    return template.format(version=resolved) if "{version}" in template else template
+
+
+def _hgnc_build(
+    text: str, source: Source
+) -> tuple[str | None, list[str], dict[str, str]]:
+    return parse_hgnc_tsv(text, source.pattern)
+
+
+_BUILDERS: dict[str, _Builder] = {
+    "obo": _Builder(_obo_url, _obo_build),
+    "hgnc_tsv": _Builder(_hgnc_url, _hgnc_build),
+}
+
+
 def pull(
     source_db: str, version: str | None = None, quiet: bool = False, timeout: int = 120
 ) -> Path:
     """Download a full snapshot for cache mode into the cache directory.
 
-    Fetches the source's OBO release, keeps the identifiers that match the source
-    pattern, and writes them to ``cache_dir()/<source>/<version>.txt``. The
-    version defaults to the ontology's own data-version.
+    Dispatches on the source's ``cache.builder``: ``obo`` fetches the ontology
+    release, ``hgnc_tsv`` fetches the HGNC complete set. Identifiers that match
+    the source pattern are written to ``cache_dir()/<source>/<version>.txt``, and
+    a retired-id map, when the builder produces one, to the matching
+    ``<version>.retired.tsv`` sidecar. An OBO version defaults to the ontology's
+    own data-version; an HGNC version defaults to the source's ``default_version``.
     """
     source = get_source(source_db)
     cache = source.cache
-    if not cache or cache.get("builder") != "obo":
+    builder = _BUILDERS.get(cache.get("builder")) if cache else None
+    if builder is None:
         raise NoBuilderError(f"No snapshot builder is available for {source_db!r}.")
-    url = cache["obo_url"]
+    url = builder.url(source, version)
     if not quiet:
         print(f"Downloading {url} ...")
     request = urllib.request.Request(url, headers={"User-Agent": _USER_AGENT})
     with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
         text = response.read().decode("utf-8", errors="replace")
-    parsed_version, ids = parse_obo(text, source.pattern)
-    version = str(version) if version is not None else parsed_version
+    parsed_version, ids, retired = builder.build(text, source)
+    version = (
+        str(version)
+        if version is not None
+        else (parsed_version or source.default_version)
+    )
     if not version:
         raise MissingVersionError(
             f"Could not determine a version for {source_db!r}; pass version."
         )
     dest = cache_dir() / source_db / f"{version}.txt"
     _atomic_write_text(dest, "\n".join(ids) + "\n")
+    if retired:
+        lines = [f"{old}\t{succ}" for old, succ in sorted(retired.items())]
+        _atomic_write_text(
+            cache_dir() / source_db / f"{version}.retired.tsv", "\n".join(lines) + "\n"
+        )
     if not quiet:
         print(f"Wrote {len(ids)} ids to {dest}")
     return dest

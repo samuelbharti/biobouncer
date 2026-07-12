@@ -241,21 +241,147 @@ biogate_snapshots <- function() {
     version <- .sanitize_version(sub("^data-version:", "", dv[1]))
   }
   id_values <- sub("^id:\\s*", "", grep("^id:\\s", lines, value = TRUE))
-  ids <- sort(unique(id_values[.matches(pattern, id_values)]))
+  ids <- sort(unique(id_values[.matches(pattern, id_values)]), method = "radix")
   list(
     version = if (is.na(version) || !nzchar(version)) NULL else version,
     ids = ids
   )
 }
 
+# Empty retired map: a named character vector with no entries.
+.empty_retired <- function() {
+  out <- character(0)
+  names(out) <- character(0)
+  out
+}
+
+# Split an HGNC multi-value field on "|", trimming surrounding quotes and spaces.
+.split_pipe <- function(field) {
+  field <- gsub('^"|"$', "", trimws(field))
+  if (!nzchar(field)) {
+    return(character(0))
+  }
+  toks <- gsub('^"|"$', "", trimws(strsplit(field, "|", fixed = TRUE)[[1]]))
+  toks[nzchar(toks)]
+}
+
+# Extract (version, approved ids, retired map) from an HGNC complete-set TSV.
+# Mirrors parse_hgnc_tsv() in the Python package exactly: the approved set is
+# every "symbol" with status "Approved" that matches the pattern; the retired
+# map sends a previous or alias symbol to its approved successor, a previous
+# symbol wins over an alias, an approved symbol is never retired, and an
+# ambiguous mapping is dropped. Everything is sorted by code point (radix) so
+# the two languages write byte-identical snapshots.
+.parse_hgnc_tsv <- function(lines, pattern) {
+  if (!length(lines)) {
+    return(list(version = NULL, ids = character(0), retired = .empty_retired()))
+  }
+  header <- strsplit(lines[1], "\t", fixed = TRUE)[[1]]
+  c_symbol <- match("symbol", header)
+  c_status <- match("status", header)
+  if (is.na(c_symbol) || is.na(c_status)) {
+    cli::cli_abort(
+      "HGNC TSV is missing the {.field symbol} or {.field status} column."
+    )
+  }
+  c_prev <- match("prev_symbol", header)
+  c_alias <- match("alias_symbol", header)
+
+  data <- lines[-1]
+  data <- data[nzchar(trimws(data))]
+  fields_list <- strsplit(data, "\t", fixed = TRUE)
+  col <- function(i) {
+    vapply(
+      fields_list,
+      function(f) if (length(f) >= i) f[i] else NA_character_,
+      character(1)
+    )
+  }
+  symbol <- trimws(col(c_symbol))
+  status <- trimws(col(c_status))
+  ok <- !is.na(symbol) & nzchar(symbol) & !is.na(status) & status == "Approved"
+  ok[ok] <- .matches(pattern, symbol[ok])
+  approved <- sort(unique(symbol[ok]), method = "radix")
+
+  prev_map <- list()
+  alias_map <- list()
+  for (j in which(ok)) {
+    sym <- symbol[j]
+    fields <- fields_list[[j]]
+    if (!is.na(c_prev) && length(fields) >= c_prev) {
+      for (old in .split_pipe(fields[c_prev])) {
+        prev_map[[old]] <- unique(c(prev_map[[old]], sym))
+      }
+    }
+    if (!is.na(c_alias) && length(fields) >= c_alias) {
+      for (old in .split_pipe(fields[c_alias])) {
+        alias_map[[old]] <- unique(c(alias_map[[old]], sym))
+      }
+    }
+  }
+
+  keys <- sort(unique(c(names(prev_map), names(alias_map))), method = "radix")
+  keys <- keys[nzchar(keys) & !(keys %in% approved)]
+  if (length(keys)) {
+    keys <- keys[.matches(pattern, keys)]
+  }
+  retired_keys <- character(0)
+  retired_vals <- character(0)
+  for (old in keys) {
+    targets <- if (!is.null(prev_map[[old]])) {
+      prev_map[[old]]
+    } else {
+      alias_map[[old]]
+    }
+    if (length(targets) == 1L) {
+      retired_keys <- c(retired_keys, old)
+      retired_vals <- c(retired_vals, targets)
+    }
+  }
+  names(retired_vals) <- retired_keys
+  list(version = NULL, ids = approved, retired = retired_vals)
+}
+
+# Snapshot builders, keyed by the source's cache$builder. Each has
+# url(source, version) and build(lines, source) -> list(version, ids, retired).
+# Mirrors the Python _BUILDERS registry.
+.builders <- list(
+  obo = list(
+    url = function(source, version) source$cache$obo_url,
+    build = function(lines, source) {
+      parsed <- .parse_obo(lines, source$pattern)
+      list(
+        version = parsed$version,
+        ids = parsed$ids,
+        retired = .empty_retired()
+      )
+    }
+  ),
+  hgnc_tsv = list(
+    url = function(source, version) {
+      template <- source$cache$tsv_url
+      resolved <- if (!is.null(version)) version else source$default_version
+      if (grepl("{version}", template, fixed = TRUE)) {
+        gsub("{version}", resolved, template, fixed = TRUE)
+      } else {
+        template
+      }
+    },
+    build = function(lines, source) .parse_hgnc_tsv(lines, source$pattern)
+  )
+)
+
 #' Download a snapshot for cache mode
 #'
-#' Fetches the source's OBO release, keeps the identifiers that match the source
-#' pattern, and writes them to the cache directory as a snapshot. The version
-#' defaults to the ontology's own data-version.
+#' Dispatches on the source's `cache$builder`: `obo` fetches the ontology
+#' release, `hgnc_tsv` fetches the HGNC complete set. Identifiers that match the
+#' source pattern are written to the cache directory as a snapshot, and a
+#' retired-id map, when the builder produces one, to the matching
+#' `<version>.retired.tsv` sidecar. An OBO version defaults to the ontology's own
+#' data-version; an HGNC version defaults to the source's `default_version`.
 #'
 #' @param source_db Source key, for example `"mondo"`.
-#' @param version Snapshot version label. Defaults to the ontology data-version.
+#' @param version Snapshot version label. Defaults to the builder's own version.
 #' @param quiet Suppress progress messages.
 #' @return The path to the written snapshot, invisibly.
 #' @seealso [biogate_snapshots()], [check_id()].
@@ -263,19 +389,25 @@ biogate_snapshots <- function() {
 biogate_pull <- function(source_db, version = NULL, quiet = FALSE) {
   source <- .get_source(source_db)
   cache <- source$cache
-  if (is.null(cache) || !identical(cache$builder, "obo")) {
+  builder <- if (is.null(cache) || is.null(cache$builder)) {
+    NULL
+  } else {
+    .builders[[cache$builder]]
+  }
+  if (is.null(builder)) {
     cli::cli_abort(
       "No snapshot builder is available for {.val {source_db}}.",
       class = "biogate_error_no_builder"
     )
   }
-  tmp <- tempfile(fileext = ".obo")
+  url <- builder$url(source, version)
+  tmp <- tempfile()
   on.exit(unlink(tmp), add = TRUE)
   if (!quiet) {
-    cli::cli_inform("Downloading {.url {cache$obo_url}} ...")
+    cli::cli_inform("Downloading {.url {url}} ...")
   }
   utils::download.file(
-    cache$obo_url,
+    url,
     tmp,
     quiet = quiet,
     mode = "wb",
@@ -283,11 +415,17 @@ biogate_pull <- function(source_db, version = NULL, quiet = FALSE) {
       "User-Agent" = "biogate/0.1 (+https://github.com/samuelbharti/biogate)"
     )
   )
-  parsed <- .parse_obo(
+  built <- builder$build(
     readLines(tmp, warn = FALSE, encoding = "UTF-8"),
-    source$pattern
+    source
   )
-  version <- if (is.null(version)) parsed$version else as.character(version)
+  version <- if (!is.null(version)) {
+    as.character(version)
+  } else if (!is.null(built$version)) {
+    built$version
+  } else {
+    source$default_version
+  }
   if (is.null(version) || !nzchar(version)) {
     cli::cli_abort(
       "Could not determine a version for {.val {source_db}}; pass {.arg version}.",
@@ -297,9 +435,17 @@ biogate_pull <- function(source_db, version = NULL, quiet = FALSE) {
   dest_dir <- file.path(biogate_cache_dir(), source_db)
   dir.create(dest_dir, recursive = TRUE, showWarnings = FALSE)
   dest <- file.path(dest_dir, paste0(version, ".txt"))
-  .atomic_write_lines(parsed$ids, dest)
+  .atomic_write_lines(built$ids, dest)
+  retired <- built$retired
+  if (length(retired)) {
+    keys <- sort(names(retired), method = "radix")
+    .atomic_write_lines(
+      paste(keys, retired[keys], sep = "\t"),
+      file.path(dest_dir, paste0(version, ".retired.tsv"))
+    )
+  }
   if (!quiet) {
-    cli::cli_inform("Wrote {length(parsed$ids)} ids to {.file {dest}}.")
+    cli::cli_inform("Wrote {length(built$ids)} ids to {.file {dest}}.")
   }
   invisible(dest)
 }
