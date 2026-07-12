@@ -197,6 +197,68 @@ def test_is_stale_rules():
     assert remote._is_stale(remote._utc_stamp(), 3600) is False  # fresh
 
 
+def test_transient_status_is_retried_then_succeeds(monkeypatch):
+    calls = []
+
+    def _once(url, timeout=30):
+        calls.append(url)
+        if len(calls) < 3:
+            return 503, None  # transient server error
+        return 200, {"page": {"totalElements": 1}}
+
+    monkeypatch.setattr(remote, "_http_get_once", _once)
+    monkeypatch.setattr(remote.time, "sleep", lambda seconds: None)
+    res = biogate.check_id("MONDO:0005148", source_db="mondo", how="remote")[0]
+    assert res.valid is True
+    assert len(calls) == 3  # two retries, then the success
+
+
+def test_persistent_network_error_is_retried_then_raised(monkeypatch):
+    calls = []
+
+    def _once(url, timeout=30):
+        calls.append(url)
+        raise RemoteError("connection reset")
+
+    monkeypatch.setattr(remote, "_http_get_once", _once)
+    monkeypatch.setattr(remote.time, "sleep", lambda seconds: None)
+    with pytest.raises(RemoteError):
+        biogate.check_id("MONDO:0005148", source_db="mondo", how="remote")
+    assert len(calls) == remote._MAX_ATTEMPTS  # exhausted every attempt
+
+
+def test_non_transient_status_is_not_retried(monkeypatch):
+    calls = []
+
+    def _once(url, timeout=30):
+        calls.append(url)
+        return 404, None  # a definite "absent", not transient
+
+    monkeypatch.setattr(remote, "_http_get_once", _once)
+    monkeypatch.setattr(remote.time, "sleep", lambda seconds: None)
+    res = biogate.check_id("MONDO:9999999", source_db="mondo", how="remote")[0]
+    assert res.valid is False
+    assert len(calls) == 1  # answered on the first try
+
+
+def test_ncbi_suffix_added_only_when_a_key_is_configured(monkeypatch):
+    monkeypatch.delenv("NCBI_API_KEY", raising=False)
+    monkeypatch.delenv("NCBI_EMAIL", raising=False)
+    assert remote._ncbi_suffix() == ""  # no key, URL unchanged
+    assert "api_key" not in remote._refseq_url(None, "NM_000546")
+    assert "api_key" not in remote._clinvar_url(None, "VCV000012345")
+
+    monkeypatch.setenv("NCBI_API_KEY", "secret")
+    suffix = remote._ncbi_suffix()
+    assert suffix.startswith("&")
+    assert "api_key=secret" in suffix
+    assert "tool=biogate" in suffix
+    assert "api_key=secret" in remote._refseq_url(None, "NM_000546")
+
+    monkeypatch.setenv("NCBI_EMAIL", "a@b.co")
+    assert "email=a%40b.co" in remote._ncbi_suffix()
+
+
 def test_parse_body_tolerates_empty_and_non_json():
     assert remote._parse_body("") is None
     assert remote._parse_body("   ") is None

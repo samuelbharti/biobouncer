@@ -18,6 +18,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -83,11 +84,16 @@ def _parse_body(text: str) -> dict | None:
         return None
 
 
-def _http_get(url: str, timeout: int = 30) -> tuple[int, dict | None]:
-    """Fetch ``url`` and return ``(status, parsed_json_or_None)``.
+_TRANSIENT_STATUSES = frozenset({429, 500, 502, 503, 504})
+_MAX_ATTEMPTS = 3
+_BACKOFF_BASE = 0.5  # seconds, doubling each retry: 0.5, 1.0, ...
 
-    This is the network seam. HTTP error statuses such as 404 flow through as a
-    status. Network and timeout failures raise ``RemoteError``.
+
+def _http_get_once(url: str, timeout: int = 30) -> tuple[int, dict | None]:
+    """One request: return ``(status, parsed_json_or_None)``.
+
+    HTTP error statuses such as 404 flow through as a status. A network or
+    timeout failure raises ``RemoteError``.
     """
     request = urllib.request.Request(url, headers={"User-Agent": _USER_AGENT})
     try:
@@ -99,6 +105,35 @@ def _http_get(url: str, timeout: int = 30) -> tuple[int, dict | None]:
     except (urllib.error.URLError, TimeoutError, OSError) as error:
         raise RemoteError(f"Remote request failed for {url!r}: {error}") from error
     return status, _parse_body(text)
+
+
+def _http_get(url: str, timeout: int = 30) -> tuple[int, dict | None]:
+    """Fetch ``url`` with a bounded retry on transient failures.
+
+    This is the network seam. A network error, a 429, or a 5xx is usually
+    transient, so it is retried a few times with exponential backoff. A
+    non-transient status (200, 404, and so on) returns at once for the resolver
+    to classify. A network error that persists past the last attempt raises
+    ``RemoteError``; a transient status that persists is returned so the resolver
+    raises its own clear error.
+    """
+    last_error: RemoteError | None = None
+    status: int | None = None
+    body: dict | None = None
+    for attempt in range(_MAX_ATTEMPTS):
+        try:
+            status, body = _http_get_once(url, timeout)
+        except RemoteError as error:
+            last_error = error
+        else:
+            if status not in _TRANSIENT_STATUSES:
+                return status, body
+            last_error = None
+        if attempt + 1 < _MAX_ATTEMPTS:
+            time.sleep(_BACKOFF_BASE * (2**attempt))
+    if last_error is not None:
+        raise last_error
+    return status, body
 
 
 _STAMP_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
@@ -545,6 +580,25 @@ def _prosite_url(source: Source, ident: str) -> str:
     return f"{_PROSITE_BASE}{ident}"
 
 
+def _ncbi_suffix() -> str:
+    """Extra E-utilities query params when an NCBI key is configured, else empty.
+
+    NCBI throttles anonymous E-utilities at three requests a second and lifts it
+    to ten with a key. When ``NCBI_API_KEY`` is set the key is added, along with
+    the ``tool`` and (if ``NCBI_EMAIL`` is set) ``email`` that NCBI asks callers
+    to identify themselves with. With no key the URL is unchanged, so the offline
+    fixtures stay valid.
+    """
+    key = os.environ.get("NCBI_API_KEY")
+    if not key:
+        return ""
+    parts = [f"api_key={urllib.parse.quote(key, safe='')}", "tool=biogate"]
+    email = os.environ.get("NCBI_EMAIL")
+    if email:
+        parts.append(f"email={urllib.parse.quote(email, safe='')}")
+    return "&" + "&".join(parts)
+
+
 def _refseq_db(ident: str) -> str:
     """Pick the NCBI database for a RefSeq accession from its molecule prefix.
 
@@ -556,7 +610,7 @@ def _refseq_db(ident: str) -> str:
 
 
 def _refseq_url(source: Source, ident: str) -> str:
-    return f"{_ESUMMARY_BASE}?db={_refseq_db(ident)}&id={ident}&retmode=json"
+    return f"{_ESUMMARY_BASE}?db={_refseq_db(ident)}&id={ident}&retmode=json{_ncbi_suffix()}"
 
 
 def _esummary_has_uid(body: dict | None) -> bool:
@@ -584,7 +638,7 @@ def _refseq_cache_body(status: int, body: dict | None) -> dict | None:
 def _clinvar_url(source: Source, ident: str) -> str:
     # esearch matches a full accession of any type (VCV, RCV, or SCV), so one
     # search covers the whole source.
-    return f"{_ESEARCH_BASE}?db=clinvar&term={ident}&retmode=json"
+    return f"{_ESEARCH_BASE}?db=clinvar&term={ident}&retmode=json{_ncbi_suffix()}"
 
 
 def _esearch_count(body: dict | None) -> int:

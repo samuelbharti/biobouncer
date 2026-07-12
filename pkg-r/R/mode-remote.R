@@ -19,32 +19,70 @@
   )
 }
 
-# Single network seam. Tests replace it with the biogate.remote_transport option.
+# Statuses worth retrying: a rate limit or a server error, usually transient.
+.remote_transient_statuses <- c(429L, 500L, 502L, 503L, 504L)
+.remote_backoff_base <- 0.5 # seconds, doubling each retry: 0.5, 1.0, ...
+.remote_max_attempts <- 3L
+
+# Try fetch() up to `attempts` times, backing off between transient results.
+# fetch() returns list(status, body), or NULL for a caught network error. A
+# result is transient when it is NULL or its status is in the transient set.
+# Between tries it waits base * 2^(try - 1) seconds. Returns the last result,
+# which the caller turns into a verdict or a raised error.
+.remote_retry <- function(
+  fetch,
+  attempts = .remote_max_attempts,
+  base = .remote_backoff_base,
+  sleep = Sys.sleep
+) {
+  resp <- NULL
+  for (i in seq_len(attempts)) {
+    resp <- fetch()
+    if (!is.null(resp) && !(resp$status %in% .remote_transient_statuses)) {
+      return(resp)
+    }
+    if (i < attempts) {
+      sleep(base * 2^(i - 1))
+    }
+  }
+  resp
+}
+
+# Single network seam. Tests replace it with the biogate.remote_transport option,
+# which is used directly. The real path retries a transient failure with
+# exponential backoff before giving up.
 .remote_http_get <- function(url, timeout = 30) {
   transport <- getOption("biogate.remote_transport", NULL)
   if (is.function(transport)) {
     return(transport(url, timeout))
   }
-  handle <- curl::new_handle(
-    useragent = .remote_user_agent(),
-    timeout = timeout
-  )
-  resp <- tryCatch(
-    curl::curl_fetch_memory(url, handle = handle),
-    error = function(e) {
-      cli::cli_abort(
-        c(
-          "Remote request failed for {.url {url}}.",
-          i = conditionMessage(e)
-        ),
-        class = "biogate_error_remote"
-      )
-    }
-  )
-  list(
-    status = resp$status_code,
-    body = .remote_parse_body(rawToChar(resp$content))
-  )
+  fetch <- function() {
+    handle <- curl::new_handle(
+      useragent = .remote_user_agent(),
+      timeout = timeout
+    )
+    tryCatch(
+      {
+        resp <- curl::curl_fetch_memory(url, handle = handle)
+        list(
+          status = resp$status_code,
+          body = .remote_parse_body(rawToChar(resp$content))
+        )
+      },
+      error = function(e) NULL
+    )
+  }
+  resp <- .remote_retry(fetch)
+  if (is.null(resp)) {
+    cli::cli_abort(
+      c(
+        "Remote request failed for {.url {url}}.",
+        i = "The request did not complete after retrying."
+      ),
+      class = "biogate_error_remote"
+    )
+  }
+  resp
 }
 
 # Turn an identifier into a safe file name: every character outside
@@ -212,6 +250,30 @@
 .no_cache_body <- function(status, body) NULL
 .species_agnostic <- function(source, id, body, species) TRUE
 .never_retired <- function(source, body) list(retired = FALSE, successor = NULL)
+
+# Extra E-utilities query params when an NCBI key is configured, else "". NCBI
+# throttles anonymous E-utilities at three requests a second and lifts it to ten
+# with a key. When NCBI_API_KEY is set the key is added, along with the tool and
+# (when NCBI_EMAIL is set) email that NCBI asks callers to identify with. With no
+# key the URL is unchanged, so the offline fixtures stay valid.
+.ncbi_suffix <- function() {
+  key <- Sys.getenv("NCBI_API_KEY", unset = "")
+  if (!nzchar(key)) {
+    return("")
+  }
+  parts <- c(
+    paste0("api_key=", utils::URLencode(key, reserved = TRUE)),
+    "tool=biogate"
+  )
+  email <- Sys.getenv("NCBI_EMAIL", unset = "")
+  if (nzchar(email)) {
+    parts <- c(
+      parts,
+      paste0("email=", utils::URLencode(email, reserved = TRUE))
+    )
+  }
+  paste0("&", paste(parts, collapse = "&"))
+}
 
 # RefSeq accessions split across two NCBI databases by their molecule prefix.
 # Protein accessions live in the protein database; the rest are nucleotide
@@ -577,7 +639,8 @@
         .refseq_db(id),
         "&id=",
         id,
-        "&retmode=json"
+        "&retmode=json",
+        .ncbi_suffix()
       )
     },
     # esummary answers 200 with an empty uid list and an error field for an
@@ -613,7 +676,8 @@
         "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi",
         "?db=clinvar&term=",
         id,
-        "&retmode=json"
+        "&retmode=json",
+        .ncbi_suffix()
       )
     },
     exists = function(status, body) {

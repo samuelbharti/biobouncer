@@ -9,6 +9,12 @@
   of seconds to refetch a cached response once it is older than that.
 * Snapshot and remote-cache files are written atomically, so an interrupted write
   can no longer leave a truncated file that reports valid ids as invalid.
+* Remote checks retry a transient network failure or a 429 or 5xx response a few
+  times with exponential backoff before giving up, so a brief blip no longer
+  fails a whole batch.
+* The NCBI E-utilities checks (`refseq`, `clinvar`) send an API key when the
+  `NCBI_API_KEY` environment variable is set, which raises NCBI's rate limit from
+  three to ten requests a second. `NCBI_EMAIL` is included when set.
 * `mirbase` gains `remote` mode. A mature accession is checked for existence
   against RNAcentral through EBI Search, which indexes miRBase. miRBase has no
   existence API of its own. This is an existence check only; a withdrawn

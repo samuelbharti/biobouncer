@@ -370,3 +370,43 @@ test_that(".is_stale applies the ttl rules", {
   expect_true(.is_stale("2000-01-01T00:00:00Z", 100)) # long expired
   expect_false(.is_stale(.utc_stamp(), 3600)) # fresh
 })
+
+test_that(".remote_retry retries a transient result then returns the success", {
+  calls <- 0L
+  fetch <- function() {
+    calls <<- calls + 1L
+    if (calls < 3L) {
+      list(status = 503L, body = NULL) # transient server error
+    } else {
+      list(status = 200L, body = NULL)
+    }
+  }
+  resp <- .remote_retry(fetch, attempts = 3L, sleep = function(s) {
+    invisible(NULL)
+  })
+  expect_identical(resp$status, 200L)
+  expect_identical(calls, 3L) # two retries, then the success
+})
+
+test_that(".remote_retry gives up after the last attempt", {
+  calls <- 0L
+  fetch <- function() {
+    calls <<- calls + 1L
+    NULL # a caught network error
+  }
+  resp <- .remote_retry(fetch, attempts = 3L, sleep = function(s) {
+    invisible(NULL)
+  })
+  expect_null(resp)
+  expect_identical(calls, 3L)
+})
+
+test_that(".ncbi_suffix adds the key only when configured", {
+  withr::local_envvar(NCBI_API_KEY = "", NCBI_EMAIL = "")
+  expect_identical(.ncbi_suffix(), "") # no key, URL unchanged
+  withr::local_envvar(NCBI_API_KEY = "secret")
+  suffix <- .ncbi_suffix()
+  expect_true(startsWith(suffix, "&"))
+  expect_true(grepl("api_key=secret", suffix, fixed = TRUE))
+  expect_true(grepl("tool=biogate", suffix, fixed = TRUE))
+})
