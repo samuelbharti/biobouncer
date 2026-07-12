@@ -21,6 +21,10 @@
   number or a different-case prefix is suggested in canonical CURIE form. No cache
   builder is offered, since the NCBI Taxonomy OBO release is far too large to
   snapshot.
+* `inchikey` is a new source for InChIKey chemical structure keys such as
+  `BSYNRYMUTXBXSQ-UHFFFAOYSA-N`. This is pattern mode only; a lowercase input is
+  suggested in its canonical uppercase form. An existence check would need a
+  UniChem or PubChem lookup, which is not offered yet.
 * `mirbase` gains `remote` mode. A mature accession is checked for existence
   against RNAcentral through EBI Search, which indexes miRBase. miRBase has no
   existence API of its own. This is an existence check only; a withdrawn

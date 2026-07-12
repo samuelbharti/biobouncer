@@ -1,6 +1,6 @@
 # Sources cookbook
 
-biogate checks 36 sources. Each row below gives a valid example id, the
+biogate checks 37 sources. Each row below gives a valid example id, the
 [checking modes](guide.md#the-checking-modes) it supports, and whether it is
 species-aware. To check an id, pass the source key as `source_db`. The call is
 the same for every source:
@@ -159,6 +159,7 @@ bg.is_valid_id("GO:0006915", source_db="go")
 | ChEMBL. Bioactive molecules. | `chembl` | `CHEMBL25` | pattern, remote | no |
 | DrugBank. Drug accessions. | `drugbank` | `DB00001` | pattern | no |
 | PharmGKB. Pharmacogenomics accessions. | `pharmgkb` | `PA267` | pattern | no |
+| InChIKey. Hashed chemical structure keys. | `inchikey` | `BSYNRYMUTXBXSQ-UHFFFAOYSA-N` | pattern | no |
 
 Check any id in the group the same way:
 
