@@ -2,3 +2,5 @@
 {"input": "PS50001", "source_db": "prosite", "how": "pattern", "expect": {"valid": true, "normalized": "PS50001"}, "note": "a profile entry"}
 {"input": "ps00001", "source_db": "prosite", "how": "pattern", "expect": {"valid": false, "suggestion": "PS00001"}, "note": "lowercase is suggestible to uppercase"}
 {"input": "PS0001", "source_db": "prosite", "how": "pattern", "expect": {"valid": false}, "note": "four digits, one short"}
+{"input": "PS00123", "source_db": "prosite", "how": "pattern", "expect": {"valid": true, "normalized": "PS00123"}, "note": "another well-formed identifier"}
+{"input": "PS1234", "source_db": "prosite", "how": "pattern", "expect": {"valid": false}, "note": "wrong length, not correctable by case"}

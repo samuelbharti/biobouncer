@@ -2,3 +2,5 @@
 {"input": "SM00015", "source_db": "smart", "how": "pattern", "expect": {"valid": true, "normalized": "SM00015"}, "note": "another SMART accession"}
 {"input": "sm00248", "source_db": "smart", "how": "pattern", "expect": {"valid": false, "suggestion": "SM00248"}, "note": "lowercase is suggestible to uppercase"}
 {"input": "SM0248", "source_db": "smart", "how": "pattern", "expect": {"valid": false}, "note": "four digits, one short"}
+{"input": "SM00100", "source_db": "smart", "how": "pattern", "expect": {"valid": true, "normalized": "SM00100"}, "note": "another well-formed identifier"}
+{"input": "SM1234", "source_db": "smart", "how": "pattern", "expect": {"valid": false}, "note": "wrong length, not correctable by case"}

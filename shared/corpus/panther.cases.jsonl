@@ -2,3 +2,4 @@
 {"input": "PTHR24356", "source_db": "panther", "how": "pattern", "expect": {"valid": true, "normalized": "PTHR24356"}, "note": "another PANTHER family"}
 {"input": "pthr11003", "source_db": "panther", "how": "pattern", "expect": {"valid": false, "suggestion": "PTHR11003"}, "note": "lowercase is suggestible to uppercase"}
 {"input": "PTHR1103", "source_db": "panther", "how": "pattern", "expect": {"valid": false}, "note": "four digits, one short"}
+{"input": "PTHR1234", "source_db": "panther", "how": "pattern", "expect": {"valid": false}, "note": "wrong length, not correctable by case"}

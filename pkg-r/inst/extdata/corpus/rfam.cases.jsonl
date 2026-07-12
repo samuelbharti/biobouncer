@@ -2,3 +2,5 @@
 {"input": "RF00005", "source_db": "rfam", "how": "pattern", "expect": {"valid": true, "normalized": "RF00005"}, "note": "tRNA family"}
 {"input": "rf00001", "source_db": "rfam", "how": "pattern", "expect": {"valid": false, "suggestion": "RF00001"}, "note": "lowercase is suggestible to uppercase"}
 {"input": "RF001", "source_db": "rfam", "how": "pattern", "expect": {"valid": false}, "note": "three digits, too short"}
+{"input": "RF00100", "source_db": "rfam", "how": "pattern", "expect": {"valid": true, "normalized": "RF00100"}, "note": "another well-formed identifier"}
+{"input": "RF1234", "source_db": "rfam", "how": "pattern", "expect": {"valid": false}, "note": "wrong length, not correctable by case"}

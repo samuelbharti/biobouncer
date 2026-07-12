@@ -2,3 +2,5 @@
 {"input": "DB14761", "source_db": "drugbank", "how": "pattern", "expect": {"valid": true, "normalized": "DB14761"}, "note": "a higher-numbered accession"}
 {"input": "db00001", "source_db": "drugbank", "how": "pattern", "expect": {"valid": false, "suggestion": "DB00001"}, "note": "lowercase is suggestible to uppercase"}
 {"input": "DB0001", "source_db": "drugbank", "how": "pattern", "expect": {"valid": false}, "note": "four digits, one short"}
+{"input": "DB00123", "source_db": "drugbank", "how": "pattern", "expect": {"valid": true, "normalized": "DB00123"}, "note": "another well-formed identifier"}
+{"input": "DB1234", "source_db": "drugbank", "how": "pattern", "expect": {"valid": false}, "note": "wrong length, not correctable by case"}

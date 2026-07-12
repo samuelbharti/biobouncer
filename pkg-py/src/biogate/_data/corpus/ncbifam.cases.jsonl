@@ -2,3 +2,5 @@
 {"input": "NF000001", "source_db": "ncbifam", "how": "pattern", "expect": {"valid": true, "normalized": "NF000001"}, "note": "an NF model"}
 {"input": "tigr00001", "source_db": "ncbifam", "how": "pattern", "expect": {"valid": false, "suggestion": "TIGR00001"}, "note": "lowercase is suggestible to uppercase"}
 {"input": "TIGR0001", "source_db": "ncbifam", "how": "pattern", "expect": {"valid": false}, "note": "four digits, one short for a TIGR accession"}
+{"input": "NF000123", "source_db": "ncbifam", "how": "pattern", "expect": {"valid": true, "normalized": "NF000123"}, "note": "another well-formed identifier"}
+{"input": "TIGR1234", "source_db": "ncbifam", "how": "pattern", "expect": {"valid": false}, "note": "wrong length, not correctable by case"}
