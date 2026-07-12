@@ -18,7 +18,7 @@ import argparse
 import json
 import sys
 
-from . import __version__, check_id, source_info, sources
+from . import RemoteError, __version__, check_id, source_info, sources
 
 _MODES = ("pattern", "cache", "remote", "existence")
 
@@ -187,11 +187,19 @@ def _build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Entry point. Returns a process exit code."""
+    """Entry point. Returns a process exit code.
+
+    Codes: 0 all valid, 1 some invalid, 2 a usage or lookup error (unknown
+    source, missing snapshot, bad argument), 3 a remote failure (a network error
+    or a source API that gave no definite answer).
+    """
     parser = _build_parser()
     args = parser.parse_args(argv)
     try:
         return args.func(args)
+    except RemoteError as exc:
+        print(f"biogate: {exc}", file=sys.stderr)
+        return 3
     except (ValueError, FileNotFoundError) as exc:
         print(f"biogate: {exc}", file=sys.stderr)
         return 2

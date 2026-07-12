@@ -103,3 +103,28 @@ def test_refresh_flag_threads_to_the_core(monkeypatch):
     assert seen["refresh"] is True
     main(["check", "-s", "mondo", "--how", "remote", "X"])
     assert seen["refresh"] is False
+
+
+def test_remote_mode_all_valid_exits_zero(monkeypatch, tmp_path):
+    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    import biogate._remote as remote
+
+    def _present(url, timeout=30):
+        return 200, {"page": {"totalElements": 1}}
+
+    monkeypatch.setattr(remote, "_http_get", _present)
+    code = main(["check", "-s", "mondo", "--how", "remote", "-q", "MONDO:0005148"])
+    assert code == 0
+
+
+def test_remote_network_failure_exits_three(monkeypatch, tmp_path, capsys):
+    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    import biogate._remote as remote
+
+    def _boom(url, timeout=30):
+        raise remote.RemoteError("connection refused")
+
+    monkeypatch.setattr(remote, "_http_get", _boom)
+    code = main(["check", "-s", "mondo", "--how", "remote", "MONDO:0005148"])
+    assert code == 3  # distinct from 1 (some invalid) and 2 (usage)
+    assert "biogate: connection refused" in capsys.readouterr().err
