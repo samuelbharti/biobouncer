@@ -76,8 +76,13 @@ def test_pull_errors_without_builder():
         biogate.pull("ensembl")
 
 
-def test_pull_errors_for_a_bundled_only_source():
-    # hgnc has a cache block, so it offers cache mode, but no download builder, so
-    # pull must still refuse rather than pretend it can refresh the snapshot.
-    with pytest.raises(NoBuilderError):
-        biogate.pull("hgnc")
+def test_hgnc_builds_a_dated_snapshot_url():
+    # hgnc refreshes through the non-OBO hgnc_tsv builder, which fills the archive
+    # date into the download url. The network fetch itself is not exercised here.
+    from biogate._cache import _BUILDERS
+
+    src = get_source("hgnc")
+    assert src.cache["builder"] == "hgnc_tsv"
+    url = _BUILDERS["hgnc_tsv"].url(src, None)
+    assert src.default_version in url
+    assert url.endswith(".txt")

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gzip
 import os
 import re
 import urllib.request
@@ -57,24 +58,51 @@ def _ids_from_text(text: str) -> set[str]:
     return {line.strip() for line in text.splitlines() if line.strip()}
 
 
-def _snapshot_text(source_db: str, version: str) -> str | None:
-    user = cache_dir() / source_db / f"{version}.txt"
-    if user.is_file():
-        return user.read_text(encoding="utf-8")
-    bundled = _bundled_root() / source_db / f"{version}.txt"
-    if bundled.is_file():
-        return bundled.read_text(encoding="utf-8")
+def _read_snapshot(res) -> str:
+    """Read a snapshot resource, transparently decompressing a ``.gz`` file."""
+    data = res.read_bytes()
+    if res.name.endswith(".gz"):
+        data = gzip.decompress(data)
+    return data.decode("utf-8")
+
+
+def _find_snapshot(source_db: str, version: str, suffix: str):
+    """Locate a snapshot file, plain or gzipped, user cache before bundled.
+
+    ``suffix`` is ``".txt"`` for the id set or ``".retired.tsv"`` for the retired
+    map. Returns a path-like (a filesystem ``Path`` or a package resource) or
+    ``None`` when neither form is installed.
+    """
+    user = cache_dir() / source_db
+    for ext in (suffix, suffix + ".gz"):
+        candidate = user / f"{version}{ext}"
+        if candidate.is_file():
+            return candidate
+    bundled = _bundled_root() / source_db
+    for ext in (suffix, suffix + ".gz"):
+        candidate = bundled / f"{version}{ext}"
+        if candidate.is_file():
+            return candidate
     return None
+
+
+def _strip_snapshot_ext(name: str) -> str | None:
+    """Return the version for an id-snapshot filename, or ``None`` if it is not one."""
+    if name.endswith(".txt.gz"):
+        return name[: -len(".txt.gz")]
+    if name.endswith(".txt"):
+        return name[: -len(".txt")]
+    return None
+
+
+def _snapshot_text(source_db: str, version: str) -> str | None:
+    res = _find_snapshot(source_db, version, ".txt")
+    return _read_snapshot(res) if res is not None else None
 
 
 def _retired_text(source_db: str, version: str) -> str | None:
-    user = cache_dir() / source_db / f"{version}.retired.tsv"
-    if user.is_file():
-        return user.read_text(encoding="utf-8")
-    bundled = _bundled_root() / source_db / f"{version}.retired.tsv"
-    if bundled.is_file():
-        return bundled.read_text(encoding="utf-8")
-    return None
+    res = _find_snapshot(source_db, version, ".retired.tsv")
+    return _read_snapshot(res) if res is not None else None
 
 
 def _snapshot_retired(source_db: str, version: str) -> dict[str, str]:
@@ -100,10 +128,16 @@ def _snapshot_versions(source_db: str) -> list[str]:
     versions: set[str] = set()
     user = cache_dir() / source_db
     if user.is_dir():
-        versions |= {p.stem for p in user.glob("*.txt")}
+        for p in user.iterdir():
+            version = _strip_snapshot_ext(p.name)
+            if version is not None:
+                versions.add(version)
     bundled = _bundled_root() / source_db
     if bundled.is_dir():
-        versions |= {c.name[:-4] for c in bundled.iterdir() if c.name.endswith(".txt")}
+        for c in bundled.iterdir():
+            version = _strip_snapshot_ext(c.name)
+            if version is not None:
+                versions.add(version)
     return sorted(versions)
 
 
@@ -145,41 +179,33 @@ def cache_check(
     return False, None, None
 
 
+def _snapshot_rows(base, location: str) -> list[dict]:
+    rows: list[dict] = []
+    if not base.is_dir():
+        return rows
+    for src_dir in sorted(base.iterdir(), key=lambda c: c.name):
+        if not src_dir.is_dir():
+            continue
+        for f in sorted(src_dir.iterdir(), key=lambda c: c.name):
+            version = _strip_snapshot_ext(f.name)
+            if version is None:
+                continue
+            rows.append(
+                {
+                    "source": src_dir.name,
+                    "version": version,
+                    "n_ids": len(_ids_from_text(_read_snapshot(f))),
+                    "location": location,
+                }
+            )
+    return rows
+
+
 def snapshots() -> list[dict]:
     """List installed snapshots, both cached and bundled."""
-    rows: list[dict] = []
-    base = cache_dir()
-    if base.is_dir():
-        for src_dir in sorted(base.iterdir()):
-            if src_dir.is_dir():
-                for f in sorted(src_dir.glob("*.txt")):
-                    rows.append(
-                        {
-                            "source": src_dir.name,
-                            "version": f.stem,
-                            "n_ids": len(_ids_from_text(f.read_text(encoding="utf-8"))),
-                            "location": "cache",
-                        }
-                    )
-    bundled = _bundled_root()
-    if bundled.is_dir():
-        for src_dir in sorted(bundled.iterdir(), key=lambda c: c.name):
-            if not src_dir.is_dir():
-                continue
-            txts = sorted(
-                (c for c in src_dir.iterdir() if c.name.endswith(".txt")),
-                key=lambda c: c.name,
-            )
-            for f in txts:
-                rows.append(
-                    {
-                        "source": src_dir.name,
-                        "version": f.name[:-4],
-                        "n_ids": len(_ids_from_text(f.read_text(encoding="utf-8"))),
-                        "location": "bundled",
-                    }
-                )
-    return rows
+    return _snapshot_rows(cache_dir(), "cache") + _snapshot_rows(
+        _bundled_root(), "bundled"
+    )
 
 
 _USER_AGENT = "biogate/0.1 (+https://github.com/samuelbharti/biogate)"

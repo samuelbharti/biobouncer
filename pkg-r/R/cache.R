@@ -24,42 +24,31 @@
   system.file("extdata", "snapshots", package = "biogate")
 }
 
-.snapshot_file <- function(source_db, version) {
-  user <- file.path(biogate_cache_dir(), source_db, paste0(version, ".txt"))
-  if (file.exists(user)) {
-    return(user)
-  }
-  bundled_root <- .bundled_snapshots_dir()
-  if (nzchar(bundled_root)) {
-    bundled <- file.path(bundled_root, source_db, paste0(version, ".txt"))
-    if (file.exists(bundled)) {
-      return(bundled)
+# Locate a snapshot file, plain or gzipped, user cache before bundled. suffix is
+# ".txt" for the id set or ".retired.tsv" for the retired map. readLines() reads a
+# .gz path transparently, so only the lookup needs to know about compression.
+.find_snapshot <- function(source_db, version, suffix) {
+  roots <- c(biogate_cache_dir(), .bundled_snapshots_dir())
+  for (root in roots) {
+    if (!nzchar(root)) {
+      next
+    }
+    for (ext in c(suffix, paste0(suffix, ".gz"))) {
+      path <- file.path(root, source_db, paste0(version, ext))
+      if (file.exists(path)) {
+        return(path)
+      }
     }
   }
   NA_character_
 }
 
+.snapshot_file <- function(source_db, version) {
+  .find_snapshot(source_db, version, ".txt")
+}
+
 .retired_file <- function(source_db, version) {
-  user <- file.path(
-    biogate_cache_dir(),
-    source_db,
-    paste0(version, ".retired.tsv")
-  )
-  if (file.exists(user)) {
-    return(user)
-  }
-  bundled_root <- .bundled_snapshots_dir()
-  if (nzchar(bundled_root)) {
-    bundled <- file.path(
-      bundled_root,
-      source_db,
-      paste0(version, ".retired.tsv")
-    )
-    if (file.exists(bundled)) {
-      return(bundled)
-    }
-  }
-  NA_character_
+  .find_snapshot(source_db, version, ".retired.tsv")
 }
 
 .snapshot_versions <- function(source_db) {
@@ -74,7 +63,7 @@
     if (dir.exists(d)) {
       versions <- c(
         versions,
-        sub("\\.txt$", "", list.files(d, pattern = "\\.txt$"))
+        sub("\\.txt(\\.gz)?$", "", list.files(d, pattern = "\\.txt(\\.gz)?$"))
       )
     }
   }
@@ -203,14 +192,14 @@ biogate_snapshots <- function() {
     }
     files <- list.files(
       base,
-      pattern = "\\.txt$",
+      pattern = "\\.txt(\\.gz)?$",
       recursive = TRUE,
       full.names = TRUE
     )
     for (path in files) {
       rows[[length(rows) + 1L]] <- data.frame(
         source = basename(dirname(path)),
-        version = sub("\\.txt$", "", basename(path)),
+        version = sub("\\.txt(\\.gz)?$", "", basename(path)),
         n_ids = length(.read_ids(path)),
         location = loc,
         stringsAsFactors = FALSE
