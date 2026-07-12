@@ -30,6 +30,7 @@ from . import (
     source_info,
     sources,
 )
+from .schema import SCHEMA_VERSION, result_dict, summarize
 
 _MODES = ("pattern", "cache", "remote", "existence")
 
@@ -61,22 +62,15 @@ def _gather_ids(args: argparse.Namespace) -> list[str]:
 def _print_check(results, fmt: str, invalid_only: bool) -> None:
     rows = [r for r in results if not r.valid] if invalid_only else results
     if fmt == "json":
-        print(
-            json.dumps(
-                [
-                    {
-                        "input": r.input,
-                        "valid": r.valid,
-                        "normalized": r.normalized,
-                        "suggestion": r.suggestion,
-                        "source_db": r.source_db,
-                        "how": r.how,
-                    }
-                    for r in rows
-                ],
-                indent=2,
-            )
-        )
+        # One versioned envelope: the schema version, the counts over the whole
+        # batch, then the (possibly filtered) rows. The per-result dict carries
+        # every field, including version and species, through the shared schema.
+        envelope = {
+            "schema_version": SCHEMA_VERSION,
+            "summary": summarize(results),
+            "results": [result_dict(r) for r in rows],
+        }
+        print(json.dumps(envelope, indent=2))
         return
     if fmt == "tsv":
         print("input\tvalid\tnormalized\tsuggestion")

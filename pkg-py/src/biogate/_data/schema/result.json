@@ -1,0 +1,20 @@
+{
+  "schema_version": "1",
+  "result_fields": [
+    "input",
+    "valid",
+    "normalized",
+    "suggestion",
+    "source_db",
+    "version",
+    "species",
+    "how"
+  ],
+  "summary_fields": [
+    "total",
+    "valid",
+    "invalid",
+    "repairable",
+    "missing"
+  ]
+}

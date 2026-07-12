@@ -22,10 +22,12 @@ from ._registry import UnknownSourceError, source_info, sources
 from ._remote import NoResolverError, RemoteError
 from ._result import Result
 from .core import InvalidModeError, check_id, is_valid_id
+from .schema import SCHEMA_VERSION
 
 __version__ = "0.1.0"
 
 __all__ = [
+    "SCHEMA_VERSION",
     "InvalidModeError",
     "MissingSnapshotError",
     "MissingVersionError",

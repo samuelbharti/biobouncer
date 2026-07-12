@@ -56,8 +56,12 @@ P04637  true    P04637
 p04637  false           P04637
 ```
 
+The JSON output is a versioned envelope: a `schema_version`, a `summary` with the
+counts over the whole batch, and a `results` list with one object per id carrying
+every field, including `version` and `species`.
+
 ```bash
-biogate check --source mondo --format json mondo:5148 | jq '.[0].suggestion'
+biogate check --source mondo --format json mondo:5148 | jq '.results[0].suggestion'
 # "MONDO:0005148"
 ```
 

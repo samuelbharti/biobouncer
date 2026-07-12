@@ -27,9 +27,44 @@ def test_check_json_format(capsys):
     code = main(["check", "-s", "mondo", "--format", "json", "-q", "mondo:5148"])
     assert code == 1
     payload = json.loads(capsys.readouterr().out)
-    assert payload[0]["input"] == "mondo:5148"
-    assert payload[0]["valid"] is False
-    assert payload[0]["suggestion"] == "MONDO:0005148"
+    assert payload["schema_version"] == "1"
+    assert payload["summary"] == {
+        "total": 1,
+        "valid": 0,
+        "invalid": 1,
+        "repairable": 1,
+        "missing": 0,
+    }
+    row = payload["results"][0]
+    assert row["input"] == "mondo:5148"
+    assert row["valid"] is False
+    assert row["suggestion"] == "MONDO:0005148"
+    # version and species used to be dropped from the JSON output; the schema
+    # carries every field now.
+    assert "version" in row
+    assert "species" in row
+
+
+def test_check_json_carries_version_and_species(capsys):
+    code = main(
+        [
+            "check",
+            "-s",
+            "mondo",
+            "--how",
+            "cache",
+            "--version",
+            "sample",
+            "--format",
+            "json",
+            "-q",
+            "MONDO:0005148",
+        ]
+    )
+    assert code == 0
+    row = json.loads(capsys.readouterr().out)["results"][0]
+    assert row["version"] == "sample"
+    assert row["how"] == "cache"
 
 
 def test_check_invalid_only(capsys):
