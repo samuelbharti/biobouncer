@@ -1,0 +1,7 @@
+{
+  "resolver": "genenames",
+  "url": "https://rest.genenames.org/fetch/symbol/MLL",
+  "recorded": "2026-07-12",
+  "status": 200,
+  "body": {"response": {"numFound": 0, "docs": []}}
+}

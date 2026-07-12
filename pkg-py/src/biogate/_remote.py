@@ -46,6 +46,7 @@ _PROSITE_BASE = "https://prosite.expasy.org/"
 _ESUMMARY_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
 _ESEARCH_BASE = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi"
 _EBISEARCH_RNACENTRAL_BASE = "https://www.ebi.ac.uk/ebisearch/ws/rest/rnacentral"
+_GENENAMES_BASE = "https://rest.genenames.org/fetch/"
 # RefSeq accessions split across two NCBI databases by their molecule prefix.
 _REFSEQ_PROTEIN_PREFIXES = frozenset({"AP", "NP", "WP", "XP", "YP", "ZP"})
 _UNSAFE_IDENT = re.compile(r"[^A-Za-z0-9._-]")
@@ -95,7 +96,9 @@ def _http_get_once(url: str, timeout: int = 30) -> tuple[int, dict | None]:
     HTTP error statuses such as 404 flow through as a status. A network or
     timeout failure raises ``RemoteError``.
     """
-    request = urllib.request.Request(url, headers={"User-Agent": _USER_AGENT})
+    request = urllib.request.Request(
+        url, headers={"User-Agent": _USER_AGENT, "Accept": "application/json"}
+    )
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
             status = response.status
@@ -691,6 +694,51 @@ def _mirbase_cache_body(status: int, body: dict | None) -> dict | None:
     return None
 
 
+def _genenames_response(body: dict | None) -> dict:
+    return (body or {}).get("response") or {}
+
+
+def _genenames_approved(body: dict | None) -> bool:
+    """Whether a genenames fetch resolved to an approved symbol."""
+    resp = _genenames_response(body)
+    try:
+        found = int(resp.get("numFound") or 0)
+    except (TypeError, ValueError):
+        found = 0
+    if found < 1:
+        return False
+    docs = resp.get("docs") or []
+    return bool(docs) and str(docs[0].get("status")) == "Approved"
+
+
+def _genenames_url(source: Source, ident: str) -> str:
+    # The HGNC REST service answers JSON only through the Accept header, which the
+    # transport sends for every request. A previous or withdrawn symbol is not an
+    # approved symbol and so is absent here; cache mode carries the successor map.
+    return f"{_GENENAMES_BASE}symbol/{ident}"
+
+
+def _genenames_exists(status: int, body: dict | None) -> bool:
+    # genenames answers 200 with numFound 0 for a symbol it does not know, so
+    # existence is decided from the body rather than the status.
+    if status == 200:
+        return _genenames_approved(body)
+    if status == 404:
+        return False
+    raise RemoteError(f"genenames.org returned unexpected status {status}.")
+
+
+def _genenames_cache_body(status: int, body: dict | None) -> dict | None:
+    # Persist only the count and the first doc's status, which is all existence
+    # needs.
+    if status == 200:
+        resp = _genenames_response(body)
+        docs = resp.get("docs") or []
+        kept = [{"status": docs[0].get("status")}] if docs else []
+        return {"response": {"numFound": resp.get("numFound"), "docs": kept}}
+    return None
+
+
 _OLS = Resolver(
     name="ols",
     subkey=_ols_subkey,
@@ -859,6 +907,16 @@ _MIRBASE = Resolver(
     retired=_never_retired,
 )
 
+_GENENAMES = Resolver(
+    name="genenames",
+    subkey=lambda source: "symbol",
+    url=_genenames_url,
+    exists=_genenames_exists,
+    cache_body=_genenames_cache_body,
+    species_ok=_species_agnostic,
+    retired=_never_retired,
+)
+
 _RESOLVERS = {
     "ols": _OLS,
     "ensembl": _ENSEMBL,
@@ -877,6 +935,7 @@ _RESOLVERS = {
     "refseq": _REFSEQ,
     "clinvar": _CLINVAR,
     "mirbase": _MIRBASE,
+    "genenames": _GENENAMES,
 }
 
 

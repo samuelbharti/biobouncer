@@ -16,6 +16,11 @@ default_version: '2026-07-07'
 cache:
   builder: hgnc_tsv
   tsv_url: "https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/hgnc_complete_set_{version}.txt"
+# Remote mode checks live existence against the genenames.org REST service. Only
+# an approved symbol counts as existing; a previous or withdrawn symbol is absent
+# remotely, and cache mode carries the successor map for suggestions.
+remote:
+  resolver: genenames
 provenance:
   pattern_source: hgnc
   homepage: https://www.genenames.org

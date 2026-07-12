@@ -61,6 +61,7 @@
       useragent = .remote_user_agent(),
       timeout = timeout
     )
+    curl::handle_setheaders(handle, "Accept" = "application/json")
     tryCatch(
       {
         resp <- curl::curl_fetch_memory(url, handle = handle)
@@ -306,6 +307,23 @@
   }
   n <- suppressWarnings(as.integer(count))
   if (is.na(n)) 0L else n
+}
+
+# Whether a genenames fetch resolved to an approved symbol.
+.genenames_approved <- function(body) {
+  resp <- tryCatch(body$response, error = function(e) NULL)
+  if (is.null(resp)) {
+    return(FALSE)
+  }
+  found <- suppressWarnings(as.integer(resp$numFound))
+  if (is.na(found) || found < 1L) {
+    return(FALSE)
+  }
+  docs <- resp$docs
+  if (is.null(docs) || length(docs) == 0L) {
+    return(FALSE)
+  }
+  identical(as.character(docs[[1]]$status), "Approved")
 }
 
 # Resolver definitions. Each maps a source and id to a URL, decides existence
@@ -719,6 +737,47 @@
     cache_body = function(status, body) {
       if (status == 200) {
         list(hitCount = .ebisearch_hitcount(body))
+      } else {
+        NULL
+      }
+    },
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  genenames = list(
+    name = "genenames",
+    subkey = function(source) "symbol",
+    # The HGNC REST service answers JSON only through the Accept header, which the
+    # transport sends for every request. A previous or withdrawn symbol is not an
+    # approved symbol and so is absent here; cache mode carries the successor map.
+    url = function(source, id) {
+      paste0("https://rest.genenames.org/fetch/symbol/", id)
+    },
+    exists = function(status, body) {
+      if (status == 200) {
+        return(.genenames_approved(body))
+      }
+      if (status == 404) {
+        return(FALSE)
+      }
+      .remote_abort_status(status)
+    },
+    cache_body = function(status, body) {
+      if (status == 200) {
+        docs <- tryCatch(body$response$docs, error = function(e) NULL)
+        kept <- if (length(docs)) {
+          list(list(status = docs[[1]]$status))
+        } else {
+          list()
+        }
+        list(
+          response = list(
+            numFound = tryCatch(body$response$numFound, error = function(e) {
+              NULL
+            }),
+            docs = kept
+          )
+        )
       } else {
         NULL
       }
