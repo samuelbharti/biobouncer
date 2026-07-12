@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterable, Mapping
-from datetime import datetime, timezone
 
 from ._cache import (
     MissingVersionError,
@@ -16,7 +15,7 @@ from ._cache import (
 )
 from ._pattern import check_one
 from ._registry import get_source
-from ._remote import remote_verdicts
+from ._remote import _utc_stamp, remote_verdicts
 from ._result import Result
 
 _KNOWN_MODES = ("pattern", "cache", "remote", "existence")
@@ -44,16 +43,13 @@ def _is_missing(value: object) -> bool:
     return type(value).__name__ in ("NAType", "NaTType")
 
 
-def _utc_stamp() -> str:
-    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-
-
 def check_id(
     x: str | Iterable[str],
     source_db: str,
     how: str = "pattern",
     species: str | None = None,
     version: str | None = None,
+    refresh: bool = False,
 ) -> list[Result]:
     """Check one or more identifiers against a source.
 
@@ -66,6 +62,8 @@ def check_id(
             back to "remote".
         species: Optional species context, echoed in the result.
         version: Optional version context. Ignored in pattern mode.
+        refresh: In remote checks, skip any cached response and refetch. Ignored
+            by the offline modes.
 
     Returns:
         A list of ``Result``, one per input, in the input order.
@@ -105,7 +103,7 @@ def check_id(
         retired = _snapshot_retired(source_db, version)
         result_version = version
     elif how == "remote":
-        remote_out = remote_verdicts(source, items, species)
+        remote_out = remote_verdicts(source, items, species, refresh)
         result_version = _utc_stamp()
     elif how == "existence":
         # Cache-then-remote fallback: answer from a pinned snapshot when one is
@@ -121,17 +119,20 @@ def check_id(
             retired = _snapshot_retired(source_db, version)
             result_version = version
         else:
-            remote_out = remote_verdicts(source, items, species)
+            remote_out = remote_verdicts(source, items, species, refresh)
             result_version = _utc_stamp()
 
     results = []
     for idx, s in enumerate(items):
+        version = result_version
         if s is None:
             valid, normalized, suggestion = None, None, None
         elif ids is not None:
             valid, normalized, suggestion = cache_check(source, s, ids, retired)
         elif remote_out is not None:
-            valid, normalized, suggestion = remote_out[idx]
+            valid, normalized, suggestion, fetched_at = remote_out[idx]
+            if fetched_at is not None:
+                version = fetched_at
         else:
             valid, normalized, suggestion = check_one(source, s, species)
         results.append(
@@ -141,7 +142,7 @@ def check_id(
                 normalized=normalized,
                 suggestion=suggestion,
                 source_db=source_db,
-                version=result_version,
+                version=version,
                 species=species,
                 how=how,
             )
@@ -155,13 +156,16 @@ def is_valid_id(
     how: str = "pattern",
     species: str | None = None,
     version: str | None = None,
+    refresh: bool = False,
 ) -> bool | list[bool]:
     """Return just the validity verdict.
 
     Returns a single bool for a scalar input, or a list of bool for an iterable,
     matching the shape of ``x``.
     """
-    results = check_id(x, source_db, how=how, species=species, version=version)
+    results = check_id(
+        x, source_db, how=how, species=species, version=version, refresh=refresh
+    )
     if _is_scalar(x):
         return results[0].valid
     return [r.valid for r in results]

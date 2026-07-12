@@ -66,6 +66,43 @@
   )
 }
 
+# The current UTC time as a second-precision ISO-8601 stamp.
+.utc_stamp <- function() {
+  format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+}
+
+# Cache time-to-live in seconds from BIOGATE_REMOTE_TTL, or NULL. Unset,
+# non-numeric, or non-positive means no expiry: a cached response is served
+# regardless of age. A positive value makes a cached response older than that
+# many seconds stale, so it is refetched.
+.remote_ttl <- function() {
+  raw <- Sys.getenv("BIOGATE_REMOTE_TTL", unset = "")
+  if (!nzchar(raw)) {
+    return(NULL)
+  }
+  ttl <- suppressWarnings(as.numeric(raw))
+  if (is.na(ttl) || ttl <= 0) {
+    return(NULL)
+  }
+  ttl
+}
+
+# Whether a response fetched at fetched_at has aged past ttl seconds. A missing
+# or unparseable timestamp is treated as stale so it is refetched.
+.is_stale <- function(fetched_at, ttl) {
+  if (is.null(ttl)) {
+    return(FALSE)
+  }
+  if (is.null(fetched_at) || is.na(fetched_at) || !nzchar(fetched_at)) {
+    return(TRUE)
+  }
+  stamped <- as.POSIXct(fetched_at, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+  if (is.na(stamped)) {
+    return(TRUE)
+  }
+  as.numeric(difftime(Sys.time(), stamped, units = "secs")) > ttl
+}
+
 # Matching-term count in an OLS response, 0 when absent or malformed.
 .ols_count <- function(body) {
   total <- tryCatch(
@@ -648,7 +685,10 @@
 # Resolve one id, reading an on-disk cached response when present and definitive.
 # exists() raises for an indeterminate status, so it runs before the cache write
 # and such a response is never cached. A corrupt cache file is ignored and
-# refetched. The cache is keyed only by id; species is compared at read time
+# refetched, as is one older than BIOGATE_REMOTE_TTL seconds; refresh skips the
+# cache outright. The returned fetched_at is the UTC stamp of the response the
+# verdict came from, fresh or cached, so a caller can report when the check
+# happened. The cache is keyed only by id; species is compared at read time
 # against the cached body, so a mismatch is a FALSE verdict, not a miss.
 .remote_lookup <- function(
   resolver,
@@ -659,26 +699,37 @@
 ) {
   path <- .remote_cache_path(resolver$name, resolver$subkey(source), id)
   resp <- NULL
+  fetched_at <- NA_character_
   if (!refresh && file.exists(path)) {
     cached <- tryCatch(
       jsonlite::fromJSON(path, simplifyVector = FALSE),
       error = function(e) NULL
     )
     if (!is.null(cached) && !is.null(cached$status)) {
-      resp <- list(status = cached$status, body = cached$body)
+      cached_at <- if (!is.null(cached$fetched_at)) {
+        as.character(cached$fetched_at)
+      } else {
+        NA_character_
+      }
+      if (!.is_stale(cached_at, .remote_ttl())) {
+        resp <- list(status = cached$status, body = cached$body)
+        fetched_at <- cached_at
+      }
     }
   }
   if (is.null(resp)) {
     url <- resolver$url(source, id)
     resp <- .remote_http_get(url)
     exists <- resolver$exists(resp$status, resp$body)
+    fetched_at <- .utc_stamp()
     dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
     .atomic_write_lines(
       jsonlite::toJSON(
         list(
           status = resp$status,
           body = resolver$cache_body(resp$status, resp$body),
-          url = url
+          url = url,
+          fetched_at = fetched_at
         ),
         auto_unbox = TRUE,
         null = "null"
@@ -689,25 +740,30 @@
     exists <- resolver$exists(resp$status, resp$body)
   }
   if (!isTRUE(exists)) {
-    return(list(valid = FALSE, suggestion = NULL))
+    return(list(valid = FALSE, suggestion = NULL, fetched_at = fetched_at))
   }
   if (!isTRUE(resolver$species_ok(source, id, resp$body, species))) {
-    return(list(valid = FALSE, suggestion = NULL))
+    return(list(valid = FALSE, suggestion = NULL, fetched_at = fetched_at))
   }
   ret <- resolver$retired(source, resp$body)
   if (isTRUE(ret$retired)) {
-    return(list(valid = FALSE, suggestion = ret$successor))
+    return(list(
+      valid = FALSE,
+      suggestion = ret$successor,
+      fetched_at = fetched_at
+    ))
   }
-  list(valid = TRUE, suggestion = NULL)
+  list(valid = TRUE, suggestion = NULL, fetched_at = fetched_at)
 }
 
 # Batch a resolver over a set of ids, returning a named list of the per-id
-# list(valid, suggestion) results. valid is TRUE only when the id exists and
-# matches the requested species; suggestion carries an obsolete term's successor.
-.resolve_ids <- function(resolver, source, ids, species) {
+# list(valid, suggestion, fetched_at) results. valid is TRUE only when the id
+# exists and matches the requested species; suggestion carries an obsolete
+# term's successor; fetched_at is when its response was retrieved.
+.resolve_ids <- function(resolver, source, ids, species, refresh = FALSE) {
   results <- lapply(
     ids,
-    function(id) .remote_lookup(resolver, source, id, species)
+    function(id) .remote_lookup(resolver, source, id, species, refresh)
   )
   names(results) <- ids
   results
@@ -715,13 +771,22 @@
 
 # Live existence verdicts. Mirrors .cache_verdicts, batching lookups into one
 # resolver pass over the unique ids that need checking. When a species is given,
-# a map value is TRUE only when the id exists and matches that species.
-.remote_verdicts <- function(source, x, is_na, species = NULL) {
+# a map value is TRUE only when the id exists and matches that species. The
+# version element carries each id's fetch timestamp, NA where nothing was
+# fetched. refresh skips any cached response and refetches.
+.remote_verdicts <- function(
+  source,
+  x,
+  is_na,
+  species = NULL,
+  refresh = FALSE
+) {
   resolver <- .get_resolver(source)
   n <- length(x)
   valid <- rep(NA, n)
   normalized <- rep(NA_character_, n)
   suggestion <- rep(NA_character_, n)
+  version <- rep(NA_character_, n)
   wellformed <- rep(NA, n)
   wellformed[!is_na] <- .matches(source$pattern, x[!is_na])
 
@@ -735,7 +800,7 @@
     candidate[!is.na(candidate)]
   ))
   results <- if (length(need)) {
-    .resolve_ids(resolver, source, need, species)
+    .resolve_ids(resolver, source, need, species, refresh)
   } else {
     list()
   }
@@ -746,6 +811,7 @@
     }
     if (isTRUE(wellformed[i])) {
       res <- results[[x[i]]]
+      version[i] <- res$fetched_at
       if (isTRUE(res$valid)) {
         valid[i] <- TRUE
         normalized[i] <- x[i]
@@ -758,10 +824,18 @@
     } else {
       valid[i] <- FALSE
       cand <- candidate[i]
-      if (!is.na(cand) && isTRUE(results[[cand]]$valid)) {
-        suggestion[i] <- cand
+      if (!is.na(cand)) {
+        version[i] <- results[[cand]]$fetched_at
+        if (isTRUE(results[[cand]]$valid)) {
+          suggestion[i] <- cand
+        }
       }
     }
   }
-  list(valid = valid, normalized = normalized, suggestion = suggestion)
+  list(
+    valid = valid,
+    normalized = normalized,
+    suggestion = suggestion,
+    version = version
+  )
 }

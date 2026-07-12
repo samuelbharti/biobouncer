@@ -276,3 +276,97 @@ test_that(".ols_count returns 0 for missing, null, or malformed counts", {
   expect_identical(.ols_count(list(page = list())), 0L)
   expect_identical(.ols_count(list(page = list(totalElements = 3))), 3L)
 })
+
+test_that("a fetch records its time and reports it as the version", {
+  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_options(
+    biogate.remote_transport = .stub_present("MONDO:0005148")
+  )
+  res <- check_id("MONDO:0005148", source_db = "mondo", how = "remote")
+  path <- .remote_cache_path("ols", "mondo", "MONDO:0005148")
+  record <- jsonlite::fromJSON(path, simplifyVector = FALSE)
+  expect_true(nzchar(record$fetched_at)) # the fetch time is in the cache record
+  expect_identical(res$version, record$fetched_at) # and is the result version
+})
+
+test_that("a cached verdict reports its original fetch time", {
+  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  path <- .remote_cache_path("ols", "mondo", "MONDO:0005148")
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  writeLines(
+    paste0(
+      '{"status":200,"body":{"page":{"totalElements":1}},',
+      '"url":"x","fetched_at":"2000-01-01T00:00:00Z"}'
+    ),
+    path
+  )
+  withr::local_options(
+    biogate.remote_transport = function(url, timeout) {
+      stop("network must not be used when a cached response exists")
+    }
+  )
+  res <- check_id("MONDO:0005148", source_db = "mondo", how = "remote")
+  expect_true(res$valid)
+  # The verdict came from the cache, so its version is the original fetch time.
+  expect_identical(res$version, "2000-01-01T00:00:00Z")
+})
+
+test_that("refresh skips the cache and refetches", {
+  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  path <- .remote_cache_path("ols", "mondo", "MONDO:0005148")
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  writeLines(
+    '{"status":404,"body":null,"url":"x","fetched_at":"2000-01-01T00:00:00Z"}',
+    path
+  )
+  withr::local_options(
+    biogate.remote_transport = .stub_present("MONDO:0005148")
+  )
+  stale <- check_id("MONDO:0005148", source_db = "mondo", how = "remote")
+  expect_false(stale$valid) # served from the cached "absent" record
+  fresh <- check_id(
+    "MONDO:0005148",
+    source_db = "mondo",
+    how = "remote",
+    refresh = TRUE
+  )
+  expect_true(fresh$valid) # refetched, ignoring the cache
+  expect_false(identical(fresh$version, "2000-01-01T00:00:00Z"))
+})
+
+test_that("a cached response older than the TTL is refetched", {
+  withr::local_envvar(
+    BIOGATE_CACHE_DIR = withr::local_tempdir(),
+    BIOGATE_REMOTE_TTL = "1"
+  )
+  path <- .remote_cache_path("ols", "mondo", "MONDO:0005148")
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  writeLines(
+    '{"status":404,"body":null,"url":"x","fetched_at":"2000-01-01T00:00:00Z"}',
+    path
+  )
+  withr::local_options(
+    biogate.remote_transport = .stub_present("MONDO:0005148")
+  )
+  res <- check_id("MONDO:0005148", source_db = "mondo", how = "remote")
+  expect_true(res$valid) # the record aged past the TTL, so it refetched
+})
+
+test_that(".remote_ttl reads the environment", {
+  withr::local_envvar(BIOGATE_REMOTE_TTL = "")
+  expect_null(.remote_ttl())
+  for (off in c("0", "-5", "not-a-number")) {
+    withr::local_envvar(BIOGATE_REMOTE_TTL = off)
+    expect_null(.remote_ttl())
+  }
+  withr::local_envvar(BIOGATE_REMOTE_TTL = "3600")
+  expect_identical(.remote_ttl(), 3600)
+})
+
+test_that(".is_stale applies the ttl rules", {
+  expect_false(.is_stale("2000-01-01T00:00:00Z", NULL)) # no ttl, never stale
+  expect_true(.is_stale(NA_character_, 100)) # no timestamp to trust
+  expect_true(.is_stale("garbage", 100)) # unparseable
+  expect_true(.is_stale("2000-01-01T00:00:00Z", 100)) # long expired
+  expect_false(.is_stale(.utc_stamp(), 3600)) # fresh
+})

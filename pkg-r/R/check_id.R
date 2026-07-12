@@ -1,7 +1,8 @@
-.assert_check_args <- function(x, source_db, how, species, version) {
+.assert_check_args <- function(x, source_db, how, species, version, refresh) {
   checkmate::assert_atomic(x, .var.name = "x")
   checkmate::assert_string(source_db, .var.name = "source_db")
   checkmate::assert_string(how, .var.name = "how")
+  checkmate::assert_flag(refresh, .var.name = "refresh")
   if (!is.null(species)) {
     checkmate::assert_scalar(species, na.ok = FALSE, .var.name = "species")
   }
@@ -44,6 +45,8 @@
 #'   `remote` mode. A species outside the source map is not checked.
 #' @param version Snapshot version. Required for `cache` mode; selects the
 #'   snapshot for `existence` mode; ignored in `pattern` and `remote` modes.
+#' @param refresh In remote checks, skip any cached response and refetch. Ignored
+#'   by the offline modes.
 #' @return A [tibble][tibble::tibble] with one row per element of `x` and the
 #'   columns `input`, `valid`, `normalized`, `suggestion`, `source_db`,
 #'   `version`, `species`, and `how`.
@@ -57,9 +60,10 @@ check_id <- function(
   source_db,
   how = "pattern",
   species = NULL,
-  version = NULL
+  version = NULL,
+  refresh = FALSE
 ) {
-  .assert_check_args(x, source_db, how, species, version)
+  .assert_check_args(x, source_db, how, species, version, refresh)
   .assert_mode_supported(how)
   source <- .get_source(source_db)
 
@@ -86,10 +90,11 @@ check_id <- function(
       .snapshot_set(source_db, version),
       .snapshot_retired(source_db, version)
     )
-    version_col <- version
+    version_col <- rep(version, n)
   } else if (identical(how, "remote")) {
-    verdicts <- .remote_verdicts(source, x, is_na, species)
-    version_col <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+    verdicts <- .remote_verdicts(source, x, is_na, species, refresh)
+    call_stamp <- .utc_stamp()
+    version_col <- ifelse(is.na(verdicts$version), call_stamp, verdicts$version)
   } else if (identical(how, "existence")) {
     # Cache-then-remote fallback: answer from a pinned snapshot when one is
     # available for the requested version, otherwise check live.
@@ -111,14 +116,19 @@ check_id <- function(
         .snapshot_set(source_db, snap_version),
         .snapshot_retired(source_db, snap_version)
       )
-      version_col <- snap_version
+      version_col <- rep(snap_version, n)
     } else {
-      verdicts <- .remote_verdicts(source, x, is_na, species)
-      version_col <- format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+      verdicts <- .remote_verdicts(source, x, is_na, species, refresh)
+      call_stamp <- .utc_stamp()
+      version_col <- ifelse(
+        is.na(verdicts$version),
+        call_stamp,
+        verdicts$version
+      )
     }
   } else {
     verdicts <- .pattern_verdicts(source, x, is_na, species)
-    version_col <- NA_character_
+    version_col <- rep(NA_character_, n)
   }
 
   species_val <- if (is.null(species)) NA_character_ else as.character(species)
@@ -128,7 +138,7 @@ check_id <- function(
     normalized = verdicts$normalized,
     suggestion = verdicts$suggestion,
     source_db = rep(source_db, n),
-    version = rep(version_col, n),
+    version = version_col,
     species = rep(species_val, n),
     how = rep(how, n)
   )
@@ -149,13 +159,15 @@ is_valid_id <- function(
   source_db,
   how = "pattern",
   species = NULL,
-  version = NULL
+  version = NULL,
+  refresh = FALSE
 ) {
   check_id(
     x,
     source_db = source_db,
     how = how,
     species = species,
-    version = version
+    version = version,
+    refresh = refresh
   )$valid
 }

@@ -89,3 +89,17 @@ def test_missing_subcommand_errors():
     with pytest.raises(SystemExit) as excinfo:
         main([])
     assert excinfo.value.code == 2
+
+
+def test_refresh_flag_threads_to_the_core(monkeypatch):
+    seen = {}
+
+    def _fake_check_id(ids, source_db, how, species, version, refresh):
+        seen["refresh"] = refresh
+        return []
+
+    monkeypatch.setattr("biogate.cli.check_id", _fake_check_id)
+    main(["check", "-s", "mondo", "--how", "remote", "--refresh", "X"])
+    assert seen["refresh"] is True
+    main(["check", "-s", "mondo", "--how", "remote", "X"])
+    assert seen["refresh"] is False

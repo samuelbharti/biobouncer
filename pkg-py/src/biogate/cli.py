@@ -96,6 +96,7 @@ def _cmd_check(args: argparse.Namespace) -> int:
         how=args.how,
         species=args.species,
         version=args.version,
+        refresh=args.refresh,
     )
     _print_check(results, args.format, args.invalid_only)
     n_invalid = sum(not r.valid for r in results)
@@ -147,6 +148,11 @@ def _build_parser() -> argparse.ArgumentParser:
     check.add_argument("--how", choices=_MODES, default="pattern", help="checking mode")
     check.add_argument("--species", default=None, help="species name or taxon id")
     check.add_argument("--version", dest="version", default=None, help="source version")
+    check.add_argument(
+        "--refresh",
+        action="store_true",
+        help="re-fetch remote checks, ignoring any cached response",
+    )
     check.add_argument(
         "-f",
         "--file",

@@ -1,5 +1,14 @@
 # biogate (development version)
 
+* `check_id()` and `is_valid_id()` gain a `refresh` argument for `remote` and
+  `existence` checks. When `TRUE`, a cached response is ignored and the id is
+  looked up live again.
+* Remote checks now record when each response was retrieved. A cached verdict
+  reports its original fetch time in the `version` column instead of the time of
+  the current run. Set the `BIOGATE_REMOTE_TTL` environment variable to a number
+  of seconds to refetch a cached response once it is older than that.
+* Snapshot and remote-cache files are written atomically, so an interrupted write
+  can no longer leave a truncated file that reports valid ids as invalid.
 * `mirbase` gains `remote` mode. A mature accession is checked for existence
   against RNAcentral through EBI Search, which indexes miRBase. miRBase has no
   existence API of its own. This is an existence check only; a withdrawn

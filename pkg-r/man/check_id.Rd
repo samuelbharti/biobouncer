@@ -4,7 +4,14 @@
 \alias{check_id}
 \title{Check biological identifiers}
 \usage{
-check_id(x, source_db, how = "pattern", species = NULL, version = NULL)
+check_id(
+  x,
+  source_db,
+  how = "pattern",
+  species = NULL,
+  version = NULL,
+  refresh = FALSE
+)
 }
 \arguments{
 \item{x}{A vector of identifiers. Coerced to character.}
@@ -24,6 +31,9 @@ different species is invalid: Ensembl is checked from its id prefix (in
 
 \item{version}{Snapshot version. Required for \code{cache} mode; selects the
 snapshot for \code{existence} mode; ignored in \code{pattern} and \code{remote} modes.}
+
+\item{refresh}{In remote checks, skip any cached response and refetch. Ignored
+by the offline modes.}
 }
 \value{
 A \link[tibble:tibble]{tibble} with one row per element of \code{x} and the

@@ -116,6 +116,87 @@ def test_corrupt_cache_is_ignored_and_refetched(monkeypatch):
     assert res.valid is True
 
 
+def _seed_cache(path, *, status, body, fetched_at, url="http://x"):
+    """Write a remote cache record with a chosen fetch time."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        json.dumps(
+            {"status": status, "body": body, "url": url, "fetched_at": fetched_at}
+        ),
+        encoding="utf-8",
+    )
+
+
+def _forbid_network(url, timeout=30):
+    raise AssertionError("network should not be called when the cache is used")
+
+
+def test_fetch_records_its_time_and_uses_it_as_version(monkeypatch):
+    monkeypatch.setattr(remote, "_http_get", _stub_present({"MONDO:0005148"}))
+    res = biogate.check_id("MONDO:0005148", source_db="mondo", how="remote")[0]
+    record = json.loads(
+        remote._remote_cache_path("ols", "mondo", "MONDO:0005148").read_text("utf-8")
+    )
+    assert record["fetched_at"]  # the fetch time is written into the cache record
+    assert res.version == record["fetched_at"]  # and reported as the result version
+
+
+def test_cached_verdict_reports_its_original_fetch_time(monkeypatch):
+    path = remote._remote_cache_path("ols", "mondo", "MONDO:0005148")
+    _seed_cache(
+        path,
+        status=200,
+        body={"page": {"totalElements": 1}},
+        fetched_at="2000-01-01T00:00:00Z",
+    )
+    monkeypatch.setattr(remote, "_http_get", _forbid_network)
+    res = biogate.check_id("MONDO:0005148", source_db="mondo", how="remote")[0]
+    assert res.valid is True
+    # The verdict came from the cache, so its version is the original fetch time,
+    # not the time of this run.
+    assert res.version == "2000-01-01T00:00:00Z"
+
+
+def test_refresh_bypasses_the_cache(monkeypatch):
+    path = remote._remote_cache_path("ols", "mondo", "MONDO:0005148")
+    _seed_cache(path, status=404, body=None, fetched_at="2000-01-01T00:00:00Z")
+    monkeypatch.setattr(remote, "_http_get", _stub_present({"MONDO:0005148"}))
+    stale = biogate.check_id("MONDO:0005148", source_db="mondo", how="remote")[0]
+    assert stale.valid is False  # served from the cached "absent" record
+    fresh = biogate.check_id(
+        "MONDO:0005148", source_db="mondo", how="remote", refresh=True
+    )[0]
+    assert fresh.valid is True  # refetched, ignoring the cache
+    assert fresh.version != "2000-01-01T00:00:00Z"
+
+
+def test_ttl_expiry_refetches(monkeypatch):
+    monkeypatch.setenv("BIOGATE_REMOTE_TTL", "1")
+    path = remote._remote_cache_path("ols", "mondo", "MONDO:0005148")
+    _seed_cache(path, status=404, body=None, fetched_at="2000-01-01T00:00:00Z")
+    monkeypatch.setattr(remote, "_http_get", _stub_present({"MONDO:0005148"}))
+    res = biogate.check_id("MONDO:0005148", source_db="mondo", how="remote")[0]
+    assert res.valid is True  # the cached record aged past the TTL, so it refetched
+
+
+def test_remote_ttl_reads_the_environment(monkeypatch):
+    monkeypatch.delenv("BIOGATE_REMOTE_TTL", raising=False)
+    assert remote._remote_ttl() is None
+    for off in ("0", "-5", "not-a-number"):
+        monkeypatch.setenv("BIOGATE_REMOTE_TTL", off)
+        assert remote._remote_ttl() is None
+    monkeypatch.setenv("BIOGATE_REMOTE_TTL", "3600")
+    assert remote._remote_ttl() == 3600.0
+
+
+def test_is_stale_rules():
+    assert remote._is_stale("2000-01-01T00:00:00Z", None) is False  # no TTL, never
+    assert remote._is_stale(None, 100) is True  # no timestamp to trust
+    assert remote._is_stale("garbage", 100) is True  # unparseable
+    assert remote._is_stale("2000-01-01T00:00:00Z", 100) is True  # long expired
+    assert remote._is_stale(remote._utc_stamp(), 3600) is False  # fresh
+
+
 def test_parse_body_tolerates_empty_and_non_json():
     assert remote._parse_body("") is None
     assert remote._parse_body("   ") is None

@@ -16,12 +16,14 @@ E-utilities for RefSeq and ClinVar accessions.
 from __future__ import annotations
 
 import json
+import os
 import re
 import urllib.error
 import urllib.parse
 import urllib.request
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 
 from ._cache import _atomic_write_text, cache_dir
@@ -97,6 +99,50 @@ def _http_get(url: str, timeout: int = 30) -> tuple[int, dict | None]:
     except (urllib.error.URLError, TimeoutError, OSError) as error:
         raise RemoteError(f"Remote request failed for {url!r}: {error}") from error
     return status, _parse_body(text)
+
+
+_STAMP_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
+
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _utc_stamp() -> str:
+    """The current UTC time as a second-precision ISO-8601 stamp."""
+    return _utc_now().strftime(_STAMP_FORMAT)
+
+
+def _remote_ttl() -> float | None:
+    """Cache time-to-live in seconds from ``BIOGATE_REMOTE_TTL``, or None.
+
+    Unset, non-numeric, or non-positive means no expiry: a cached response is
+    served regardless of age. A positive value makes a cached response older
+    than that many seconds stale, so it is refetched.
+    """
+    raw = os.environ.get("BIOGATE_REMOTE_TTL")
+    if not raw:
+        return None
+    try:
+        ttl = float(raw)
+    except ValueError:
+        return None
+    return ttl if ttl > 0 else None
+
+
+def _is_stale(fetched_at: str | None, ttl: float | None) -> bool:
+    """Whether a response fetched at ``fetched_at`` has aged past ``ttl`` seconds."""
+    if ttl is None:
+        return False
+    if not fetched_at:
+        return True  # No timestamp to trust, so treat it as stale.
+    try:
+        stamped = datetime.strptime(fetched_at, _STAMP_FORMAT).replace(
+            tzinfo=timezone.utc
+        )
+    except ValueError:
+        return True
+    return (_utc_now() - stamped).total_seconds() > ttl
 
 
 def _ols_count(body: dict | None) -> int:
@@ -805,41 +851,57 @@ def _remote_lookup(
     ident: str,
     species=None,
     refresh: bool = False,
-) -> tuple[bool, str | None]:
-    """Return ``(valid, suggestion)`` for ``ident``, cache backed.
+) -> tuple[bool, str | None, str | None]:
+    """Return ``(valid, suggestion, fetched_at)`` for ``ident``, cache backed.
 
     An id that exists, matches ``species``, and is not obsolete is valid with no
     suggestion. An id that exists but is obsolete is not valid and carries its
     successor as the suggestion. An id that is absent or belongs to another
-    species is not valid with no suggestion. The cache is keyed by id only;
-    species is compared at read time against the cached body, so one cached
-    response answers any species. An indeterminate status raises before the
-    cache is written, so a response that gives no definite answer is never
-    persisted.
+    species is not valid with no suggestion. ``fetched_at`` is the UTC stamp of
+    the response the verdict came from, whether freshly fetched or read from the
+    cache, so a caller can report when the check actually happened.
+
+    The cache is keyed by id only; species is compared at read time against the
+    cached body, so one cached response answers any species. ``refresh`` skips
+    the cache and refetches; a cached response older than ``BIOGATE_REMOTE_TTL``
+    seconds is refetched too. An indeterminate status raises before the cache is
+    written, so a response that gives no definite answer is never persisted.
     """
     path = _remote_cache_path(resolver.name, resolver.subkey(source), ident)
     if not refresh and path.is_file():
         try:
             cached = json.loads(path.read_text(encoding="utf-8"))
             status, body = cached["status"], cached.get("body")
+            fetched_at = cached.get("fetched_at")
         except (json.JSONDecodeError, KeyError, OSError):
             pass  # A corrupt or partial cache file is ignored and refetched.
         else:
-            if not resolver.exists(status, body):
-                return False, None
-            return _post_existence(resolver, source, ident, body, species)
+            if not _is_stale(fetched_at, _remote_ttl()):
+                if not resolver.exists(status, body):
+                    return False, None, fetched_at
+                valid, successor = _post_existence(
+                    resolver, source, ident, body, species
+                )
+                return valid, successor, fetched_at
     url = resolver.url(source, ident)
     status, body = _http_get(url)
     result = resolver.exists(status, body)
+    fetched_at = _utc_stamp()
     _atomic_write_text(
         path,
         json.dumps(
-            {"status": status, "body": resolver.cache_body(status, body), "url": url}
+            {
+                "status": status,
+                "body": resolver.cache_body(status, body),
+                "url": url,
+                "fetched_at": fetched_at,
+            }
         ),
     )
     if not result:
-        return False, None
-    return _post_existence(resolver, source, ident, body, species)
+        return False, None, fetched_at
+    valid, successor = _post_existence(resolver, source, ident, body, species)
+    return valid, successor, fetched_at
 
 
 def _get_resolver(source: Source) -> Resolver:
@@ -851,23 +913,28 @@ def _get_resolver(source: Source) -> Resolver:
 
 
 def _resolve_ids(
-    resolver: Resolver, source: Source, ids: list[str], species
-) -> dict[str, tuple[bool, str | None]]:
-    """Resolve validity and any successor for a batch of ids through one resolver."""
-    return {ident: _remote_lookup(resolver, source, ident, species) for ident in ids}
+    resolver: Resolver, source: Source, ids: list[str], species, refresh: bool = False
+) -> dict[str, tuple[bool, str | None, str | None]]:
+    """Resolve each id in a batch to ``(valid, successor, fetched_at)``."""
+    return {
+        ident: _remote_lookup(resolver, source, ident, species, refresh)
+        for ident in ids
+    }
 
 
 def remote_verdicts(
-    source: Source, items: list[str], species=None
-) -> list[tuple[bool, str | None, str | None]]:
-    """Return ``(valid, normalized, suggestion)`` per item via live existence.
+    source: Source, items: list[str], species=None, refresh: bool = False
+) -> list[tuple[bool | None, str | None, str | None, str | None]]:
+    """Return ``(valid, normalized, suggestion, fetched_at)`` per item.
 
     Well-formed inputs are looked up directly; one that exists but is obsolete is
     not valid and carries its successor as the suggestion. Malformed inputs offer
     a suggestion only when a correction candidate exists remotely. When
     ``species`` is given, an id that exists but belongs to a different species is
-    not valid. Existence is resolved for the whole batch in a single resolver
-    call.
+    not valid. ``fetched_at`` is the UTC stamp of the response the id's verdict
+    came from, or None for a missing input or one that was never fetched.
+    ``refresh`` skips any cached response and refetches. Existence is resolved
+    for the whole batch in a single resolver call.
     """
     resolver = _get_resolver(source)
     plans: list[tuple[bool | None, str | None]] = []
@@ -884,20 +951,22 @@ def remote_verdicts(
             plans.append((False, candidate))
             if candidate is not None:
                 need.add(candidate)
-    resolved = _resolve_ids(resolver, source, sorted(need), species) if need else {}
-    verdicts: list[tuple[bool, str | None, str | None]] = []
+    resolved = (
+        _resolve_ids(resolver, source, sorted(need), species, refresh) if need else {}
+    )
+    verdicts: list[tuple[bool | None, str | None, str | None, str | None]] = []
     for well_formed, value in plans:
         if well_formed is None:
-            verdicts.append((None, None, None))
+            verdicts.append((None, None, None, None))
             continue
-        valid, successor = resolved.get(value, (False, None))
+        valid, successor, fetched_at = resolved.get(value, (False, None, None))
         if well_formed:
             if valid:
-                verdicts.append((True, value, None))
+                verdicts.append((True, value, None, fetched_at))
             else:
-                verdicts.append((False, None, successor))
+                verdicts.append((False, None, successor, fetched_at))
         elif value is not None and valid:
-            verdicts.append((False, None, value))
+            verdicts.append((False, None, value, fetched_at))
         else:
-            verdicts.append((False, None, None))
+            verdicts.append((False, None, None, fetched_at))
     return verdicts
