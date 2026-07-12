@@ -28,6 +28,11 @@ reference:
     contents:
       - check_id
       - is_valid_id
+  - title: Clean a column
+    desc: Validate and repair a whole column in one call.
+    contents:
+      - report_id
+      - repair_id
   - title: What can be checked
     desc: List the source databases and read their metadata.
     contents:

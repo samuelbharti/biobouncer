@@ -25,6 +25,7 @@ from ._registry import UnknownSourceError, source_info, sources
 from ._remote import NoResolverError, RemoteError
 from ._result import Result
 from .core import InvalidModeError, check_id, is_valid_id
+from .report import Report, report
 from .schema import SCHEMA_VERSION
 
 # Single-sourced from the package metadata (pyproject.toml), so the version is
@@ -43,12 +44,14 @@ __all__ = [
     "NoBuilderError",
     "NoResolverError",
     "RemoteError",
+    "Report",
     "Result",
     "UnknownSourceError",
     "cache_dir",
     "check_id",
     "is_valid_id",
     "pull",
+    "report",
     "snapshots",
     "source_info",
     "sources",

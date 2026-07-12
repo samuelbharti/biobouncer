@@ -12,6 +12,15 @@ framework adapters.
 
 ::: biogate.Result
 
+## Cleaning a column
+
+`report` is the recommended entry point for validating and repairing a whole
+column. See the [report cookbook](report.md).
+
+::: biogate.report
+
+::: biogate.Report
+
 ## Sources
 
 ::: biogate.sources
@@ -37,6 +46,8 @@ Extrinsic modes raise rather than returning a silent `False`.
 ::: biogate.MissingVersionError
 
 ::: biogate.NoBuilderError
+
+::: biogate.MissingDependencyError
 
 ## Framework adapters
 

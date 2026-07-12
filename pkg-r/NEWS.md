@@ -1,5 +1,20 @@
 # biogate (development version)
 
+* New `report_id()` and `repair_id()` clean a whole column in one call.
+  `report_id()` returns the check table classed so it prints with a one-line
+  summary of how many values are valid, repairable, invalid, or missing;
+  `repair_id()` substitutes the fixable values (a withdrawn gene symbol becomes
+  its successor) and leaves valid, unmappable, and missing values untouched, so
+  it drops into `dplyr::mutate()`.
+* `cache` mode no longer requires a `version`. When you omit it, biogate uses the
+  latest installed snapshot (preferring a source's pinned default), so a plain
+  `check_id(x, "hgnc", how = "cache")` just works.
+* `existence` mode now degrades to a `pattern` check for a source with no
+  resolver, instead of raising, so it always returns a verdict.
+* The adapters no longer treat a missing cell as a failure. `check_valid_id()`,
+  `assert_valid_id()`, `test_valid_id()`, `sv_biogate()`, and `id_predicate()`
+  now pass an `NA` value, matching the Python column checks, so a missing cell is
+  never dropped by a filter or flagged by a data-frame rule.
 * `hgnc` gene-symbol validation is now real in every mode. Cache mode ships a
   pinned approved-symbol snapshot of about 45,000 symbols, so it validates real
   gene symbols offline out of the box; a withdrawn or previous symbol still maps

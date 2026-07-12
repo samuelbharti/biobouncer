@@ -141,6 +141,50 @@ bg.check_id(
 )
 ```
 
+## Clean a column
+
+The everyday job is a whole column: which values are wrong, and can you fix the
+ones you can. `report_id()` / `report()` validate the column and print a summary;
+`repair_id()` / `Report.repair()` substitute the fixable values (a withdrawn gene
+symbol becomes its successor) and leave valid, unmappable, and missing values
+untouched. In cache mode the snapshot version defaults to the latest installed,
+so you do not have to name one.
+
+**R**
+
+```r
+genes <- c("TP53", "MLL", "notagene", NA)
+
+report_id(genes, "hgnc", how = "cache")
+#> # biogate report on hgnc (cache mode): 1 valid, 1 repairable, 1 invalid, 1 missing of 4
+#> # A tibble: 4 x 8
+#>   input      valid normalized suggestion source_db version    species how
+#>   <chr>      <lgl> <chr>      <chr>      <chr>     <chr>      <chr>   <chr>
+#> 1 TP53       TRUE  TP53       NA         hgnc      2026-07-07 NA      cache
+#> 2 MLL        FALSE NA         KMT2A      hgnc      2026-07-07 NA      cache
+#> 3 notagene   FALSE NA         NA         hgnc      2026-07-07 NA      cache
+#> 4 NA         NA    NA         NA         hgnc      2026-07-07 NA      cache
+
+repair_id(genes, "hgnc", how = "cache")
+#> [1] "TP53"     "KMT2A"    "notagene" NA
+```
+
+**Python**
+
+```python
+genes = ["TP53", "MLL", "notagene", None]
+
+rep = bg.report(genes, "hgnc", how="cache")
+rep
+# <biogate report on 'hgnc' (cache mode): 1 valid, 1 repairable, 1 invalid, 1 missing of 4>
+
+rep.repair()
+# ['TP53', 'KMT2A', 'notagene', None]
+```
+
+`report`/`report_id` are for inspecting and cleaning; to enforce validity inside
+a framework (pandera, Great Expectations, pydantic, shiny) use the adapters.
+
 ## The three checking modes
 
 | Mode      | What it answers                                   | Network | Reproducible | Speed |
@@ -195,7 +239,7 @@ Every `check_id()` row carries enough context to be self-describing:
 | `source_db`  | source the check ran against                                   |
 | `version`    | snapshot/release that produced the answer                      |
 | `species`    | species context, when applicable                               |
-| `how`        | mode used (`pattern` / `cache` / `remote`)                     |
+| `how`        | mode used (`pattern` / `cache` / `remote` / `existence`)       |
 
 ## Supported sources (growing)
 
@@ -313,12 +357,12 @@ Delivered:
 - [x] Framework adapters (pandera, pydantic, Great Expectations, narwhals; shinyvalidate, checkmate, assertr/validate/pointblank)
 - [x] HGVS syntax validator
 - [x] Command-line interface
+- [x] Real gene-symbol validation (a full HGNC snapshot and a genenames.org resolver)
+- [x] Fuzzy "did you mean" suggestions
+- [x] A validate-and-repair report for data-frame columns (`report` / `report_id`)
 
 Planned:
 
-- [ ] Real gene-symbol existence checks (a full HGNC snapshot and a genenames.org resolver)
-- [ ] A validate-and-repair report for data-frame columns
-- [ ] Fuzzy "did you mean" suggestions
 - [ ] Faster large-column remote checks (batching and concurrency)
 - [ ] An Open Targets connector
 - [ ] First tagged releases on PyPI and CRAN / R-universe

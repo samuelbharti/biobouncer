@@ -132,6 +132,29 @@ is_valid_id(
 The last one is invalid: an insertion must sit between two flanking positions,
 so it needs a range such as `c.76_77insG`.
 
+## Clean a column
+
+The most common job is not "is this one id valid" but "here is a column, which
+values are wrong, and can you fix the ones you can". `report_id()` runs a check
+over a whole column and returns a table that prints with a one-line summary of
+how many values are valid, repairable, invalid, or missing.
+
+```{r report}
+genes <- c("TP53", "MLL", "notagene", NA)
+report_id(genes, "hgnc", how = "cache")
+```
+
+`MLL` is a withdrawn gene symbol, so it is invalid but repairable: its successor
+is `KMT2A`. `repair_id()` substitutes the fixable values and leaves valid,
+unmappable, and missing values untouched, so it keeps the column's length and
+order and drops into `dplyr::mutate()`:
+
+```{r repair}
+repair_id(genes, "hgnc", how = "cache")
+```
+
+Calling `summary()` on a report returns the counts as a one-row table.
+
 ## Validation framework adapters
 
 The adapters wrap the core classifier so it plugs into common validation
@@ -168,6 +191,7 @@ rule("mondo:5148")
 
 - `pattern` mode checks shape, `cache` and `remote` check existence, and
   `existence` uses a snapshot first and remote as a fallback.
+- `report_id()` and `repair_id()` validate and clean a whole column in one call.
 - Results are vectorized and preserve input order and length. Errors are
   explicit.
 - The same inputs give the same verdicts in the Python package, which is

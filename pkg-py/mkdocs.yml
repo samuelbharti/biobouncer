@@ -31,6 +31,7 @@ theme:
 nav:
   - Get started: index.md
   - Guide: guide.md
+  - Clean a column: report.md
   - Examples: examples.md
   - Command line: cli.md
   - Sources cookbook: sources.md
