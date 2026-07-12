@@ -29,6 +29,10 @@
   and `eco` for Evidence and Conclusion Ontology terms such as `ECO:0000269`.
   Both check the pattern offline and existence against their ontology in the
   Ontology Lookup Service, reusing the OLS resolver.
+* `mirbase_hairpin` is a new source for miRBase hairpin precursor accessions such
+  as `MI0000001`, a sibling to the mature `mirbase` source. It checks the pattern
+  offline and existence against RNAcentral through EBI Search, reusing the mirbase
+  resolver.
 * `mirbase` gains `remote` mode. A mature accession is checked for existence
   against RNAcentral through EBI Search, which indexes miRBase. miRBase has no
   existence API of its own. This is an existence check only; a withdrawn

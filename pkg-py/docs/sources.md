@@ -1,6 +1,6 @@
 # Sources cookbook
 
-biogate checks 39 sources. Each row below gives a valid example id, the
+biogate checks 40 sources. Each row below gives a valid example id, the
 [checking modes](guide.md#the-checking-modes) it supports, and whether it is
 species-aware. To check an id, pass the source key as `source_db`. The call is
 the same for every source:
@@ -188,6 +188,7 @@ bg.is_valid_id("R-HSA-68886", source_db="reactome")
 |---|---|---|---|---|
 | Rfam. RNA families. | `rfam` | `RF00001` | pattern, remote | no |
 | miRBase. Mature microRNAs. | `mirbase` | `MIMAT0000001` | pattern, remote | no |
+| miRBase hairpins. MicroRNA hairpin precursors. | `mirbase_hairpin` | `MI0000001` | pattern, remote | no |
 
 Check any id in the group the same way:
 

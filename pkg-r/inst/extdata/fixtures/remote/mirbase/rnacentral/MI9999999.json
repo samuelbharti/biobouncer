@@ -1,0 +1,7 @@
+{
+  "resolver": "mirbase",
+  "url": "https://www.ebi.ac.uk/ebisearch/ws/rest/rnacentral?query=MI9999999&format=json",
+  "recorded": "2026-07-12",
+  "status": 200,
+  "body": {"hitCount": 0}
+}
