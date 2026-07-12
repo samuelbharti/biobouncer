@@ -209,7 +209,7 @@ full list with the modes each source supports.
 | `efo`         | Experimental Factor Ont.   | `EFO:0000400`              |   ✓     |   ✓   |   ✓    |      —        |
 | `go`          | Gene Ontology terms        | `GO:0006915`               |   ✓     |   ✓   |   ✓    |      —        |
 | `chebi`       | ChEBI compounds            | `CHEBI:15377`              |   ✓     |   ✓   |   ✓    |      —        |
-| `hgnc`        | HGNC gene symbols          | `TP53`                     |   ~     |   ✓   |   —    |      —        |
+| `hgnc`        | HGNC gene symbols          | `TP53`                     |   ~     |   ✓   |   ✓    |      —        |
 | `ensembl`     | Ensembl gene/transcript    | `ENSG00000139618`          |   ✓     |   —   |   ✓    |      ✓        |
 | `refseq`      | RefSeq accessions          | `NM_000546.6`              |   ✓     |   —   |   ✓    |      —        |
 | `uniprot`     | UniProt accessions         | `P04637`                   |   ✓     |   —   |   ✓    |      ✓        |

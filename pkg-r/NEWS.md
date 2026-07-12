@@ -1,9 +1,19 @@
 # biogate (development version)
 
-* `hgnc` now reports `cache` mode. It has always shipped an approved-symbol
-  snapshot that cache mode can use, but it did not advertise the mode, so
-  `source_info()` hid it. `biogate_pull()` still refuses `hgnc`, since there is no
-  download builder for it.
+* `hgnc` gene-symbol validation is now real in every mode. Cache mode ships a
+  pinned approved-symbol snapshot of about 45,000 symbols, so it validates real
+  gene symbols offline out of the box; a withdrawn or previous symbol still maps
+  to its approved successor.
+* `biogate_pull("hgnc")` now works. It refreshes the snapshot from a dated HGNC
+  "complete set" archive through a new non-OBO builder, and the version label is
+  the archive's release date.
+* Remote mode now covers `hgnc`. It checks live existence against the
+  genenames.org service, so `source_info()` reports `pattern`, `cache`, and
+  `remote` for it.
+* Cache mode suggests the nearest approved symbol for a typo. A well-formed
+  symbol that is neither approved nor a known previous symbol falls back to the
+  closest approved symbol within a small edit distance, so `TP52` suggests
+  `TP53`.
 * `check_id()` and `is_valid_id()` gain a `refresh` argument for `remote` and
   `existence` checks. When `TRUE`, a cached response is ignored and the id is
   looked up live again.
