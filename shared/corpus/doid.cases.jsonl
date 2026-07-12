@@ -3,3 +3,8 @@
 {"input": "doid:9352", "source_db": "doid", "how": "pattern", "expect": {"valid": false, "suggestion": "DOID:9352"}, "note": "lowercase prefix and short number are suggestible"}
 {"input": "MONDO:0005148", "source_db": "doid", "how": "pattern", "expect": {"valid": false}, "note": "wrong prefix for this source"}
 {"input": "DOID:", "source_db": "doid", "how": "pattern", "expect": {"valid": false}, "note": "prefix without digits"}
+{"input": "DOID:9352", "source_db": "doid", "how": "cache", "version": "sample", "expect": {"valid": true, "normalized": "DOID:9352"}, "note": "exists in the sample snapshot"}
+{"input": "DOID:305", "source_db": "doid", "how": "cache", "version": "sample", "expect": {"valid": true, "normalized": "DOID:305"}, "note": "exists in the sample snapshot"}
+{"input": "DOID:99999999", "source_db": "doid", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "well-formed but not in the snapshot"}
+{"input": "doid:9352", "source_db": "doid", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "DOID:9352"}, "note": "suggested form exists in the snapshot"}
+{"input": "doid:99999999", "source_db": "doid", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "suggested form does not exist, so no suggestion"}

@@ -3,3 +3,8 @@
 {"input": "hp:1250", "source_db": "hp", "how": "pattern", "expect": {"valid": false, "suggestion": "HP:0001250"}, "note": "lowercase prefix and short number are suggestible"}
 {"input": "MONDO:0005148", "source_db": "hp", "how": "pattern", "expect": {"valid": false}, "note": "wrong prefix for this source"}
 {"input": "HP:12345678", "source_db": "hp", "how": "pattern", "expect": {"valid": false}, "note": "too many digits"}
+{"input": "HP:0001250", "source_db": "hp", "how": "cache", "version": "sample", "expect": {"valid": true, "normalized": "HP:0001250"}, "note": "exists in the sample snapshot"}
+{"input": "HP:0000496", "source_db": "hp", "how": "cache", "version": "sample", "expect": {"valid": true, "normalized": "HP:0000496"}, "note": "exists in the sample snapshot"}
+{"input": "HP:9999999", "source_db": "hp", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "well-formed but not in the snapshot"}
+{"input": "hp:1250", "source_db": "hp", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "HP:0001250"}, "note": "suggested form exists in the snapshot"}
+{"input": "hp:9999999", "source_db": "hp", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "suggested form does not exist, so no suggestion"}

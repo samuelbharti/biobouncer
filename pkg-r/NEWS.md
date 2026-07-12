@@ -1,5 +1,9 @@
 # biogate (development version)
 
+* Eight more sources now ship a bundled cache snapshot, so their `cache` mode
+  works offline out of the box: `bto`, `cl`, `doid`, `hp`, `mp`, `pato`, `so`,
+  and `uberon`. Each snapshot is a small set of real, current terms; a fuller
+  snapshot is still available through `biogate_pull()`.
 * New `opentargets` source. It checks whether a human Ensembl gene id is a target
   the Open Targets Platform covers, through the platform's GraphQL API. This is
   the first resolver that queries over a POST body rather than a URL.

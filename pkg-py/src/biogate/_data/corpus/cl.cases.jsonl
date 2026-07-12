@@ -3,3 +3,8 @@
 {"input": "cl:236", "source_db": "cl", "how": "pattern", "expect": {"valid": false, "suggestion": "CL:0000236"}, "note": "lowercase prefix and short number are suggestible"}
 {"input": "MONDO:0005148", "source_db": "cl", "how": "pattern", "expect": {"valid": false}, "note": "wrong prefix for this source"}
 {"input": "CL:12345678", "source_db": "cl", "how": "pattern", "expect": {"valid": false}, "note": "too many digits"}
+{"input": "CL:0000236", "source_db": "cl", "how": "cache", "version": "sample", "expect": {"valid": true, "normalized": "CL:0000236"}, "note": "exists in the sample snapshot"}
+{"input": "CL:0000540", "source_db": "cl", "how": "cache", "version": "sample", "expect": {"valid": true, "normalized": "CL:0000540"}, "note": "exists in the sample snapshot"}
+{"input": "CL:9999999", "source_db": "cl", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "well-formed but not in the snapshot"}
+{"input": "cl:236", "source_db": "cl", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "CL:0000236"}, "note": "suggested form exists in the snapshot"}
+{"input": "cl:9999999", "source_db": "cl", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "suggested form does not exist, so no suggestion"}

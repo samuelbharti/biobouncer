@@ -3,3 +3,8 @@
 {"input": "uberon:2107", "source_db": "uberon", "how": "pattern", "expect": {"valid": false, "suggestion": "UBERON:0002107"}, "note": "lowercase prefix and short number are suggestible"}
 {"input": "MONDO:0005148", "source_db": "uberon", "how": "pattern", "expect": {"valid": false}, "note": "wrong prefix for this source"}
 {"input": "UBERON:12345678", "source_db": "uberon", "how": "pattern", "expect": {"valid": false}, "note": "too many digits"}
+{"input": "UBERON:0002107", "source_db": "uberon", "how": "cache", "version": "sample", "expect": {"valid": true, "normalized": "UBERON:0002107"}, "note": "exists in the sample snapshot"}
+{"input": "UBERON:0002483", "source_db": "uberon", "how": "cache", "version": "sample", "expect": {"valid": true, "normalized": "UBERON:0002483"}, "note": "exists in the sample snapshot"}
+{"input": "UBERON:9999999", "source_db": "uberon", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "well-formed but not in the snapshot"}
+{"input": "uberon:2107", "source_db": "uberon", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "UBERON:0002107"}, "note": "suggested form exists in the snapshot"}
+{"input": "uberon:9999999", "source_db": "uberon", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "suggested form does not exist, so no suggestion"}

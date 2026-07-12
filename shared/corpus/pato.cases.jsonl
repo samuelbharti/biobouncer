@@ -3,3 +3,8 @@
 {"input": "pato:1", "source_db": "pato", "how": "pattern", "expect": {"valid": false, "suggestion": "PATO:0000001"}, "note": "lowercase prefix and short number are suggestible"}
 {"input": "MONDO:0005148", "source_db": "pato", "how": "pattern", "expect": {"valid": false}, "note": "wrong prefix for this source"}
 {"input": "PATO:12345678", "source_db": "pato", "how": "pattern", "expect": {"valid": false}, "note": "too many digits"}
+{"input": "PATO:0000001", "source_db": "pato", "how": "cache", "version": "sample", "expect": {"valid": true, "normalized": "PATO:0000001"}, "note": "exists in the sample snapshot"}
+{"input": "PATO:0000470", "source_db": "pato", "how": "cache", "version": "sample", "expect": {"valid": true, "normalized": "PATO:0000470"}, "note": "exists in the sample snapshot"}
+{"input": "PATO:9999999", "source_db": "pato", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "well-formed but not in the snapshot"}
+{"input": "pato:1", "source_db": "pato", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "PATO:0000001"}, "note": "suggested form exists in the snapshot"}
+{"input": "pato:9999999", "source_db": "pato", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "suggested form does not exist, so no suggestion"}
