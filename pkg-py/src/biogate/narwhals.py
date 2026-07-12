@@ -15,7 +15,12 @@ Example:
 
 from __future__ import annotations
 
-import narwhals as nw
+from ._deps import MissingDependencyError
+
+try:
+    import narwhals as nw
+except ModuleNotFoundError as exc:  # pragma: no cover - optional dependency
+    raise MissingDependencyError("narwhals", "narwhals") from exc
 
 from .core import is_valid_id
 

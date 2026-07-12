@@ -18,7 +18,12 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from pydantic import AfterValidator
+from ._deps import MissingDependencyError
+
+try:
+    from pydantic import AfterValidator
+except ModuleNotFoundError as exc:  # pragma: no cover - optional dependency
+    raise MissingDependencyError("pydantic", "adapters") from exc
 
 from .core import is_valid_id
 

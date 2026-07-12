@@ -16,12 +16,17 @@ Example:
 
 from __future__ import annotations
 
-import pandas as pd
+from ._deps import MissingDependencyError
 
-try:  # pandera >= 0.20 moved the pandas backend under its own namespace.
-    from pandera.pandas import Check
-except ImportError:  # pragma: no cover - older pandera
-    from pandera import Check
+try:
+    import pandas as pd
+
+    try:  # pandera >= 0.20 moved the pandas backend under its own namespace.
+        from pandera.pandas import Check
+    except ImportError:  # pragma: no cover - older pandera
+        from pandera import Check
+except ModuleNotFoundError as exc:  # pragma: no cover - optional dependency
+    raise MissingDependencyError("pandera", "adapters") from exc
 
 from .core import is_valid_id
 

@@ -30,13 +30,18 @@ from __future__ import annotations
 
 from typing import Optional
 
-import pandas as pd
-from great_expectations.execution_engine import PandasExecutionEngine
-from great_expectations.expectations.expectation import ColumnMapExpectation
-from great_expectations.expectations.metrics.map_metric_provider import (
-    ColumnMapMetricProvider,
-    column_condition_partial,
-)
+from ._deps import MissingDependencyError
+
+try:
+    import pandas as pd
+    from great_expectations.execution_engine import PandasExecutionEngine
+    from great_expectations.expectations.expectation import ColumnMapExpectation
+    from great_expectations.expectations.metrics.map_metric_provider import (
+        ColumnMapMetricProvider,
+        column_condition_partial,
+    )
+except ModuleNotFoundError as exc:  # pragma: no cover - optional dependency
+    raise MissingDependencyError("great_expectations", "gx") from exc
 
 from .core import is_valid_id
 

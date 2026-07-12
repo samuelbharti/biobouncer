@@ -18,6 +18,7 @@ from ._cache import (
     pull,
     snapshots,
 )
+from ._deps import MissingDependencyError
 from ._registry import UnknownSourceError, source_info, sources
 from ._remote import NoResolverError, RemoteError
 from ._result import Result
@@ -29,6 +30,7 @@ __version__ = "0.1.0"
 __all__ = [
     "SCHEMA_VERSION",
     "InvalidModeError",
+    "MissingDependencyError",
     "MissingSnapshotError",
     "MissingVersionError",
     "NoBuilderError",
