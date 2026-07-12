@@ -15,9 +15,12 @@ E-utilities for RefSeq and ClinVar accessions.
 
 from __future__ import annotations
 
+import concurrent.futures
 import json
 import os
 import re
+import sys
+import threading
 import time
 import urllib.error
 import urllib.parse
@@ -89,6 +92,42 @@ _TRANSIENT_STATUSES = frozenset({429, 500, 502, 503, 504})
 _MAX_ATTEMPTS = 3
 _BACKOFF_BASE = 0.5  # seconds, doubling each retry: 0.5, 1.0, ...
 
+# Politeness: the minimum seconds between requests to a host. NCBI throttles
+# E-utilities to three requests a second anonymously and ten with an API key;
+# other hosts are not gated here. The limiter matters only when several ids are
+# checked concurrently; a single sequential caller is naturally under the limit.
+_rate_meta_lock = threading.Lock()
+_rate_host_locks: dict[str, threading.Lock] = {}
+_rate_last_call: dict[str, float] = {}
+
+
+def _min_interval_for(host: str) -> float:
+    if host.endswith("ncbi.nlm.nih.gov"):
+        return 0.1 if os.environ.get("NCBI_API_KEY") else 1.0 / 3.0
+    return 0.0
+
+
+def _host_lock(host: str) -> threading.Lock:
+    with _rate_meta_lock:
+        lock = _rate_host_locks.get(host)
+        if lock is None:
+            lock = threading.Lock()
+            _rate_host_locks[host] = lock
+        return lock
+
+
+def _rate_limit(url: str) -> None:
+    """Space out requests to a rate-limited host, per host, across threads."""
+    host = urllib.parse.urlsplit(url).hostname or ""
+    interval = _min_interval_for(host)
+    if interval <= 0:
+        return
+    with _host_lock(host):
+        wait = interval - (time.monotonic() - _rate_last_call.get(host, 0.0))
+        if wait > 0:
+            time.sleep(wait)
+        _rate_last_call[host] = time.monotonic()
+
 
 def _http_get_once(url: str, timeout: int = 30) -> tuple[int, dict | None]:
     """One request: return ``(status, parsed_json_or_None)``.
@@ -120,6 +159,7 @@ def _http_get(url: str, timeout: int = 30) -> tuple[int, dict | None]:
     ``RemoteError``; a transient status that persists is returned so the resolver
     raises its own clear error.
     """
+    _rate_limit(url)
     last_error: RemoteError | None = None
     status: int | None = None
     body: dict | None = None
@@ -1036,6 +1076,69 @@ def _get_resolver(source: Source) -> Resolver:
     return _RESOLVERS[remote["resolver"]]
 
 
+def _max_workers() -> int:
+    """Concurrent remote lookups, from ``BIOGATE_REMOTE_WORKERS`` (default 1).
+
+    One means sequential, which keeps the offline test suite and the conformance
+    corpus deterministic. A larger value checks a big column faster; per-host
+    politeness still applies through the rate limiter.
+    """
+    raw = os.environ.get("BIOGATE_REMOTE_WORKERS")
+    if not raw:
+        return 1
+    try:
+        return max(1, int(raw))
+    except ValueError:
+        return 1
+
+
+_PROGRESS_MIN = 50  # only show progress for a batch at least this large
+
+
+class _NullProgress:
+    def update(self, n: int = 1) -> None:
+        pass
+
+    def close(self) -> None:
+        pass
+
+
+class _StderrProgress:
+    """A minimal fallback progress counter on stderr when tqdm is absent."""
+
+    def __init__(self, total: int) -> None:
+        self._total = total
+        self._done = 0
+
+    def update(self, n: int = 1) -> None:
+        self._done += n
+        print(
+            f"\rbiogate: checked {self._done}/{self._total}",
+            end="",
+            file=sys.stderr,
+            flush=True,
+        )
+
+    def close(self) -> None:
+        print("", file=sys.stderr)
+
+
+def _make_progress(total: int, enabled: bool):
+    """A progress reporter for a large concurrent batch, else a no-op.
+
+    Nothing is shown for a small batch, a sequential run, or a non-interactive
+    stderr, so scripts and the test suite stay silent. tqdm is used when it is
+    importable; otherwise a plain stderr counter is.
+    """
+    if not enabled or total < _PROGRESS_MIN or not sys.stderr.isatty():
+        return _NullProgress()
+    try:
+        from tqdm import tqdm
+    except ModuleNotFoundError:  # pragma: no cover - optional, interactive only
+        return _StderrProgress(total)
+    return tqdm(total=total, desc="biogate remote", unit="id")  # pragma: no cover
+
+
 def _resolve_ids(
     resolver: Resolver,
     source: Source,
@@ -1044,11 +1147,36 @@ def _resolve_ids(
     refresh: bool = False,
     on_error: str = "raise",
 ) -> dict[str, tuple[bool | None, str | None, str | None, str | None]]:
-    """Resolve each id to ``(valid, successor, fetched_at, error)``."""
-    return {
-        ident: _remote_lookup(resolver, source, ident, species, refresh, on_error)
-        for ident in ids
-    }
+    """Resolve each id to ``(valid, successor, fetched_at, error)``.
+
+    Sequential by default. With ``BIOGATE_REMOTE_WORKERS`` above one, the lookups
+    run on a bounded thread pool: the work is I/O-bound, the verdict logic is pure
+    and per-id, and each id writes its own cache file, so concurrency only reorders
+    the network and never changes a verdict. The returned mapping is keyed by id,
+    so input order is restored by the caller regardless of completion order.
+    """
+    workers = _max_workers()
+    if workers == 1 or len(ids) <= 1:
+        return {
+            ident: _remote_lookup(resolver, source, ident, species, refresh, on_error)
+            for ident in ids
+        }
+    results: dict[str, tuple[bool | None, str | None, str | None, str | None]] = {}
+    progress = _make_progress(len(ids), enabled=True)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
+        futures = {
+            pool.submit(
+                _remote_lookup, resolver, source, ident, species, refresh, on_error
+            ): ident
+            for ident in ids
+        }
+        try:
+            for future in concurrent.futures.as_completed(futures):
+                results[futures[future]] = future.result()
+                progress.update(1)
+        finally:
+            progress.close()
+    return results
 
 
 def remote_verdicts(

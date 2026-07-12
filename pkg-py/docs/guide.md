@@ -62,6 +62,20 @@ silent `False`, so a failed lookup cannot be mistaken for an absent identifier.
 Every extrinsic result records the snapshot version or the timestamp that
 produced it.
 
+Pass `on_error="indeterminate"` to keep going when one id is unreachable: that id
+comes back `valid=None` with the reason in its `error` field, and the rest of the
+column is still checked.
+
+```python
+bg.check_id(genes, source_db="hgnc", how="remote", on_error="indeterminate")
+```
+
+Checking a large column live is faster with several requests in flight. Set
+`BIOGATE_REMOTE_WORKERS` to the number of concurrent lookups (the default is `1`,
+sequential). Concurrency never changes a verdict, only the order the network is
+touched, and per-host politeness still applies: NCBI E-utilities are held to
+three requests a second, or ten when `NCBI_API_KEY` is set.
+
 ## Species and version awareness
 
 Some sources are species-aware. For Ensembl the species is encoded in the id, so
