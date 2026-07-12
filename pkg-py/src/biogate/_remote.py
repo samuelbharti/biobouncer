@@ -24,7 +24,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from ._cache import cache_dir
+from ._cache import _atomic_write_text, cache_dir
 from ._pattern import _species_ok, _suggest, matches
 from ._registry import Source
 
@@ -831,12 +831,11 @@ def _remote_lookup(
     url = resolver.url(source, ident)
     status, body = _http_get(url)
     result = resolver.exists(status, body)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
+    _atomic_write_text(
+        path,
         json.dumps(
             {"status": status, "body": resolver.cache_body(status, body), "url": url}
         ),
-        encoding="utf-8",
     )
     if not result:
         return False, None

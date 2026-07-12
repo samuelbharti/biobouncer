@@ -5,6 +5,21 @@
   ids[nzchar(ids)]
 }
 
+# Write lines to a path atomically: write a temporary file in the same directory,
+# then rename it over the target in one step. A crash or a concurrent reader never
+# sees a half-written file, so a truncated snapshot or cache cannot silently
+# report valid ids as invalid. On Windows a rename cannot overwrite an existing
+# file, so fall back to an overwriting copy there.
+.atomic_write_lines <- function(lines, path) {
+  tmp <- paste0(path, ".", Sys.getpid(), ".tmp")
+  writeLines(lines, tmp)
+  if (!isTRUE(file.rename(tmp, path))) {
+    file.copy(tmp, path, overwrite = TRUE)
+    unlink(tmp)
+  }
+  invisible(path)
+}
+
 .bundled_snapshots_dir <- function() {
   system.file("extdata", "snapshots", package = "biogate")
 }
@@ -282,7 +297,7 @@ biogate_pull <- function(source_db, version = NULL, quiet = FALSE) {
   dest_dir <- file.path(biogate_cache_dir(), source_db)
   dir.create(dest_dir, recursive = TRUE, showWarnings = FALSE)
   dest <- file.path(dest_dir, paste0(version, ".txt"))
-  writeLines(parsed$ids, dest)
+  .atomic_write_lines(parsed$ids, dest)
   if (!quiet) {
     cli::cli_inform("Wrote {length(parsed$ids)} ids to {.file {dest}}.")
   }

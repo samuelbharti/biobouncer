@@ -673,7 +673,7 @@
     resp <- .remote_http_get(url)
     exists <- resolver$exists(resp$status, resp$body)
     dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
-    writeLines(
+    .atomic_write_lines(
       jsonlite::toJSON(
         list(
           status = resp$status,

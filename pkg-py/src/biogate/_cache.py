@@ -33,6 +33,20 @@ def cache_dir() -> Path:
     return Path(platformdirs.user_cache_dir("biogate"))
 
 
+def _atomic_write_text(path: Path, text: str, encoding: str = "utf-8") -> None:
+    """Write ``text`` to ``path`` atomically.
+
+    Write to a temporary file in the same directory, then replace the target in
+    one step with ``os.replace``. A crash or a concurrent reader never sees a
+    half-written file, so a truncated snapshot or cache cannot silently report
+    valid ids as invalid.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_name(f"{path.name}.{os.getpid()}.tmp")
+    tmp.write_text(text, encoding=encoding)
+    os.replace(tmp, path)
+
+
 def _bundled_root():
     return files("biogate") / "_data" / "snapshots"
 
@@ -217,10 +231,8 @@ def pull(
         raise MissingVersionError(
             f"Could not determine a version for {source_db!r}; pass version."
         )
-    dest_dir = cache_dir() / source_db
-    dest_dir.mkdir(parents=True, exist_ok=True)
-    dest = dest_dir / f"{version}.txt"
-    dest.write_text("\n".join(ids) + "\n", encoding="utf-8")
+    dest = cache_dir() / source_db / f"{version}.txt"
+    _atomic_write_text(dest, "\n".join(ids) + "\n")
     if not quiet:
         print(f"Wrote {len(ids)} ids to {dest}")
     return dest
