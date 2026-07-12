@@ -29,6 +29,10 @@
   and `eco` for Evidence and Conclusion Ontology terms such as `ECO:0000269`.
   Both check the pattern offline and existence against their ontology in the
   Ontology Lookup Service, reusing the OLS resolver.
+* Five InterPro member databases are new sources: `smart` (`SM00248`), `panther`
+  (`PTHR11003`), `cdd` (`cd00029`), `prints` (`PR00001`), and `ncbifam`
+  (`TIGR00001` or `NF000001`). Each checks the pattern offline and existence
+  against the EBI InterPro API, reusing the interpro resolver.
 * `mirbase_hairpin` is a new source for miRBase hairpin precursor accessions such
   as `MI0000001`, a sibling to the mature `mirbase` source. It checks the pattern
   offline and existence against RNAcentral through EBI Search, reusing the mirbase

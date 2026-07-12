@@ -1,0 +1,4 @@
+{"input": "SM00248", "source_db": "smart", "how": "pattern", "expect": {"valid": true, "normalized": "SM00248"}, "note": "a SMART domain accession"}
+{"input": "SM00015", "source_db": "smart", "how": "pattern", "expect": {"valid": true, "normalized": "SM00015"}, "note": "another SMART accession"}
+{"input": "sm00248", "source_db": "smart", "how": "pattern", "expect": {"valid": false, "suggestion": "SM00248"}, "note": "lowercase is suggestible to uppercase"}
+{"input": "SM0248", "source_db": "smart", "how": "pattern", "expect": {"valid": false}, "note": "four digits, one short"}

@@ -1,6 +1,6 @@
 # Sources cookbook
 
-biogate checks 40 sources. Each row below gives a valid example id, the
+biogate checks 45 sources. Each row below gives a valid example id, the
 [checking modes](guide.md#the-checking-modes) it supports, and whether it is
 species-aware. To check an id, pass the source key as `source_db`. The call is
 the same for every source:
@@ -131,6 +131,11 @@ bg.is_valid_id("P04637", source_db="uniprot")
 | Pfam. Protein families and domains. | `pfam` | `PF00001` | pattern, remote | no |
 | InterPro. Integrated protein families, domains, and sites. | `interpro` | `IPR000001` | pattern, remote | no |
 | PROSITE. Protein patterns and profiles. | `prosite` | `PS00001` | pattern, remote | no |
+| SMART. Protein domain accessions. | `smart` | `SM00248` | pattern, remote | no |
+| PANTHER. Protein family accessions. | `panther` | `PTHR11003` | pattern, remote | no |
+| CDD. Conserved Domain Database models. | `cdd` | `cd00029` | pattern, remote | no |
+| PRINTS. Protein fingerprint accessions. | `prints` | `PR00001` | pattern, remote | no |
+| NCBIfam. NCBIfam and TIGRFAM models. | `ncbifam` | `TIGR00001` | pattern, remote | no |
 
 Check any id in the group the same way:
 

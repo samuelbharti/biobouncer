@@ -1,0 +1,4 @@
+{"input": "PR00001", "source_db": "prints", "how": "pattern", "expect": {"valid": true, "normalized": "PR00001"}, "note": "a PRINTS fingerprint"}
+{"input": "PR00851", "source_db": "prints", "how": "pattern", "expect": {"valid": true, "normalized": "PR00851"}, "note": "another PRINTS fingerprint"}
+{"input": "pr00001", "source_db": "prints", "how": "pattern", "expect": {"valid": false, "suggestion": "PR00001"}, "note": "lowercase is suggestible to uppercase"}
+{"input": "PR0001", "source_db": "prints", "how": "pattern", "expect": {"valid": false}, "note": "four digits, one short"}
