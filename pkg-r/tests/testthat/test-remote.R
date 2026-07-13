@@ -410,3 +410,22 @@ test_that(".ncbi_suffix adds the key only when configured", {
   expect_true(grepl("api_key=secret", suffix, fixed = TRUE))
   expect_true(grepl("tool=biobouncer", suffix, fixed = TRUE))
 })
+
+test_that(".redact_url masks credentials only", {
+  # A URL with no secret parameter is returned byte-identical.
+  plain <- "https://rest.ensembl.org/lookup/id/ENSG00000139618?content-type=application/json"
+  expect_identical(.redact_url(plain), plain)
+  # The NCBI key and contact email are masked; other params are untouched.
+  with_key <- paste0(
+    "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi",
+    "?db=nuccore&id=NM_000546&retmode=json&api_key=supersecret",
+    "&tool=biobouncer&email=a%40b.co"
+  )
+  redacted <- .redact_url(with_key)
+  expect_false(grepl("supersecret", redacted, fixed = TRUE))
+  expect_false(grepl("a%40b.co", redacted, fixed = TRUE))
+  expect_true(grepl("api_key=REDACTED", redacted, fixed = TRUE))
+  expect_true(grepl("email=REDACTED", redacted, fixed = TRUE))
+  expect_true(grepl("tool=biobouncer", redacted, fixed = TRUE))
+  expect_true(grepl("id=NM_000546", redacted, fixed = TRUE))
+})

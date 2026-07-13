@@ -51,6 +51,26 @@
 # Single network seam. Tests replace it with the biobouncer.remote_transport option,
 # which is used directly. The real path retries a transient failure with
 # exponential backoff before giving up.
+# Query parameters that carry a credential and must never be persisted or logged.
+.redacted_params <- c("api_key", "email")
+
+# Mask secret query parameters (the NCBI key, contact email) in a URL. The
+# request URL is stored in the remote cache and shown in error messages, so any
+# credential in its query string must not leak to disk or a bug report. A URL
+# with no secret parameter is returned unchanged, so offline fixtures and cached
+# files stay byte-identical.
+.redact_url <- function(url) {
+  for (param in .redacted_params) {
+    url <- gsub(
+      paste0("(?<=[?&]", param, "=)[^&]*"),
+      "REDACTED",
+      url,
+      perl = TRUE
+    )
+  }
+  url
+}
+
 .remote_http_get <- function(url, timeout = 30) {
   transport <- getOption("biobouncer.remote_transport", NULL)
   if (is.function(transport)) {
@@ -77,7 +97,7 @@
   if (is.null(resp)) {
     cli::cli_abort(
       c(
-        "Remote request failed for {.url {url}}.",
+        "Remote request failed for {.url {.redact_url(url)}}.",
         i = "The request did not complete after retrying."
       ),
       class = "biobouncer_error_remote"
@@ -120,7 +140,7 @@
   if (is.null(resp)) {
     cli::cli_abort(
       c(
-        "Remote request failed for {.url {url}}.",
+        "Remote request failed for {.url {.redact_url(url)}}.",
         i = "The request did not complete after retrying."
       ),
       class = "biobouncer_error_remote"
@@ -978,7 +998,7 @@
         list(
           status = resp$status,
           body = resolver$cache_body(resp$status, resp$body),
-          url = url,
+          url = .redact_url(url),
           fetched_at = fetched_at
         ),
         auto_unbox = TRUE,
@@ -1123,7 +1143,7 @@
         list(
           status = f$status,
           body = resolver$cache_body(f$status, f$body),
-          url = f$url,
+          url = .redact_url(f$url),
           fetched_at = .utc_stamp()
         ),
         auto_unbox = TRUE,

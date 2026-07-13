@@ -160,6 +160,32 @@ def _http_post_once(url: str, data: str, timeout: int = 30) -> tuple[int, dict |
     return _read_response(request, url, timeout)
 
 
+# Query parameters that carry a credential and must never be persisted or logged.
+_REDACTED_PARAMS = ("api_key", "email")
+
+
+def _redact_url(url: str) -> str:
+    """Mask secret query parameters (the NCBI key, contact email) in a URL.
+
+    The request URL is stored in the remote cache and shown in error messages, so
+    any credential in its query string must not leak to disk or a bug report. A
+    URL with no secret parameter is returned unchanged, so offline fixtures and
+    cached files stay byte-identical.
+    """
+    split = urllib.parse.urlsplit(url)
+    if not split.query:
+        return url
+    pairs = urllib.parse.parse_qsl(split.query, keep_blank_values=True)
+    if not any(key in _REDACTED_PARAMS for key, _ in pairs):
+        return url
+    redacted = [
+        (key, "REDACTED" if key in _REDACTED_PARAMS else value) for key, value in pairs
+    ]
+    return urllib.parse.urlunsplit(
+        split._replace(query=urllib.parse.urlencode(redacted))
+    )
+
+
 def _read_response(
     request: urllib.request.Request, url: str, timeout: int
 ) -> tuple[int, dict | None]:
@@ -171,7 +197,9 @@ def _read_response(
     except urllib.error.HTTPError as error:
         return error.code, _parse_body(error.read().decode("utf-8", errors="replace"))
     except (urllib.error.URLError, TimeoutError, OSError) as error:
-        raise RemoteError(f"Remote request failed for {url!r}: {error}") from error
+        raise RemoteError(
+            f"Remote request failed for {_redact_url(url)!r}: {error}"
+        ) from error
 
 
 def _retry_request(fetch: Callable[[], tuple[int, dict | None]]):
@@ -321,7 +349,12 @@ def _uniprot_species_ok(source: Source, body: dict | None, species) -> bool:
     body_taxon = ((body or {}).get("organism") or {}).get("taxonId")
     if body_taxon is None:
         return True
-    return int(body_taxon) == int(expected)
+    try:
+        return int(body_taxon) == int(expected)
+    except (TypeError, ValueError):
+        # A malformed organism taxon cannot be compared; stay lenient and do not
+        # fail (or crash) the id on it.
+        return True
 
 
 @dataclass(frozen=True)
@@ -1147,7 +1180,7 @@ def _remote_lookup(
             {
                 "status": status,
                 "body": resolver.cache_body(status, body),
-                "url": url,
+                "url": _redact_url(url),
                 "fetched_at": fetched_at,
             }
         ),

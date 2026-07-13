@@ -259,6 +259,41 @@ def test_ncbi_suffix_added_only_when_a_key_is_configured(monkeypatch):
     assert "email=a%40b.co" in remote._ncbi_suffix()
 
 
+def test_redact_url_masks_credentials_only():
+    # A URL with no secret parameter is returned byte-identical.
+    plain = "https://rest.ensembl.org/lookup/id/ENSG00000139618?content-type=application/json"
+    assert remote._redact_url(plain) == plain
+    # The NCBI key and contact email are masked; other params are untouched.
+    with_key = (
+        "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi"
+        "?db=nuccore&id=NM_000546&retmode=json&api_key=supersecret&tool=biobouncer&email=a%40b.co"
+    )
+    redacted = remote._redact_url(with_key)
+    assert "supersecret" not in redacted
+    assert "a%40b.co" not in redacted
+    assert "api_key=REDACTED" in redacted
+    assert "email=REDACTED" in redacted
+    assert "tool=biobouncer" in redacted
+    assert "id=NM_000546" in redacted
+
+
+def test_ncbi_key_is_not_persisted_or_leaked(monkeypatch, tmp_path):
+    # A remote lookup with a key configured must not write the key to the cache.
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("NCBI_API_KEY", "supersecret")
+
+    def fake_get(url, timeout=30):
+        return 200, {"result": {"uids": ["12345"]}}
+
+    monkeypatch.setattr(remote, "_http_get", fake_get)
+    biobouncer.check_id("NM_000546", source_db="refseq", how="remote")
+    cached = list(tmp_path.rglob("*.json"))
+    assert cached, "expected a cache file to be written"
+    blob = cached[0].read_text(encoding="utf-8")
+    assert "supersecret" not in blob
+    assert "api_key=REDACTED" in blob
+
+
 def test_parse_body_tolerates_empty_and_non_json():
     assert remote._parse_body("") is None
     assert remote._parse_body("   ") is None
