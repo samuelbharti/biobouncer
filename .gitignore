@@ -41,6 +41,10 @@ dist/
 pkg-r/docs/
 pkg-py/site/
 
+# Presentation and design materials. Slides, write-ups, and templates kept for
+# talks and design work, not part of either package or the docs sites.
+presentations/
+
 # OS and editor
 .DS_Store
 Thumbs.db
