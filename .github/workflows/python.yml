@@ -6,6 +6,7 @@ on:
     paths: ["pkg-py/**", "shared/**", ".github/workflows/python.yml"]
   pull_request:
     paths: ["pkg-py/**", "shared/**", ".github/workflows/python.yml"]
+  workflow_dispatch:
 
 permissions:
   contents: read
