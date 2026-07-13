@@ -1,5 +1,10 @@
 # biobouncer (development version)
 
+* New `synthesize_ids()` builds a synthetic, labeled column of identifiers for any
+  source: a mix of valid, repairable, invalid, and missing values, each labeled by
+  the pattern-mode checker. It is handy for exercising a validation pipeline (feed
+  the column to `report_id()` or an adapter) without hand-writing test data, and it
+  produces the same column as the Python `synthesize()`.
 * Eight more sources now ship a bundled cache snapshot, so their `cache` mode
   works offline out of the box: `bto`, `cl`, `doid`, `hp`, `mp`, `pato`, `so`,
   and `uberon`. Each snapshot is a small set of real, current terms; a fuller

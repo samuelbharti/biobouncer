@@ -21,6 +21,14 @@ column. See the [report cookbook](report.md).
 
 ::: biobouncer.Report
 
+## Generating test data
+
+`synthesize` builds a labeled "messy column" of ids for a source (valid,
+repairable, invalid, and missing), useful for exercising a validation pipeline or
+`report` without hand-writing test data.
+
+::: biobouncer.synthesize
+
 ## Sources
 
 ::: biobouncer.sources

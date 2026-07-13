@@ -33,6 +33,10 @@ reference:
     contents:
       - report_id
       - repair_id
+  - title: Generate test data
+    desc: Build a synthetic, labeled column of ids for any source.
+    contents:
+      - synthesize_ids
   - title: What can be checked
     desc: List the source databases and read their metadata.
     contents:

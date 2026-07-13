@@ -163,6 +163,25 @@ Association(disease="MONDO:0005148")
 
 A value that is not valid for the source raises a pydantic `ValidationError`.
 
+## Generating test data
+
+`synthesize` builds a labeled "messy column" for any source, so you can exercise a
+validation pipeline without hand-writing test ids:
+
+```python
+import biobouncer as bg
+
+rows = bg.synthesize("mondo")
+# each row has input, category (valid/repairable/invalid/missing), and the
+# pattern-mode valid/normalized/suggestion for that input
+column = [row["input"] for row in rows]
+bg.report(column, "mondo").summary
+```
+
+The column is deterministic and offline, and the R `synthesize_ids()` produces the
+same one. `ec`, `hgvs`, and `hgnc` have no repairable form, so they omit that
+category.
+
 ## Summary
 
 - `pattern` checks shape, `cache` and `remote` check existence, and `existence`
