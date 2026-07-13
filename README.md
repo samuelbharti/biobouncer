@@ -9,11 +9,12 @@
        alt="biobouncer takes a messy column of biological identifiers, checks each through one gate with four modes (pattern, cache, remote, existence), and returns one labeled verdict (valid, repairable, invalid, or missing) that is the same in R and Python." />
 </p>
 
-<!-- Badges (fill in once published) -->
-<!--
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21346522.svg)](https://doi.org/10.5281/zenodo.21346522)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+<!-- Add once published to PyPI and CRAN:
 [![CRAN status](https://www.r-pkg.org/badges/version/biobouncer)](https://cran.r-project.org/package=biobouncer)
 [![PyPI version](https://img.shields.io/pypi/v/biobouncer)](https://pypi.org/project/biobouncer/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 -->
 
 > **Status: pre-1.0.** The public API is in use and documented below. It may
@@ -389,5 +390,11 @@ MIT © biobouncer authors.
 ## Citation
 
 If `biobouncer` supports your work, please cite it. A preprint is in preparation,
-and its citation will be added here as soon as it is available. Until then, please
-cite the software using the metadata in `CITATION.cff`.
+and its citation will be added here as soon as it is available. Until then, cite
+the software archived on Zenodo:
+
+> Bharti, S. (2026). biobouncer: Validate Biological Identifiers and Inputs.
+> Zenodo. https://doi.org/10.5281/zenodo.21346522
+
+The DOI above always resolves to the latest release; each release also has its
+own version DOI on Zenodo. Machine-readable metadata is in `CITATION.cff`.
