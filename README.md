@@ -4,6 +4,11 @@
 > formats, and database identifiers, the same way, with the same answer, in
 > both **R** and **Python**.
 
+<p align="center">
+  <img src="docs-hub/assets/overview.svg" width="820"
+       alt="biobouncer takes a messy column of biological identifiers, checks each through one gate with four modes (pattern, cache, remote, existence), and returns one labeled verdict (valid, repairable, invalid, or missing) that is the same in R and Python." />
+</p>
+
 <!-- Badges (fill in once published) -->
 <!--
 [![CRAN status](https://www.r-pkg.org/badges/version/biobouncer)](https://cran.r-project.org/package=biobouncer)
