@@ -6,6 +6,8 @@
 \usage{
 synthesize_ids(
   source_db,
+  how = "pattern",
+  version = NULL,
   n_valid = 2,
   n_repairable = 1,
   n_invalid = 1,
@@ -16,34 +18,42 @@ synthesize_ids(
 \arguments{
 \item{source_db}{Source key, for example \code{"mondo"}. See \code{\link[=sources]{sources()}}.}
 
-\item{n_valid}{How many well-formed ids to include. A source with no numeric
-part yields just the example.}
+\item{how}{Checking mode to label against: \code{"pattern"} (the shape, any source)
+or \code{"cache"} (the snapshot; the source must ship one).}
 
-\item{n_repairable}{How many repairable ids. \code{ec}, \code{hgvs}, and \code{hgnc} have no
-pattern-mode repairable form, so they yield none.}
+\item{version}{In cache mode, the snapshot version. Defaults to \code{"sample"}.}
+
+\item{n_valid}{How many well-formed or in-snapshot ids to include. A source with
+no numeric part yields just the example.}
+
+\item{n_repairable}{How many repairable ids (a wrong-case or unpadded form that
+suggests a valid id, or in cache mode a retired id that maps to a successor).
+\code{ec}, \code{hgvs}, and \code{hgnc} have no pattern-mode repairable form, so they yield
+none there.}
 
 \item{n_invalid}{How many hard-invalid ids (neither valid nor suggestible).}
 
 \item{missing}{How many missing cells (\code{NA}).}
 
 \item{seed}{Shifts the numeric variants, for a different but still deterministic
-column.}
+column (pattern mode).}
 }
 \value{
 A \link[tibble:tibble]{tibble} with the columns \code{input}, \code{category}
-(\code{"valid"}, \code{"repairable"}, \code{"invalid"}, or \code{"missing"}), and the pattern-mode
-\code{valid}, \code{normalized}, and \code{suggestion} for that input. Categories a source
-cannot produce are simply absent.
+(\code{"valid"}, \code{"repairable"}, \code{"invalid"}, or \code{"missing"}), and the \code{valid},
+\code{normalized}, and \code{suggestion} the checker returned for that input. Categories
+a source cannot produce are simply absent.
 }
 \description{
 \code{synthesize_ids()} builds a small "messy column" for a source: a mix of
 well-formed ids, repairable ids (a wrong-case or unpadded form that suggests a
 valid one), hard-invalid ids, and missing cells. Every value is labeled by
-running the pattern-mode checker, so the labels are always correct and match
-what the Python \code{synthesize()} produces for the same source. It is useful for
-exercising a validation pipeline (feed the column to \code{\link[=report_id]{report_id()}},
-\code{\link[=repair_id]{repair_id()}}, or an adapter) without hand-writing test data. The generation is
-deterministic and offline.
+running the checker, so the labels are always correct and match what the Python
+\code{synthesize()} produces for the same source. It works in \code{pattern} mode (the
+shape) for any source and in \code{cache} mode (the snapshot) for a source that ships
+one. It is useful for exercising a validation pipeline (feed the column to
+\code{\link[=report_id]{report_id()}}, \code{\link[=repair_id]{repair_id()}}, or an adapter) without hand-writing test data. The
+generation is deterministic and offline.
 }
 \examples{
 synthesize_ids("mondo")

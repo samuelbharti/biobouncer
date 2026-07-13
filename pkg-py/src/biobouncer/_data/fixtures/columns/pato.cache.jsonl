@@ -1,0 +1,5 @@
+{"input": "PATO:0000001", "source_db": "pato", "how": "cache", "version": "sample", "category": "valid", "expect": {"valid": true, "normalized": "PATO:0000001", "suggestion": null}}
+{"input": "pato:0000001", "source_db": "pato", "how": "cache", "version": "sample", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "PATO:0000001"}}
+{"input": "PATO:9000001", "source_db": "pato", "how": "cache", "version": "sample", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "pato", "how": "cache", "version": "sample", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "PATO:0000470", "source_db": "pato", "how": "cache", "version": "sample", "category": "valid", "expect": {"valid": true, "normalized": "PATO:0000470", "suggestion": null}}

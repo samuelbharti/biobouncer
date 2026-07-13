@@ -1,21 +1,23 @@
 """Generate a synthetic, labeled column of identifiers for any source.
 
 ``synthesize`` builds a small "messy column" for a source: a mix of well-formed
-ids, repairable ids (a wrong-case or unpadded form that suggests a valid one),
-hard-invalid ids, and missing cells. Every value is labeled by running the
-pattern-mode checker itself, so the labels are always correct and match what the R
-``synthesize_ids`` produces for the same source.
+ids, repairable ids (a wrong-case or unpadded form that suggests a valid one, or a
+retired id that maps to a successor), hard-invalid ids, and missing cells. Every
+value is labeled by running the checker itself, so the labels are always correct
+and match what the R ``synthesize_ids`` produces for the same source.
 
-It is useful for exercising a validation pipeline (feed the column to ``report``,
-``repair``, or an adapter) and for teaching, without hand-writing test data. The
-generation is deterministic and offline: the same arguments always produce the
-same column, in both languages.
+It works in ``pattern`` mode (the shape) for any source, and in ``cache`` mode (the
+snapshot) for a source that ships one. It is useful for exercising a validation
+pipeline (feed the column to ``report``, ``repair``, or an adapter) and for
+teaching, without hand-writing test data. The generation is deterministic and
+offline: the same arguments always produce the same column, in both languages.
 """
 
 from __future__ import annotations
 
 import re
 
+from ._cache import _snapshot_retired, snapshot_set
 from ._registry import Source, get_source
 from .core import check_id
 
@@ -28,6 +30,10 @@ _CATEGORIES = ("valid", "repairable", "invalid", "missing")
 # Characters guaranteed to be outside every source pattern, used to turn a valid
 # id into a hard invalid (one that neither matches nor is suggestible).
 _BREAKERS = ("!", " x", "##")
+
+# A large offset added to an id's digit run to reach a well-formed id that is not
+# in any small sample snapshot (for a cache-mode hard invalid).
+_ABSENT_OFFSET = 9_000_000
 
 
 def _increment_last_digit_run(s: str, delta: int) -> str | None:
@@ -64,7 +70,7 @@ def _repairable_values(source: Source) -> list[str]:
     Inverts the pattern-mode suggestion rules: for a CURIE source, lowercase the
     prefix and (when the local part is zero-padded) drop the padding; for a
     ``normalize`` source, flip the case. Empty for a source with neither, which
-    has no pattern-mode repairable form.
+    has no such repairable form.
     """
     example = source.example
     candidates: list[str] = []
@@ -92,6 +98,11 @@ def _invalid_values(source: Source, n: int) -> list[str]:
     return [f"{source.example}{breaker}" for breaker in _BREAKERS[:n]]
 
 
+def _wellformed_absent(source: Source) -> str | None:
+    """A well-formed id not in any small snapshot: the example, digits bumped up."""
+    return _increment_last_digit_run(source.example, _ABSENT_OFFSET)
+
+
 def _categorize(result) -> str:
     if result.valid is True:
         return "valid"
@@ -102,8 +113,8 @@ def _categorize(result) -> str:
     return "invalid"
 
 
-def _row(source_db: str, value: str | None) -> dict:
-    result = check_id([value], source_db, how="pattern")[0]
+def _row(source_db: str, value, how: str, version: str | None) -> dict:
+    result = check_id([value], source_db, how=how, version=version)[0]
     return {
         "input": result.input,
         "category": _categorize(result),
@@ -113,7 +124,9 @@ def _row(source_db: str, value: str | None) -> dict:
     }
 
 
-def _rows_for(source_db: str, values, target: str, limit: int) -> list[dict]:
+def _rows_for(
+    source_db: str, values, target: str, limit: int, how: str, version: str | None
+) -> list[dict]:
     """Label ``values`` and keep up to ``limit`` that land in ``target``."""
     rows = []
     seen = set()
@@ -121,7 +134,7 @@ def _rows_for(source_db: str, values, target: str, limit: int) -> list[dict]:
         if value in seen:
             continue
         seen.add(value)
-        row = _row(source_db, value)
+        row = _row(source_db, value, how, version)
         if row["category"] == target:
             rows.append(row)
         if len(rows) >= limit:
@@ -143,6 +156,8 @@ def _interleave(buckets: dict[str, list[dict]]) -> list[dict]:
 
 def synthesize(
     source_db: str,
+    how: str = "pattern",
+    version: str | None = None,
     n_valid: int = 2,
     n_repairable: int = 1,
     n_invalid: int = 1,
@@ -153,35 +168,49 @@ def synthesize(
 
     Args:
         source_db: Source key, for example ``"mondo"``. See ``sources()``.
-        n_valid: How many well-formed ids to include (the example plus
-            deterministic variants). A source with no numeric part yields just
-            the example.
+        how: Checking mode to label against. ``"pattern"`` (the shape, any source)
+            or ``"cache"`` (the snapshot; the source must ship one).
+        version: In cache mode, the snapshot version. Defaults to ``"sample"``.
+        n_valid: How many well-formed / in-snapshot ids to include.
         n_repairable: How many repairable ids (a wrong-case or unpadded form that
-            suggests a valid id). ``ec``, ``hgvs``, and ``hgnc`` have no
-            pattern-mode repairable form, so they yield none.
-        n_invalid: How many hard-invalid ids (neither valid nor suggestible).
+            suggests a valid id, or in cache mode a retired id that maps to a
+            successor). Sources with no such form yield none.
+        n_invalid: How many hard-invalid ids.
         missing: How many missing cells (``None``).
         seed: Shifts the numeric variants, for a different but still deterministic
-            column.
+            column (pattern mode).
 
     Returns:
         A list of row dicts, woven so the categories are interleaved. Each row has
         ``input``, ``category`` (``"valid"``, ``"repairable"``, ``"invalid"``, or
-        ``"missing"``), and the pattern-mode ``valid``, ``normalized``, and
-        ``suggestion`` for that input. Categories a source cannot produce are
+        ``"missing"``), and the ``valid``, ``normalized``, and ``suggestion`` the
+        checker returned for that input. Categories a source cannot produce are
         simply absent.
     """
     source = get_source(source_db)
+    if how == "cache":
+        version = version or "sample"
+        ids = sorted(snapshot_set(source_db, version))
+        retired = _snapshot_retired(source_db, version)
+        valid_values = ids[:n_valid]
+        repairable_values = sorted(retired) + _repairable_values(source)
+        absent = _wellformed_absent(source)
+        invalid_values = [absent] if absent is not None else []
+    else:
+        valid_values = _valid_values(source, n_valid, seed)
+        repairable_values = _repairable_values(source)
+        invalid_values = _invalid_values(source, len(_BREAKERS))
+
     buckets = {
-        "valid": _rows_for(
-            source_db, _valid_values(source, n_valid, seed), "valid", n_valid
-        ),
+        "valid": _rows_for(source_db, valid_values, "valid", n_valid, how, version),
         "repairable": _rows_for(
-            source_db, _repairable_values(source), "repairable", n_repairable
+            source_db, repairable_values, "repairable", n_repairable, how, version
         ),
         "invalid": _rows_for(
-            source_db, _invalid_values(source, len(_BREAKERS)), "invalid", n_invalid
+            source_db, invalid_values, "invalid", n_invalid, how, version
         ),
-        "missing": _rows_for(source_db, [None] * missing, "missing", missing),
+        "missing": _rows_for(
+            source_db, [None] * missing, "missing", missing, how, version
+        ),
     }
     return _interleave(buckets)

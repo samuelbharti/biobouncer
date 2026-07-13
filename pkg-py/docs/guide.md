@@ -180,7 +180,8 @@ bg.report(column, "mondo").summary
 
 The column is deterministic and offline, and the R `synthesize_ids()` produces the
 same one. `ec`, `hgvs`, and `hgnc` have no repairable form, so they omit that
-category.
+category. Pass `how="cache"` for a snapshot-mode column, where a repairable value
+can be a retired id that maps to its successor.
 
 ## Summary
 

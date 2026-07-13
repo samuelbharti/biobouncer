@@ -84,6 +84,11 @@
   )
 }
 
+# A well-formed id not in any small snapshot: the example, digits bumped up.
+.synth_wellformed_absent <- function(spec) {
+  .increment_last_digit_run(spec$example, 9000000)
+}
+
 .synth_category <- function(valid, suggestion) {
   if (isTRUE(valid)) {
     return("valid")
@@ -97,8 +102,8 @@
   "invalid"
 }
 
-.synth_row <- function(source_db, value) {
-  res <- check_id(value, source_db = source_db, how = "pattern")
+.synth_row <- function(source_db, value, how, version) {
+  res <- check_id(value, source_db = source_db, how = how, version = version)
   list(
     input = res$input[1],
     category = .synth_category(res$valid[1], res$suggestion[1]),
@@ -108,7 +113,7 @@
   )
 }
 
-.synth_rows_for <- function(source_db, values, target, limit) {
+.synth_rows_for <- function(source_db, values, target, limit, how, version) {
   rows <- list()
   seen <- character(0)
   for (value in values) {
@@ -117,7 +122,7 @@
       next
     }
     seen <- c(seen, key)
-    row <- .synth_row(source_db, value)
+    row <- .synth_row(source_db, value, how, version)
     if (identical(row$category, target)) {
       rows[[length(rows) + 1L]] <- row
     }
@@ -147,31 +152,39 @@
 #' `synthesize_ids()` builds a small "messy column" for a source: a mix of
 #' well-formed ids, repairable ids (a wrong-case or unpadded form that suggests a
 #' valid one), hard-invalid ids, and missing cells. Every value is labeled by
-#' running the pattern-mode checker, so the labels are always correct and match
-#' what the Python `synthesize()` produces for the same source. It is useful for
-#' exercising a validation pipeline (feed the column to [report_id()],
-#' [repair_id()], or an adapter) without hand-writing test data. The generation is
-#' deterministic and offline.
+#' running the checker, so the labels are always correct and match what the Python
+#' `synthesize()` produces for the same source. It works in `pattern` mode (the
+#' shape) for any source and in `cache` mode (the snapshot) for a source that ships
+#' one. It is useful for exercising a validation pipeline (feed the column to
+#' [report_id()], [repair_id()], or an adapter) without hand-writing test data. The
+#' generation is deterministic and offline.
 #'
 #' @param source_db Source key, for example `"mondo"`. See [sources()].
-#' @param n_valid How many well-formed ids to include. A source with no numeric
-#'   part yields just the example.
-#' @param n_repairable How many repairable ids. `ec`, `hgvs`, and `hgnc` have no
-#'   pattern-mode repairable form, so they yield none.
+#' @param how Checking mode to label against: `"pattern"` (the shape, any source)
+#'   or `"cache"` (the snapshot; the source must ship one).
+#' @param version In cache mode, the snapshot version. Defaults to `"sample"`.
+#' @param n_valid How many well-formed or in-snapshot ids to include. A source with
+#'   no numeric part yields just the example.
+#' @param n_repairable How many repairable ids (a wrong-case or unpadded form that
+#'   suggests a valid id, or in cache mode a retired id that maps to a successor).
+#'   `ec`, `hgvs`, and `hgnc` have no pattern-mode repairable form, so they yield
+#'   none there.
 #' @param n_invalid How many hard-invalid ids (neither valid nor suggestible).
 #' @param missing How many missing cells (`NA`).
 #' @param seed Shifts the numeric variants, for a different but still deterministic
-#'   column.
+#'   column (pattern mode).
 #' @return A [tibble][tibble::tibble] with the columns `input`, `category`
-#'   (`"valid"`, `"repairable"`, `"invalid"`, or `"missing"`), and the pattern-mode
-#'   `valid`, `normalized`, and `suggestion` for that input. Categories a source
-#'   cannot produce are simply absent.
+#'   (`"valid"`, `"repairable"`, `"invalid"`, or `"missing"`), and the `valid`,
+#'   `normalized`, and `suggestion` the checker returned for that input. Categories
+#'   a source cannot produce are simply absent.
 #' @seealso [report_id()], [check_id()].
 #' @examples
 #' synthesize_ids("mondo")
 #' @export
 synthesize_ids <- function(
   source_db,
+  how = "pattern",
+  version = NULL,
   n_valid = 2,
   n_repairable = 1,
   n_invalid = 1,
@@ -179,30 +192,56 @@ synthesize_ids <- function(
   seed = 0
 ) {
   spec <- .get_source(source_db)
+  if (identical(how, "cache")) {
+    if (is.null(version)) {
+      version <- "sample"
+    }
+    ids <- sort(.snapshot_set(source_db, version), method = "radix")
+    retired <- .snapshot_retired(source_db, version)
+    valid_values <- ids[seq_len(min(n_valid, length(ids)))]
+    repairable_values <- c(
+      sort(names(retired), method = "radix"),
+      .synth_repairable_values(spec)
+    )
+    absent <- .synth_wellformed_absent(spec)
+    invalid_values <- if (is.na(absent)) character(0) else absent
+  } else {
+    valid_values <- .synth_valid_values(spec, n_valid, seed)
+    repairable_values <- .synth_repairable_values(spec)
+    invalid_values <- .synth_invalid_values(spec, length(.synth_breakers))
+  }
   buckets <- list(
     valid = .synth_rows_for(
       source_db,
-      .synth_valid_values(spec, n_valid, seed),
+      valid_values,
       "valid",
-      n_valid
+      n_valid,
+      how,
+      version
     ),
     repairable = .synth_rows_for(
       source_db,
-      .synth_repairable_values(spec),
+      repairable_values,
       "repairable",
-      n_repairable
+      n_repairable,
+      how,
+      version
     ),
     invalid = .synth_rows_for(
       source_db,
-      .synth_invalid_values(spec, length(.synth_breakers)),
+      invalid_values,
       "invalid",
-      n_invalid
+      n_invalid,
+      how,
+      version
     ),
     missing = .synth_rows_for(
       source_db,
       rep(NA_character_, missing),
       "missing",
-      missing
+      missing,
+      how,
+      version
     )
   )
   rows <- .synth_interleave(buckets)

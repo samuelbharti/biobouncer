@@ -2,9 +2,14 @@
 
 * New `synthesize_ids()` builds a synthetic, labeled column of identifiers for any
   source: a mix of valid, repairable, invalid, and missing values, each labeled by
-  the pattern-mode checker. It is handy for exercising a validation pipeline (feed
-  the column to `report_id()` or an adapter) without hand-writing test data, and it
-  produces the same column as the Python `synthesize()`.
+  the checker in `pattern` mode (any source) or `cache` mode (a source that ships a
+  snapshot, where a repairable value can be a retired id that maps to its
+  successor). It is handy for exercising a validation pipeline (feed the column to
+  `report_id()` or an adapter) without hand-writing test data, and it produces the
+  same column as the Python `synthesize()`.
+* Rat (`rattus_norvegicus`) joins human and mouse as a covered species for the
+  `ensembl` and `uniprot` sources, with pattern and remote corpus cases and
+  recorded fixtures for the rat Tp53 gene and protein.
 * Eight more sources now ship a bundled cache snapshot, so their `cache` mode
   works offline out of the box: `bto`, `cl`, `doid`, `hp`, `mp`, `pato`, `so`,
   and `uberon`. Each snapshot is a small set of real, current terms; a fuller
