@@ -7,6 +7,12 @@ pattern: 'PF[0-9]{5}'
 example: 'PF00001'
 normalize:
   case: upper
+# remote mode checks existence against the EBI InterPro API, which hosts Pfam.
+# This is an existence check only; a deleted accession is reported as absent,
+# not with a successor.
+remote:
+  resolver: interpro
+  interpro_db: pfam
 provenance:
   pattern_source: bioregistry
   homepage: https://www.ebi.ac.uk/interpro/entry/pfam

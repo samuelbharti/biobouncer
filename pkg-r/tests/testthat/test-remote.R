@@ -1,4 +1,4 @@
-# Offline tests for remote mode. The biogate.remote_transport option replaces
+# Offline tests for remote mode. The biobouncer.remote_transport option replaces
 # the network seam so no request ever leaves the machine.
 
 .stub_present <- function(present_ids) {
@@ -37,9 +37,9 @@
 }
 
 test_that("well-formed ids are valid when they exist remotely", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_present("MONDO:0005148")
+    biobouncer.remote_transport = .stub_present("MONDO:0005148")
   )
 
   res <- check_id(
@@ -54,9 +54,9 @@ test_that("well-formed ids are valid when they exist remotely", {
 })
 
 test_that("a malformed input suggests a corrected id that exists remotely", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_present("MONDO:0005148")
+    biobouncer.remote_transport = .stub_present("MONDO:0005148")
   )
 
   res <- check_id("mondo:5148", source_db = "mondo", how = "remote")
@@ -68,33 +68,33 @@ test_that("a malformed input suggests a corrected id that exists remotely", {
 test_that("a source with no resolver errors with a classed condition", {
   expect_error(
     .get_resolver(list(key = "none")),
-    class = "biogate_error_no_resolver"
+    class = "biobouncer_error_no_resolver"
   )
   expect_error(
     .get_resolver(list(key = "none", remote = list(resolver = "unknown"))),
-    class = "biogate_error_no_resolver"
+    class = "biobouncer_error_no_resolver"
   )
 })
 
 test_that("an unexpected remote status raises a remote error", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = function(url, timeout) {
+    biobouncer.remote_transport = function(url, timeout) {
       list(status = 500, body = NULL)
     }
   )
   expect_error(
     check_id("MONDO:0005148", source_db = "mondo", how = "remote"),
-    class = "biogate_error_remote"
+    class = "biobouncer_error_remote"
   )
   # An indeterminate status must not be cached.
   expect_false(file.exists(.remote_cache_path("ols", "mondo", "MONDO:0005148")))
 })
 
 test_that("ensembl ids resolve against the lookup endpoint", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_ensembl("ENSG00000139618")
+    biobouncer.remote_transport = .stub_ensembl("ENSG00000139618")
   )
 
   res <- check_id(
@@ -108,9 +108,9 @@ test_that("ensembl ids resolve against the lookup endpoint", {
 })
 
 test_that("a malformed ensembl id suggests a corrected id that exists remotely", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_ensembl("ENSG00000139618")
+    biobouncer.remote_transport = .stub_ensembl("ENSG00000139618")
   )
 
   res <- check_id("ensg00000139618", source_db = "ensembl", how = "remote")
@@ -120,9 +120,9 @@ test_that("a malformed ensembl id suggests a corrected id that exists remotely",
 })
 
 test_that("uniprot accessions are valid only when the entry is active", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_uniprot(list(
+    biobouncer.remote_transport = .stub_uniprot(list(
       P01308 = "UniProtKB reviewed (Swiss-Prot)",
       O99999 = "Inactive"
     ))
@@ -139,9 +139,9 @@ test_that("uniprot accessions are valid only when the entry is active", {
 })
 
 test_that("a malformed uniprot accession suggests an active corrected id", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = .stub_uniprot(list(
+    biobouncer.remote_transport = .stub_uniprot(list(
       P01308 = "UniProtKB reviewed (Swiss-Prot)"
     ))
   )
@@ -153,17 +153,17 @@ test_that("a malformed uniprot accession suggests an active corrected id", {
 })
 
 test_that("unexpected ensembl and uniprot statuses raise a remote error", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
 
   withr::with_options(
     list(
-      biogate.remote_transport = function(url, timeout) {
+      biobouncer.remote_transport = function(url, timeout) {
         list(status = 500, body = NULL)
       }
     ),
     expect_error(
       check_id("ENSG00000139618", source_db = "ensembl", how = "remote"),
-      class = "biogate_error_remote"
+      class = "biobouncer_error_remote"
     )
   )
   expect_false(file.exists(.remote_cache_path(
@@ -174,13 +174,13 @@ test_that("unexpected ensembl and uniprot statuses raise a remote error", {
 
   withr::with_options(
     list(
-      biogate.remote_transport = function(url, timeout) {
+      biobouncer.remote_transport = function(url, timeout) {
         list(status = 503, body = NULL)
       }
     ),
     expect_error(
       check_id("P01308", source_db = "uniprot", how = "remote"),
-      class = "biogate_error_remote"
+      class = "biobouncer_error_remote"
     )
   )
   expect_false(file.exists(.remote_cache_path(
@@ -191,13 +191,13 @@ test_that("unexpected ensembl and uniprot statuses raise a remote error", {
 })
 
 test_that("an on-disk cached response short-circuits the network", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   path <- .remote_cache_path("ols", "mondo", "MONDO:0005148")
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
   writeLines('{"status":200,"body":{"page":{"totalElements":1}}}', path)
 
   withr::local_options(
-    biogate.remote_transport = function(url, timeout) {
+    biobouncer.remote_transport = function(url, timeout) {
       stop("network must not be used when a cached response exists")
     }
   )
@@ -207,43 +207,43 @@ test_that("an on-disk cached response short-circuits the network", {
 })
 
 test_that("a corrupt cached response is ignored and refetched", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   path <- .remote_cache_path("ols", "mondo", "MONDO:0005148")
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
   writeLines("{ this is not valid json", path)
 
   withr::local_options(
-    biogate.remote_transport = .stub_present("MONDO:0005148")
+    biobouncer.remote_transport = .stub_present("MONDO:0005148")
   )
   res <- check_id("MONDO:0005148", source_db = "mondo", how = "remote")
   expect_true(res$valid)
 })
 
 test_that("a cache file without a status is ignored and refetched", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   path <- .remote_cache_path("ols", "mondo", "MONDO:0005148")
   dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
   writeLines('{"body":{"page":{"totalElements":1}}}', path)
 
   withr::local_options(
-    biogate.remote_transport = .stub_present("MONDO:0005148")
+    biobouncer.remote_transport = .stub_present("MONDO:0005148")
   )
   res <- check_id("MONDO:0005148", source_db = "mondo", how = "remote")
   expect_true(res$valid)
 })
 
 test_that("ensembl and uniprot verdicts round-trip through the cache", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
 
   withr::local_options(
-    biogate.remote_transport = .stub_ensembl("ENSG00000139618")
+    biobouncer.remote_transport = .stub_ensembl("ENSG00000139618")
   )
   expect_true(
     check_id("ENSG00000139618", source_db = "ensembl", how = "remote")$valid
   )
 
   withr::local_options(
-    biogate.remote_transport = .stub_uniprot(list(
+    biobouncer.remote_transport = .stub_uniprot(list(
       P01308 = "UniProtKB reviewed (Swiss-Prot)",
       O99999 = "Inactive"
     ))
@@ -253,7 +253,7 @@ test_that("ensembl and uniprot verdicts round-trip through the cache", {
 
   # A second lookup must come from the cache and never touch the network.
   withr::local_options(
-    biogate.remote_transport = function(url, timeout) {
+    biobouncer.remote_transport = function(url, timeout) {
       stop("network must not be used when a cached response exists")
     }
   )
@@ -275,4 +275,157 @@ test_that(".ols_count returns 0 for missing, null, or malformed counts", {
   expect_identical(.ols_count(NULL), 0L)
   expect_identical(.ols_count(list(page = list())), 0L)
   expect_identical(.ols_count(list(page = list(totalElements = 3))), 3L)
+})
+
+test_that("a fetch records its time and reports it as the version", {
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  withr::local_options(
+    biobouncer.remote_transport = .stub_present("MONDO:0005148")
+  )
+  res <- check_id("MONDO:0005148", source_db = "mondo", how = "remote")
+  path <- .remote_cache_path("ols", "mondo", "MONDO:0005148")
+  record <- jsonlite::fromJSON(path, simplifyVector = FALSE)
+  expect_true(nzchar(record$fetched_at)) # the fetch time is in the cache record
+  expect_identical(res$version, record$fetched_at) # and is the result version
+})
+
+test_that("a cached verdict reports its original fetch time", {
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  path <- .remote_cache_path("ols", "mondo", "MONDO:0005148")
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  writeLines(
+    paste0(
+      '{"status":200,"body":{"page":{"totalElements":1}},',
+      '"url":"x","fetched_at":"2000-01-01T00:00:00Z"}'
+    ),
+    path
+  )
+  withr::local_options(
+    biobouncer.remote_transport = function(url, timeout) {
+      stop("network must not be used when a cached response exists")
+    }
+  )
+  res <- check_id("MONDO:0005148", source_db = "mondo", how = "remote")
+  expect_true(res$valid)
+  # The verdict came from the cache, so its version is the original fetch time.
+  expect_identical(res$version, "2000-01-01T00:00:00Z")
+})
+
+test_that("refresh skips the cache and refetches", {
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  path <- .remote_cache_path("ols", "mondo", "MONDO:0005148")
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  writeLines(
+    '{"status":404,"body":null,"url":"x","fetched_at":"2000-01-01T00:00:00Z"}',
+    path
+  )
+  withr::local_options(
+    biobouncer.remote_transport = .stub_present("MONDO:0005148")
+  )
+  stale <- check_id("MONDO:0005148", source_db = "mondo", how = "remote")
+  expect_false(stale$valid) # served from the cached "absent" record
+  fresh <- check_id(
+    "MONDO:0005148",
+    source_db = "mondo",
+    how = "remote",
+    refresh = TRUE
+  )
+  expect_true(fresh$valid) # refetched, ignoring the cache
+  expect_false(identical(fresh$version, "2000-01-01T00:00:00Z"))
+})
+
+test_that("a cached response older than the TTL is refetched", {
+  withr::local_envvar(
+    BIOBOUNCER_CACHE_DIR = withr::local_tempdir(),
+    BIOBOUNCER_REMOTE_TTL = "1"
+  )
+  path <- .remote_cache_path("ols", "mondo", "MONDO:0005148")
+  dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+  writeLines(
+    '{"status":404,"body":null,"url":"x","fetched_at":"2000-01-01T00:00:00Z"}',
+    path
+  )
+  withr::local_options(
+    biobouncer.remote_transport = .stub_present("MONDO:0005148")
+  )
+  res <- check_id("MONDO:0005148", source_db = "mondo", how = "remote")
+  expect_true(res$valid) # the record aged past the TTL, so it refetched
+})
+
+test_that(".remote_ttl reads the environment", {
+  withr::local_envvar(BIOBOUNCER_REMOTE_TTL = "")
+  expect_null(.remote_ttl())
+  for (off in c("0", "-5", "not-a-number")) {
+    withr::local_envvar(BIOBOUNCER_REMOTE_TTL = off)
+    expect_null(.remote_ttl())
+  }
+  withr::local_envvar(BIOBOUNCER_REMOTE_TTL = "3600")
+  expect_identical(.remote_ttl(), 3600)
+})
+
+test_that(".is_stale applies the ttl rules", {
+  expect_false(.is_stale("2000-01-01T00:00:00Z", NULL)) # no ttl, never stale
+  expect_true(.is_stale(NA_character_, 100)) # no timestamp to trust
+  expect_true(.is_stale("garbage", 100)) # unparseable
+  expect_true(.is_stale("2000-01-01T00:00:00Z", 100)) # long expired
+  expect_false(.is_stale(.utc_stamp(), 3600)) # fresh
+})
+
+test_that(".remote_retry retries a transient result then returns the success", {
+  calls <- 0L
+  fetch <- function() {
+    calls <<- calls + 1L
+    if (calls < 3L) {
+      list(status = 503L, body = NULL) # transient server error
+    } else {
+      list(status = 200L, body = NULL)
+    }
+  }
+  resp <- .remote_retry(fetch, attempts = 3L, sleep = function(s) {
+    invisible(NULL)
+  })
+  expect_identical(resp$status, 200L)
+  expect_identical(calls, 3L) # two retries, then the success
+})
+
+test_that(".remote_retry gives up after the last attempt", {
+  calls <- 0L
+  fetch <- function() {
+    calls <<- calls + 1L
+    NULL # a caught network error
+  }
+  resp <- .remote_retry(fetch, attempts = 3L, sleep = function(s) {
+    invisible(NULL)
+  })
+  expect_null(resp)
+  expect_identical(calls, 3L)
+})
+
+test_that(".ncbi_suffix adds the key only when configured", {
+  withr::local_envvar(NCBI_API_KEY = "", NCBI_EMAIL = "")
+  expect_identical(.ncbi_suffix(), "") # no key, URL unchanged
+  withr::local_envvar(NCBI_API_KEY = "secret")
+  suffix <- .ncbi_suffix()
+  expect_true(startsWith(suffix, "&"))
+  expect_true(grepl("api_key=secret", suffix, fixed = TRUE))
+  expect_true(grepl("tool=biobouncer", suffix, fixed = TRUE))
+})
+
+test_that(".redact_url masks credentials only", {
+  # A URL with no secret parameter is returned byte-identical.
+  plain <- "https://rest.ensembl.org/lookup/id/ENSG00000139618?content-type=application/json"
+  expect_identical(.redact_url(plain), plain)
+  # The NCBI key and contact email are masked; other params are untouched.
+  with_key <- paste0(
+    "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi",
+    "?db=nuccore&id=NM_000546&retmode=json&api_key=supersecret",
+    "&tool=biobouncer&email=a%40b.co"
+  )
+  redacted <- .redact_url(with_key)
+  expect_false(grepl("supersecret", redacted, fixed = TRUE))
+  expect_false(grepl("a%40b.co", redacted, fixed = TRUE))
+  expect_true(grepl("api_key=REDACTED", redacted, fixed = TRUE))
+  expect_true(grepl("email=REDACTED", redacted, fixed = TRUE))
+  expect_true(grepl("tool=biobouncer", redacted, fixed = TRUE))
+  expect_true(grepl("id=NM_000546", redacted, fixed = TRUE))
 })

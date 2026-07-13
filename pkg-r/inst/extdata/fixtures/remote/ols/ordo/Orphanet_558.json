@@ -1,0 +1,11 @@
+{
+  "resolver": "ols",
+  "url": "https://www.ebi.ac.uk/ols4/api/ontologies/ordo/terms?obo_id=Orphanet:558",
+  "recorded": "2026-07-10",
+  "status": 200,
+  "body": {
+    "page": {
+      "totalElements": 1
+    }
+  }
+}

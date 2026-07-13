@@ -1,0 +1,5 @@
+{"input": "TIGR00001", "source_db": "ncbifam", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "TIGR00001", "suggestion": null}}
+{"input": "tigr00001", "source_db": "ncbifam", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "TIGR00001"}}
+{"input": "TIGR00001!", "source_db": "ncbifam", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "ncbifam", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "TIGR00002", "source_db": "ncbifam", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "TIGR00002", "suggestion": null}}

@@ -1,0 +1,5 @@
+{"input": "ORPHA:558", "source_db": "orphanet", "how": "remote", "expect": {"valid": true, "normalized": "ORPHA:558"}, "note": "a real rare disease (Marfan syndrome); ORPHA is rewritten to Orphanet for the lookup"}
+{"input": "ORPHA:98896", "source_db": "orphanet", "how": "remote", "expect": {"valid": true, "normalized": "ORPHA:98896"}, "note": "a real Orphanet term"}
+{"input": "ORPHA:999999", "source_db": "orphanet", "how": "remote", "expect": {"valid": false}, "note": "well-formed but no such term; the ontology lookup returns nothing"}
+{"input": "orpha:558", "source_db": "orphanet", "how": "remote", "expect": {"valid": false, "suggestion": "ORPHA:558"}, "note": "lowercase; the canonical uppercase form exists remotely"}
+{"input": "ORPHA558", "source_db": "orphanet", "how": "remote", "expect": {"valid": false}, "note": "missing the colon; fails the grammar before any lookup"}

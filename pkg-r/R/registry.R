@@ -1,19 +1,19 @@
 # Load source definitions from the vendored shared spec.
 
-.biogate_cache <- new.env(parent = emptyenv())
+.biobouncer_cache <- new.env(parent = emptyenv())
 
 .load_sources <- function() {
-  if (!is.null(.biogate_cache$sources)) {
-    return(.biogate_cache$sources)
+  if (!is.null(.biobouncer_cache$sources)) {
+    return(.biobouncer_cache$sources)
   }
-  dir <- system.file("extdata", "sources", package = "biogate")
+  dir <- system.file("extdata", "sources", package = "biobouncer")
   files <- sort(list.files(dir, pattern = "\\.yaml$", full.names = TRUE))
   reg <- list()
   for (f in files) {
     spec <- yaml::read_yaml(f)
     reg[[spec$key]] <- spec
   }
-  .biogate_cache$sources <- reg
+  .biobouncer_cache$sources <- reg
   reg
 }
 
@@ -99,7 +99,7 @@ source_info <- function() {
         "Unknown {.arg source_db} {.val {source_db}}.",
         i = "Available sources: {.val {sources()}}."
       ),
-      class = "biogate_error_unknown_source"
+      class = "biobouncer_error_unknown_source"
     )
   }
   reg[[source_db]]

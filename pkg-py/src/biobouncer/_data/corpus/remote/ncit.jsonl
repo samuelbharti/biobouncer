@@ -1,0 +1,5 @@
+{"input": "NCIT:C3224", "source_db": "ncit", "how": "remote", "expect": {"valid": true, "normalized": "NCIT:C3224"}, "note": "melanoma; a real concept"}
+{"input": "NCIT:C2985", "source_db": "ncit", "how": "remote", "expect": {"valid": true, "normalized": "NCIT:C2985"}, "note": "diabetes mellitus; a real concept"}
+{"input": "NCIT:C99999999", "source_db": "ncit", "how": "remote", "expect": {"valid": false}, "note": "well-formed but no such concept; the ontology lookup returns 404"}
+{"input": "ncit:C3224", "source_db": "ncit", "how": "remote", "expect": {"valid": false, "suggestion": "NCIT:C3224"}, "note": "different-case prefix; the canonical form exists remotely"}
+{"input": "NCITC3224", "source_db": "ncit", "how": "remote", "expect": {"valid": false}, "note": "missing the colon; fails the grammar before any lookup"}

@@ -1,0 +1,5 @@
+{"input": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N", "source_db": "inchikey", "how": "pattern", "expect": {"valid": true, "normalized": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N"}, "note": "aspirin"}
+{"input": "RYYVLZVUVIJVGH-UHFFFAOYSA-N", "source_db": "inchikey", "how": "pattern", "expect": {"valid": true, "normalized": "RYYVLZVUVIJVGH-UHFFFAOYSA-N"}, "note": "caffeine"}
+{"input": "bsynrymutxbxsq-uhfffaoysa-n", "source_db": "inchikey", "how": "pattern", "expect": {"valid": false, "suggestion": "BSYNRYMUTXBXSQ-UHFFFAOYSA-N"}, "note": "lowercase is suggestible to uppercase"}
+{"input": "BSYNRYMUTXBXSQ-UHFFFAOYSA", "source_db": "inchikey", "how": "pattern", "expect": {"valid": false}, "note": "missing the final protonation block"}
+{"input": "BSYNRYMUTXBXS-UHFFFAOYSA-N", "source_db": "inchikey", "how": "pattern", "expect": {"valid": false}, "note": "first block is 13 letters, one short"}

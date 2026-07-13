@@ -1,4 +1,4 @@
 library(testthat)
-library(biogate)
+library(biobouncer)
 
-test_check("biogate")
+test_check("biobouncer")

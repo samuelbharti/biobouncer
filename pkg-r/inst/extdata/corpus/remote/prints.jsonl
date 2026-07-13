@@ -1,0 +1,4 @@
+{"input": "PR00001", "source_db": "prints", "how": "remote", "expect": {"valid": true, "normalized": "PR00001"}, "note": "a real PRINTS fingerprint"}
+{"input": "PR99999", "source_db": "prints", "how": "remote", "expect": {"valid": false}, "note": "well-formed but not a current entry; the endpoint answers 204"}
+{"input": "pr00001", "source_db": "prints", "how": "remote", "expect": {"valid": false, "suggestion": "PR00001"}, "note": "lowercase; the canonical form exists remotely"}
+{"input": "PR0001", "source_db": "prints", "how": "remote", "expect": {"valid": false}, "note": "four digits; fails the grammar before any lookup"}

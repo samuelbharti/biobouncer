@@ -1,0 +1,18 @@
+key: cdd
+name: CDD
+description: Conserved Domain Database models, a member database of InterPro.
+# cd and exactly five digits. The cd prefix is lowercase; an uppercase input is
+# suggested in its canonical case.
+pattern: 'cd[0-9]{5}'
+example: 'cd00029'
+normalize:
+  case: lower
+# remote mode checks existence against the EBI InterPro API, which hosts CDD,
+# reusing the interpro resolver. The entry endpoint answers 204 for a well-formed
+# accession that is not a current entry. This is an existence check only.
+remote:
+  resolver: interpro
+  interpro_db: cdd
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.ncbi.nlm.nih.gov/cdd

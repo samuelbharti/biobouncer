@@ -1,19 +1,156 @@
-# biogate (development version)
+# biobouncer 0.1.0
 
-* The Python package installs a `biogate` command-line tool. It validates
+* Remote mode no longer writes an `NCBI_API_KEY` (or contact email) into the
+  on-disk response cache or into error messages; the credential is redacted from
+  the request URL before it is stored or shown.
+* Cache mode and `biobouncer_pull()` reject a snapshot `version` that contains a
+  path separator or `..`, so a version label cannot read or write outside the
+  snapshot directory.
+* New `synthesize_ids()` builds a synthetic, labeled column of identifiers for any
+  source: a mix of valid, repairable, invalid, and missing values, each labeled by
+  the checker in `pattern` mode (any source) or `cache` mode (a source that ships a
+  snapshot, where a repairable value can be a retired id that maps to its
+  successor). It is handy for exercising a validation pipeline (feed the column to
+  `report_id()` or an adapter) without hand-writing test data, and it produces the
+  same column as the Python `synthesize()`.
+* Rat (`rattus_norvegicus`) joins human and mouse as a covered species for the
+  `ensembl` and `uniprot` sources, with pattern and remote corpus cases and
+  recorded fixtures for the rat Tp53 gene and protein.
+* Eight more sources now ship a bundled cache snapshot, so their `cache` mode
+  works offline out of the box: `bto`, `cl`, `doid`, `hp`, `mp`, `pato`, `so`,
+  and `uberon`. Each snapshot is a small set of real, current terms; a fuller
+  snapshot is still available through `biobouncer_pull()`.
+* New `opentargets` source. It checks whether a human Ensembl gene id is a target
+  the Open Targets Platform covers, through the platform's GraphQL API. This is
+  the first resolver that queries over a POST body rather than a URL.
+* `check_id()` gains an `on_error` argument for remote and existence checks. With
+  the default `"raise"` a network failure still unwinds the call; with
+  `"indeterminate"` just that id is left `NA` with the reason in a new `error`
+  column, and the rest of the batch is still checked. The result tibble now has
+  that ninth `error` column, and `report_id()`/`repair_id()` accept `on_error`
+  too.
+* Checking a large column with `remote` mode can now run several requests at
+  once. Set the `BIOBOUNCER_REMOTE_WORKERS` environment variable to the number of
+  concurrent lookups (the default is `1`, sequential). Concurrency only changes
+  how fast the network is polled, never a verdict.
+* New `report_id()` and `repair_id()` clean a whole column in one call.
+  `report_id()` returns the check table classed so it prints with a one-line
+  summary of how many values are valid, repairable, invalid, or missing;
+  `repair_id()` substitutes the fixable values (a withdrawn gene symbol becomes
+  its successor) and leaves valid, unmappable, and missing values untouched, so
+  it drops into `dplyr::mutate()`.
+* `cache` mode no longer requires a `version`. When you omit it, biobouncer uses the
+  latest installed snapshot (preferring a source's pinned default), so a plain
+  `check_id(x, "hgnc", how = "cache")` just works.
+* `existence` mode now degrades to a `pattern` check for a source with no
+  resolver, instead of raising, so it always returns a verdict.
+* The adapters no longer treat a missing cell as a failure. `check_valid_id()`,
+  `assert_valid_id()`, `test_valid_id()`, `sv_biobouncer()`, and `id_predicate()`
+  now pass an `NA` value, matching the Python column checks, so a missing cell is
+  never dropped by a filter or flagged by a data-frame rule.
+* `hgnc` gene-symbol validation is now real in every mode. Cache mode ships a
+  pinned approved-symbol snapshot of about 45,000 symbols, so it validates real
+  gene symbols offline out of the box; a withdrawn or previous symbol still maps
+  to its approved successor.
+* `biobouncer_pull("hgnc")` now works. It refreshes the snapshot from a dated HGNC
+  "complete set" archive through a new non-OBO builder, and the version label is
+  the archive's release date.
+* Remote mode now covers `hgnc`. It checks live existence against the
+  genenames.org service, so `source_info()` reports `pattern`, `cache`, and
+  `remote` for it.
+* Cache mode suggests the nearest approved symbol for a typo. A well-formed
+  symbol that is neither approved nor a known previous symbol falls back to the
+  closest approved symbol within a small edit distance, so `TP52` suggests
+  `TP53`.
+* `check_id()` and `is_valid_id()` gain a `refresh` argument for `remote` and
+  `existence` checks. When `TRUE`, a cached response is ignored and the id is
+  looked up live again.
+* Remote checks now record when each response was retrieved. A cached verdict
+  reports its original fetch time in the `version` column instead of the time of
+  the current run. Set the `BIOBOUNCER_REMOTE_TTL` environment variable to a number
+  of seconds to refetch a cached response once it is older than that.
+* Snapshot and remote-cache files are written atomically, so an interrupted write
+  can no longer leave a truncated file that reports valid ids as invalid.
+* Remote checks retry a transient network failure or a 429 or 5xx response a few
+  times with exponential backoff before giving up, so a brief blip no longer
+  fails a whole batch.
+* The NCBI E-utilities checks (`refseq`, `clinvar`) send an API key when the
+  `NCBI_API_KEY` environment variable is set, which raises NCBI's rate limit from
+  three to ten requests a second. `NCBI_EMAIL` is included when set.
+* `ncbitaxon` is a new source for NCBI Taxonomy identifiers such as
+  `NCBITaxon:9606`. It checks the pattern offline and existence against NCBI
+  Taxonomy in the Ontology Lookup Service, reusing the OLS resolver. A bare taxon
+  number or a different-case prefix is suggested in canonical CURIE form. No cache
+  builder is offered, since the NCBI Taxonomy OBO release is far too large to
+  snapshot.
+* `inchikey` is a new source for InChIKey chemical structure keys such as
+  `BSYNRYMUTXBXSQ-UHFFFAOYSA-N`. This is pattern mode only; a lowercase input is
+  suggested in its canonical uppercase form. An existence check would need a
+  UniChem or PubChem lookup, which is not offered yet.
+* `ncit` is a new source for NCI Thesaurus concept codes such as `NCIT:C3224`,
+  and `eco` for Evidence and Conclusion Ontology terms such as `ECO:0000269`.
+  Both check the pattern offline and existence against their ontology in the
+  Ontology Lookup Service, reusing the OLS resolver.
+* Five InterPro member databases are new sources: `smart` (`SM00248`), `panther`
+  (`PTHR11003`), `cdd` (`cd00029`), `prints` (`PR00001`), and `ncbifam`
+  (`TIGR00001` or `NF000001`). Each checks the pattern offline and existence
+  against the EBI InterPro API, reusing the interpro resolver.
+* `mirbase_hairpin` is a new source for miRBase hairpin precursor accessions such
+  as `MI0000001`, a sibling to the mature `mirbase` source. It checks the pattern
+  offline and existence against RNAcentral through EBI Search, reusing the mirbase
+  resolver.
+* `mirbase` gains `remote` mode. A mature accession is checked for existence
+  against RNAcentral through EBI Search, which indexes miRBase. miRBase has no
+  existence API of its own. This is an existence check only; a withdrawn
+  accession is reported as absent, not with a successor.
+* `prosite` gains `remote` mode. A pattern or profile accession is checked for
+  existence against the ExPASy PROSITE entry endpoint, which resolves both entry
+  types from one address. This is an existence check only; a deleted accession is
+  reported as absent, not with a successor.
+* `orphanet` gains `remote` mode. A rare-disease id is checked against the
+  Orphanet Rare Disease Ontology in the Ontology Lookup Service, reusing the OLS
+  resolver. The `ORPHA` prefix is rewritten to the ontology's `Orphanet` prefix
+  for the lookup, and an obsolete term is reported with its successor.
+* `clinvar` gains `remote` mode. An accession is checked for existence by
+  searching ClinVar through NCBI E-utilities. One search covers all three
+  accession types (VCV, RCV, and SCV). This is an existence check only.
+* `refseq` gains `remote` mode. An accession is checked for existence against
+  NCBI E-utilities, routed to the nucleotide or protein database by its molecule
+  prefix. The summary endpoint returns an empty result for an unknown accession.
+  This is an existence check only; a suppressed accession is not distinguished
+  from a current one.
+* `rfam`, `uniparc`, `complexportal`, and `wikipathways` gain `remote` mode. Each
+  checks existence against its source: the Rfam API, the UniProt UniParc
+  endpoint, the EBI Complex Portal web service, and the published WikiPathways
+  asset. All four are existence checks; an absent id is reported as not valid
+  with no successor.
+* `interpro` and `pfam` gain `remote` mode. An accession is checked for existence
+  against the EBI InterPro API, which hosts both databases, so one resolver
+  serves the two sources. The entry endpoint answers 204 for a well-formed
+  accession that is not a current entry. This is an existence check only; a
+  deleted accession is reported as absent, not with a successor.
+* `chembl` gains `remote` mode. A ChEMBL id is checked for existence against the
+  ChEMBL id-lookup endpoint, which resolves an id of any entity type, so one
+  lookup covers compounds, targets, assays, and documents alike. This is an
+  existence check only; an obsolete id is not yet reported with a successor.
+* `reactome` gains `remote` mode. A stable id is checked for existence against
+  the Reactome content service. This is an existence check only; a superseded
+  stable id is not yet reported with its successor.
+* `pdb` gains `remote` mode. A four-character structure id is checked for
+  existence against the RCSB PDB data API. This is an existence check only; an
+  obsoleted structure that was superseded is not yet reported with its
+  successor.
+* The Python package installs a `biobouncer` command-line tool. It validates
   identifiers from arguments, a file, or standard input, prints per-id results
   as text, TSV, or JSON, and exits non-zero when any input is invalid, so it
-  drops into shell pipelines and CI. It also has `biogate sources` and
-  `biogate info`.
+  drops into shell pipelines and CI. It also has `biobouncer sources` and
+  `biobouncer info`.
 * The Python package adds a Great Expectations column-map expectation,
-  `biogate.gx.ExpectColumnValuesToBeValidId`, for validating a data frame
-  column. Install it with `pip install "biogate[gx]"`.
+  `biobouncer.gx.ExpectColumnValuesToBeValidId`, for validating a data frame
+  column. Install it with `pip install "biobouncer[gx]"`.
 * `id_predicate()` now documents its use as a pointblank `col_vals_expr()` step,
   alongside assertr and validate. The predicate is unchanged; pointblank
   consumes it directly.
-
-# biogate 0.1.0
-
 * First numbered release. Sets the version to 0.1.0 in both the R and Python
   packages so they track together.
 * `source_info()` gains an `example` identifier and a `modes` column for each
@@ -72,7 +209,7 @@
   that a variant exists, and it requires a reference sequence.
 * Adds validation-framework adapters that wrap the core classifier:
   `assert_valid_id()`, `check_valid_id()`, and `test_valid_id()` in the checkmate
-  style, `sv_biogate()`, a shinyvalidate rule, and `id_predicate()`, an
+  style, `sv_biobouncer()`, a shinyvalidate rule, and `id_predicate()`, an
   elementwise predicate for data-frame validation with assertr or validate. The
   Python package pairs these with a pandera check.
 * Adds an `hgnc` source for HUGO gene symbols. `cache` mode checks a symbol
@@ -102,8 +239,8 @@
   not valid.
 * `check_id()` gains offline `cache` mode: existence checks against a pinned
   snapshot. A small `sample` snapshot for the ontology sources ships with the
-  package, and `biogate_cache_dir()` and `biogate_snapshots()` manage snapshots.
-* `biogate_pull()` downloads a full snapshot from a source's OBO release into the
+  package, and `biobouncer_cache_dir()` and `biobouncer_snapshots()` manage snapshots.
+* `biobouncer_pull()` downloads a full snapshot from a source's OBO release into the
   cache directory (mondo, efo, go, chebi).
 * `check_id()` and `is_valid_id()` implement offline `pattern` mode for an
   initial set of sources (mondo, efo, go, chebi, ensembl, uniprot).

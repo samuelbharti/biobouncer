@@ -5,7 +5,8 @@
 #'
 #' A checkmate-style check function. Returns `TRUE` when every element of `x` is
 #' a valid identifier for `source_db`, otherwise a message describing the
-#' failure. Pairs with [assert_valid_id()] and [test_valid_id()].
+#' failure. A missing element (`NA`) is not a failure. Pairs with
+#' [assert_valid_id()] and [test_valid_id()].
 #'
 #' @inheritParams check_id
 #' @return `TRUE` if all elements are valid, otherwise a message string.
@@ -28,11 +29,13 @@ check_valid_id <- function(
     species = species,
     version = version
   )
-  ok <- vapply(valid, isTRUE, logical(1))
-  if (all(ok)) {
+  # A missing cell (NA) is not a failure, matching the pandera and narwhals
+  # column checks in the Python package: only an explicit FALSE fails.
+  failed <- vapply(valid, isFALSE, logical(1))
+  if (!any(failed)) {
     return(TRUE)
   }
-  bad <- which(!ok)
+  bad <- which(failed)
   sprintf(
     "Must be valid %s identifiers (%s mode), but %i of %i failed, for example '%s'",
     source_db,
@@ -115,11 +118,11 @@ test_valid_id <- function(
 #' @return A function of one argument suitable for `add_rule()`.
 #' @seealso [check_valid_id()].
 #' @examples
-#' rule <- sv_biogate("mondo")
+#' rule <- sv_biobouncer("mondo")
 #' rule("MONDO:0005148")
 #' rule("mondo:5148")
 #' @export
-sv_biogate <- function(
+sv_biobouncer <- function(
   source_db,
   how = "pattern",
   species = NULL,
@@ -132,14 +135,19 @@ sv_biogate <- function(
   force(version)
   force(message)
   function(value) {
-    ok <- isTRUE(is_valid_id(
-      value,
-      source_db = source_db,
-      how = how,
-      species = species,
-      version = version
+    # Only an explicit FALSE fails; a missing value is not a failed id.
+    failed <- any(vapply(
+      is_valid_id(
+        value,
+        source_db = source_db,
+        how = how,
+        species = species,
+        version = version
+      ),
+      isFALSE,
+      logical(1)
     ))
-    if (ok) {
+    if (!failed) {
       return(NULL)
     }
     if (!is.null(message)) {
@@ -161,7 +169,9 @@ sv_biogate <- function(
 #'
 #' @inheritParams check_id
 #' @return A function of one argument that returns a logical vector the same
-#'   length as its input.
+#'   length as its input. A missing cell (`NA`) passes, so it is never dropped by
+#'   a filter or flagged by a data-frame rule; only a malformed or non-existent
+#'   id is `FALSE`.
 #' @seealso [is_valid_id()], [check_valid_id()].
 #' @examples
 #' is_mondo <- id_predicate("mondo")
@@ -194,12 +204,18 @@ id_predicate <- function(
   force(species)
   force(version)
   function(x) {
-    is_valid_id(
-      x,
-      source_db = source_db,
-      how = how,
-      species = species,
-      version = version
+    # Only an explicit FALSE fails; a missing cell (NA) passes, so it is never
+    # dropped by a filter, matching the pandera and narwhals checks in Python.
+    !vapply(
+      is_valid_id(
+        x,
+        source_db = source_db,
+        how = how,
+        species = species,
+        version = version
+      ),
+      isFALSE,
+      logical(1)
     )
   }
 }

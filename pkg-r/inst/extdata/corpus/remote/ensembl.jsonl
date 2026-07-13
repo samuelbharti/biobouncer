@@ -5,3 +5,5 @@
 {"input": "ENSG00000139618", "source_db": "ensembl", "how": "remote", "species": "homo_sapiens", "expect": {"valid": true, "normalized": "ENSG00000139618"}, "note": "human id exists and matches the requested species"}
 {"input": "ENSMUSG00000059552", "source_db": "ensembl", "how": "remote", "species": "mus_musculus", "expect": {"valid": true, "normalized": "ENSMUSG00000059552"}, "note": "mouse id exists and matches the requested species"}
 {"input": "ENSMUSG00000059552", "source_db": "ensembl", "how": "remote", "species": "homo_sapiens", "expect": {"valid": false}, "note": "mouse id exists but the requested species is human"}
+{"input": "ENSRNOG00000010756", "source_db": "ensembl", "how": "remote", "species": "rattus_norvegicus", "expect": {"valid": true, "normalized": "ENSRNOG00000010756"}, "note": "rat id exists and matches the requested species"}
+{"input": "ENSRNOG00000010756", "source_db": "ensembl", "how": "remote", "species": "homo_sapiens", "expect": {"valid": false}, "note": "rat id exists but the requested species is human"}

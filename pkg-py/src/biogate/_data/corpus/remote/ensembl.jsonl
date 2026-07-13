@@ -1,7 +1,0 @@
-{"input": "ENSG00000139618", "source_db": "ensembl", "how": "remote", "expect": {"valid": true, "normalized": "ENSG00000139618"}, "note": "well-formed and exists in the live database (BRCA2)"}
-{"input": "ENSG00000000000", "source_db": "ensembl", "how": "remote", "expect": {"valid": false}, "note": "well-formed but not found; the endpoint answers 400"}
-{"input": "ensg00000139618", "source_db": "ensembl", "how": "remote", "expect": {"valid": false, "suggestion": "ENSG00000139618"}, "note": "malformed case, and the corrected form exists remotely"}
-{"input": "ENSG123", "source_db": "ensembl", "how": "remote", "expect": {"valid": false}, "note": "wrong shape, not suggestible, no network needed"}
-{"input": "ENSG00000139618", "source_db": "ensembl", "how": "remote", "species": "homo_sapiens", "expect": {"valid": true, "normalized": "ENSG00000139618"}, "note": "human id exists and matches the requested species"}
-{"input": "ENSMUSG00000059552", "source_db": "ensembl", "how": "remote", "species": "mus_musculus", "expect": {"valid": true, "normalized": "ENSMUSG00000059552"}, "note": "mouse id exists and matches the requested species"}
-{"input": "ENSMUSG00000059552", "source_db": "ensembl", "how": "remote", "species": "homo_sapiens", "expect": {"valid": false}, "note": "mouse id exists but the requested species is human"}

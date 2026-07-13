@@ -4,7 +4,14 @@
 \alias{is_valid_id}
 \title{Test biological identifiers}
 \usage{
-is_valid_id(x, source_db, how = "pattern", species = NULL, version = NULL)
+is_valid_id(
+  x,
+  source_db,
+  how = "pattern",
+  species = NULL,
+  version = NULL,
+  refresh = FALSE
+)
 }
 \arguments{
 \item{x}{A vector of identifiers. Coerced to character.}
@@ -14,7 +21,7 @@ is_valid_id(x, source_db, how = "pattern", species = NULL, version = NULL)
 \item{how}{Checking mode: \code{"pattern"} (offline, shape only), \code{"cache"}
 (offline existence against a snapshot), \code{"remote"} (live existence against
 the source API), or \code{"existence"} (cache when a snapshot is available for
-\code{version}, otherwise remote).}
+\code{version}, otherwise remote, or pattern for a source with no resolver).}
 
 \item{species}{Optional species context, echoed in the result. A name such as
 \code{"homo_sapiens"} or an NCBI taxon id such as \code{9606}. When given, an id of a
@@ -22,8 +29,12 @@ different species is invalid: Ensembl is checked from its id prefix (in
 \code{pattern} and \code{remote} modes), and UniProt from the entry's organism in
 \code{remote} mode. A species outside the source map is not checked.}
 
-\item{version}{Snapshot version. Required for \code{cache} mode; selects the
-snapshot for \code{existence} mode; ignored in \code{pattern} and \code{remote} modes.}
+\item{version}{Snapshot version. In \code{cache} mode it selects the snapshot and
+defaults to the latest installed one when omitted; it selects the snapshot
+for \code{existence} mode; ignored in \code{pattern} and \code{remote} modes.}
+
+\item{refresh}{In remote checks, skip any cached response and refetch. Ignored
+by the offline modes.}
 }
 \value{
 A logical vector, one element per element of \code{x}.

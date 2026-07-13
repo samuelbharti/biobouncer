@@ -30,7 +30,7 @@ test_that("malformed HGVS variants are invalid", {
 test_that("hgvs cache mode has no snapshot", {
   # hgvs supports pattern (syntax) and remote (Mutalyzer) modes. It ships no
   # cache snapshot, so cache mode reports the missing snapshot explicitly.
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   expect_error(
     check_id(
       "NM_004006.2:c.4375C>T",
@@ -38,6 +38,6 @@ test_that("hgvs cache mode has no snapshot", {
       how = "cache",
       version = "sample"
     ),
-    class = "biogate_error_missing_snapshot"
+    class = "biobouncer_error_missing_snapshot"
   )
 })

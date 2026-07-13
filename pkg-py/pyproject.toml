@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "biogate"
+name = "biobouncer"
 version = "0.1.0"
 description = "A gate for biological inputs: validate identifiers and inputs the same way in R and Python."
 readme = "README.md"
@@ -15,23 +15,36 @@ keywords = ["bioinformatics", "validation", "identifiers", "ontology"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Typing :: Typed",
 ]
 dependencies = ["platformdirs>=3", "pyyaml>=6"]
 
 [project.optional-dependencies]
-# Framework adapters. Install with: pip install biogate[adapters]
+# Framework adapters. Install with: pip install biobouncer[adapters]
 adapters = ["pydantic>=2", "pandera[pandas]>=0.20"]
-# Great Expectations expectation. Install with: pip install biogate[gx]
+# Great Expectations expectation. Install with: pip install biobouncer[gx]
 gx = ["great-expectations>=1"]
+# narwhals column check across pandas, polars, and pyarrow. Install with:
+# pip install biobouncer[narwhals]
+narwhals = ["narwhals>=2"]
 
 [project.scripts]
-biogate = "biogate.cli:main"
+biobouncer = "biobouncer.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/samuelbharti/biogate"
-Issues = "https://github.com/samuelbharti/biogate/issues"
+Homepage = "https://github.com/samuelbharti/biobouncer"
+Documentation = "https://www.samuelbharti.com/biobouncer/py/"
+Source = "https://github.com/samuelbharti/biobouncer"
+Issues = "https://github.com/samuelbharti/biobouncer/issues"
+Changelog = "https://github.com/samuelbharti/biobouncer/blob/main/pkg-py/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
@@ -40,6 +53,9 @@ dev = [
     "pydantic>=2",
     "pandera[pandas]>=0.20",
     "great-expectations>=1",
+    "narwhals>=2",
+    "polars>=1",
+    "pyarrow>=15",
 ]
 docs = [
     "mkdocs-material>=9.5",
@@ -47,7 +63,7 @@ docs = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/biogate"]
+packages = ["src/biobouncer"]
 
 [tool.ruff]
 line-length = 88
@@ -60,7 +76,7 @@ select = ["E", "F", "W", "I", "UP", "B"]
 ignore = ["E501"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["biogate"]
+known-first-party = ["biobouncer"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]

@@ -1,0 +1,6 @@
+{"input": "NCBITaxon:9606", "source_db": "ncbitaxon", "how": "pattern", "expect": {"valid": true, "normalized": "NCBITaxon:9606"}, "note": "Homo sapiens"}
+{"input": "NCBITaxon:10090", "source_db": "ncbitaxon", "how": "pattern", "expect": {"valid": true, "normalized": "NCBITaxon:10090"}, "note": "Mus musculus"}
+{"input": "ncbitaxon:9606", "source_db": "ncbitaxon", "how": "pattern", "expect": {"valid": false, "suggestion": "NCBITaxon:9606"}, "note": "different-case prefix is suggestible to the canonical form"}
+{"input": "9606", "source_db": "ncbitaxon", "how": "pattern", "expect": {"valid": false, "suggestion": "NCBITaxon:9606"}, "note": "a bare taxon number is suggested in CURIE form"}
+{"input": "NCBITaxon:", "source_db": "ncbitaxon", "how": "pattern", "expect": {"valid": false}, "note": "prefix without a number"}
+{"input": "NCBITaxon9606", "source_db": "ncbitaxon", "how": "pattern", "expect": {"valid": false}, "note": "missing the colon"}

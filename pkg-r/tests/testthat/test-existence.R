@@ -16,8 +16,8 @@
 }
 
 test_that("existence answers from a snapshot when the version is available", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
-  withr::local_options(biogate.remote_transport = .forbid_network)
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  withr::local_options(biobouncer.remote_transport = .forbid_network)
 
   res <- check_id(
     c("MONDO:0005148", "MONDO:9999999", "mondo:5148"),
@@ -39,8 +39,8 @@ test_that("existence answers from a snapshot when the version is available", {
 })
 
 test_that("existence falls back to remote when no version is given", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
-  withr::local_options(biogate.remote_transport = .stub_mondo_present)
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  withr::local_options(biobouncer.remote_transport = .stub_mondo_present)
 
   res <- check_id(
     c("MONDO:0005148", "MONDO:9999999"),
@@ -54,8 +54,8 @@ test_that("existence falls back to remote when no version is given", {
 })
 
 test_that("existence falls back to remote when the snapshot is not installed", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
-  withr::local_options(biogate.remote_transport = .stub_mondo_present)
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  withr::local_options(biobouncer.remote_transport = .stub_mondo_present)
 
   res <- check_id(
     "MONDO:0005148",
@@ -69,9 +69,9 @@ test_that("existence falls back to remote when the snapshot is not installed", {
 })
 
 test_that("existence uses remote for a source that has no snapshot", {
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
-    biogate.remote_transport = function(url, timeout) {
+    biobouncer.remote_transport = function(url, timeout) {
       acc <- sub(".*uniprotkb/([^.?/]+).*", "\\1", url)
       if (acc == "P01308") {
         list(
@@ -86,4 +86,19 @@ test_that("existence uses remote for a source that has no snapshot", {
 
   res <- check_id("P01308", source_db = "uniprot", how = "existence")
   expect_true(res$valid)
+})
+
+test_that("existence degrades to pattern for a pattern-only source", {
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  withr::local_options(biobouncer.remote_transport = .forbid_network)
+  # cosmic is pattern-only: no snapshot and no resolver, so existence degrades to
+  # a shape check instead of aborting. No network is touched.
+  res <- check_id(
+    c("COSM476", "nonsense"),
+    source_db = "cosmic",
+    how = "existence"
+  )
+  expect_identical(res$valid, c(TRUE, FALSE))
+  expect_identical(res$how, rep("existence", 2))
+  expect_true(is.na(res$version[1]))
 })

@@ -4,7 +4,15 @@
 \alias{check_id}
 \title{Check biological identifiers}
 \usage{
-check_id(x, source_db, how = "pattern", species = NULL, version = NULL)
+check_id(
+  x,
+  source_db,
+  how = "pattern",
+  species = NULL,
+  version = NULL,
+  refresh = FALSE,
+  on_error = "raise"
+)
 }
 \arguments{
 \item{x}{A vector of identifiers. Coerced to character.}
@@ -14,7 +22,7 @@ check_id(x, source_db, how = "pattern", species = NULL, version = NULL)
 \item{how}{Checking mode: \code{"pattern"} (offline, shape only), \code{"cache"}
 (offline existence against a snapshot), \code{"remote"} (live existence against
 the source API), or \code{"existence"} (cache when a snapshot is available for
-\code{version}, otherwise remote).}
+\code{version}, otherwise remote, or pattern for a source with no resolver).}
 
 \item{species}{Optional species context, echoed in the result. A name such as
 \code{"homo_sapiens"} or an NCBI taxon id such as \code{9606}. When given, an id of a
@@ -22,25 +30,36 @@ different species is invalid: Ensembl is checked from its id prefix (in
 \code{pattern} and \code{remote} modes), and UniProt from the entry's organism in
 \code{remote} mode. A species outside the source map is not checked.}
 
-\item{version}{Snapshot version. Required for \code{cache} mode; selects the
-snapshot for \code{existence} mode; ignored in \code{pattern} and \code{remote} modes.}
+\item{version}{Snapshot version. In \code{cache} mode it selects the snapshot and
+defaults to the latest installed one when omitted; it selects the snapshot
+for \code{existence} mode; ignored in \code{pattern} and \code{remote} modes.}
+
+\item{refresh}{In remote checks, skip any cached response and refetch. Ignored
+by the offline modes.}
+
+\item{on_error}{How a per-id remote failure is handled. \code{"raise"} (the
+default) lets the failure unwind the whole call. \code{"indeterminate"} leaves
+just that id \code{NA} with the reason in its \code{error} column and checks the rest
+of the batch, so one unreachable id does not lose the others. Ignored by the
+offline modes.}
 }
 \value{
 A \link[tibble:tibble]{tibble} with one row per element of \code{x} and the
 columns \code{input}, \code{valid}, \code{normalized}, \code{suggestion}, \code{source_db},
-\code{version}, \code{species}, and \code{how}.
+\code{version}, \code{species}, \code{how}, and \code{error}.
 }
 \description{
 Validate a vector of identifiers against a source. \code{pattern} mode checks that
 each identifier is well-formed. \code{cache} mode also checks that it exists in a
-pinned local snapshot (see \code{\link[=biogate_snapshots]{biogate_snapshots()}}). \code{remote} mode checks live
+pinned local snapshot (see \code{\link[=biobouncer_snapshots]{biobouncer_snapshots()}}). \code{remote} mode checks live
 existence against the source API. \code{existence} mode uses a snapshot when one is
-available for \code{version} and otherwise falls back to \code{remote}.
+available for \code{version}, otherwise falls back to \code{remote}, and for a source
+with no resolver falls back to \code{pattern}.
 }
 \examples{
 check_id(c("MONDO:0005148", "mondo:5148"), source_db = "mondo")
 check_id("MONDO:0005148", source_db = "mondo", how = "cache", version = "sample")
 }
 \seealso{
-\code{\link[=is_valid_id]{is_valid_id()}}, \code{\link[=sources]{sources()}}, \code{\link[=source_info]{source_info()}}, \code{\link[=biogate_snapshots]{biogate_snapshots()}}.
+\code{\link[=is_valid_id]{is_valid_id()}}, \code{\link[=sources]{sources()}}, \code{\link[=source_info]{source_info()}}, \code{\link[=biobouncer_snapshots]{biobouncer_snapshots()}}.
 }

@@ -20,7 +20,7 @@ a network runs offline.
 The default. Offline shape check, no reference data.
 
 ```python
-import biogate as bg
+import biobouncer as bg
 
 bg.is_valid_id("MONDO:0005148", source_db="mondo", how="pattern")
 # True
@@ -61,6 +61,20 @@ A network failure in `remote` mode raises `RemoteError`. It never returns a
 silent `False`, so a failed lookup cannot be mistaken for an absent identifier.
 Every extrinsic result records the snapshot version or the timestamp that
 produced it.
+
+Pass `on_error="indeterminate"` to keep going when one id is unreachable: that id
+comes back `valid=None` with the reason in its `error` field, and the rest of the
+column is still checked.
+
+```python
+bg.check_id(genes, source_db="hgnc", how="remote", on_error="indeterminate")
+```
+
+Checking a large column live is faster with several requests in flight. Set
+`BIOBOUNCER_REMOTE_WORKERS` to the number of concurrent lookups (the default is `1`,
+sequential). Concurrency never changes a verdict, only the order the network is
+touched, and per-host politeness still applies: NCBI E-utilities are held to
+three requests a second, or ten when `NCBI_API_KEY` is set.
 
 ## Species and version awareness
 
@@ -104,16 +118,16 @@ against the Mutalyzer normalizer, which goes beyond the offline syntax check.
 
 The adapters wrap the core classifier so it plugs into common validation
 frameworks. They never reimplement any checks. Install them with
-`pip install "biogate[adapters]"`.
+`pip install "biobouncer[adapters]"`.
 
 ### pandera
 
-`biogate.checks.is_id` returns a pandera `Check` for a column of identifiers.
+`biobouncer.checks.is_id` returns a pandera `Check` for a column of identifiers.
 
 ```python
 import pandas as pd
 import pandera.pandas as pa
-from biogate.checks import is_id
+from biobouncer.checks import is_id
 
 schema = pa.DataFrameSchema(
     {
@@ -130,12 +144,12 @@ schema.validate(df)
 
 ### pydantic
 
-`biogate.types.Id` returns a validating string type. Use it as a field
+`biobouncer.types.Id` returns a validating string type. Use it as a field
 annotation, most readably through an alias.
 
 ```python
 from pydantic import BaseModel
-from biogate.types import Id
+from biobouncer.types import Id
 
 MondoId = Id("mondo")
 
@@ -148,6 +162,26 @@ Association(disease="MONDO:0005148")
 ```
 
 A value that is not valid for the source raises a pydantic `ValidationError`.
+
+## Generating test data
+
+`synthesize` builds a labeled "messy column" for any source, so you can exercise a
+validation pipeline without hand-writing test ids:
+
+```python
+import biobouncer as bg
+
+rows = bg.synthesize("mondo")
+# each row has input, category (valid/repairable/invalid/missing), and the
+# pattern-mode valid/normalized/suggestion for that input
+column = [row["input"] for row in rows]
+bg.report(column, "mondo").summary
+```
+
+The column is deterministic and offline, and the R `synthesize_ids()` produces the
+same one. `ec`, `hgvs`, and `hgnc` have no repairable form, so they omit that
+category. Pass `how="cache"` for a snapshot-mode column, where a repairable value
+can be a retired id that maps to its successor.
 
 ## Summary
 

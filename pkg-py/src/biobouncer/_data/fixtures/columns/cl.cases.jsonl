@@ -1,0 +1,5 @@
+{"input": "CL:0000236", "source_db": "cl", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "CL:0000236", "suggestion": null}}
+{"input": "cl:0000236", "source_db": "cl", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "CL:0000236"}}
+{"input": "CL:0000236!", "source_db": "cl", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "cl", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "CL:0000237", "source_db": "cl", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "CL:0000237", "suggestion": null}}

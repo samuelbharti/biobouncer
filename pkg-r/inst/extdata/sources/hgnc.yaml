@@ -9,6 +9,24 @@ pattern: "[A-Za-z0-9][A-Za-z0-9._@-]*"
 example: 'TP53'
 species_aware: false
 version_aware: true
+# Cache mode reads the bundled approved-symbol snapshot. biobouncer.pull() refreshes
+# it from a dated HGNC "complete set" archive through the hgnc_tsv builder; the
+# version is the archive's release date.
+default_version: '2026-07-07'
+cache:
+  builder: hgnc_tsv
+  tsv_url: "https://storage.googleapis.com/public-download-files/hgnc/archive/archive/monthly/tsv/hgnc_complete_set_{version}.txt"
+# Remote mode checks live existence against the genenames.org REST service. Only
+# an approved symbol counts as existing; a previous or withdrawn symbol is absent
+# remotely, and cache mode carries the successor map for suggestions.
+remote:
+  resolver: genenames
+# In cache mode, a well-formed symbol that is neither approved nor a known
+# previous symbol falls back to the nearest approved symbol within this edit
+# distance, so a typo like TP52 suggests TP53.
+suggest:
+  fuzzy:
+    max_distance: 2
 provenance:
   pattern_source: hgnc
   homepage: https://www.genenames.org

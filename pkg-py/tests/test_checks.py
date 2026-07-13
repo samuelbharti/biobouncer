@@ -7,7 +7,7 @@ pytest.importorskip("pandera")
 import pandas as pd  # noqa: E402
 import pandera.pandas as pa  # noqa: E402
 
-from biogate.checks import is_id  # noqa: E402
+from biobouncer.checks import is_id  # noqa: E402
 
 
 def _schema(**kwargs):
@@ -36,8 +36,18 @@ def test_failure_case_reports_the_bad_value():
         pytest.fail("expected a SchemaError")
 
 
+def test_null_cell_passes_when_column_is_nullable():
+    # A missing cell is governed by column nullability, not flagged by the id
+    # check, so a nullable column with a null value validates.
+    schema = pa.DataFrameSchema({"term": pa.Column(str, is_id("mondo"), nullable=True)})
+    df = pd.DataFrame({"term": ["MONDO:0005148", None]})
+    validated = schema.validate(df)  # does not raise on the null cell
+    assert validated["term"].iloc[0] == "MONDO:0005148"
+    assert pd.isna(validated["term"].iloc[1])
+
+
 def test_cache_mode_threads_through(tmp_path, monkeypatch):
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
     schema = _schema(how="cache", version="sample")
     good = pd.DataFrame({"term": ["MONDO:0005148"]})
     assert list(schema.validate(good)["term"]) == ["MONDO:0005148"]

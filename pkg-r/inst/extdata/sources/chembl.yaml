@@ -7,6 +7,12 @@ pattern: 'CHEMBL[0-9]+'
 example: 'CHEMBL25'
 normalize:
   case: upper
+# remote mode checks existence against the ChEMBL id-lookup endpoint, which
+# resolves an id of any entity type. This is an existence check only; the lookup
+# status field is not interpreted yet, so an obsolete id is not reported with a
+# successor.
+remote:
+  resolver: chembl
 provenance:
   pattern_source: bioregistry
   homepage: https://www.ebi.ac.uk/chembl

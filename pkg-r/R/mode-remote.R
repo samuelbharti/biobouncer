@@ -3,7 +3,7 @@
 # "exists via the resolver". Results carry a UTC retrieval timestamp.
 
 .remote_user_agent <- function() {
-  "biogate/0.1 (+https://github.com/samuelbharti/biogate)"
+  "biobouncer/0.1 (+https://github.com/samuelbharti/biobouncer)"
 }
 
 # Parse a JSON body, tolerating an empty or non-json payload. A proxy or outage
@@ -19,32 +19,134 @@
   )
 }
 
-# Single network seam. Tests replace it with the biogate.remote_transport option.
+# Statuses worth retrying: a rate limit or a server error, usually transient.
+.remote_transient_statuses <- c(429L, 500L, 502L, 503L, 504L)
+.remote_backoff_base <- 0.5 # seconds, doubling each retry: 0.5, 1.0, ...
+.remote_max_attempts <- 3L
+
+# Try fetch() up to `attempts` times, backing off between transient results.
+# fetch() returns list(status, body), or NULL for a caught network error. A
+# result is transient when it is NULL or its status is in the transient set.
+# Between tries it waits base * 2^(try - 1) seconds. Returns the last result,
+# which the caller turns into a verdict or a raised error.
+.remote_retry <- function(
+  fetch,
+  attempts = .remote_max_attempts,
+  base = .remote_backoff_base,
+  sleep = Sys.sleep
+) {
+  resp <- NULL
+  for (i in seq_len(attempts)) {
+    resp <- fetch()
+    if (!is.null(resp) && !(resp$status %in% .remote_transient_statuses)) {
+      return(resp)
+    }
+    if (i < attempts) {
+      sleep(base * 2^(i - 1))
+    }
+  }
+  resp
+}
+
+# Single network seam. Tests replace it with the biobouncer.remote_transport option,
+# which is used directly. The real path retries a transient failure with
+# exponential backoff before giving up.
+# Query parameters that carry a credential and must never be persisted or logged.
+.redacted_params <- c("api_key", "email")
+
+# Mask secret query parameters (the NCBI key, contact email) in a URL. The
+# request URL is stored in the remote cache and shown in error messages, so any
+# credential in its query string must not leak to disk or a bug report. A URL
+# with no secret parameter is returned unchanged, so offline fixtures and cached
+# files stay byte-identical.
+.redact_url <- function(url) {
+  for (param in .redacted_params) {
+    url <- gsub(
+      paste0("(?<=[?&]", param, "=)[^&]*"),
+      "REDACTED",
+      url,
+      perl = TRUE
+    )
+  }
+  url
+}
+
 .remote_http_get <- function(url, timeout = 30) {
-  transport <- getOption("biogate.remote_transport", NULL)
+  transport <- getOption("biobouncer.remote_transport", NULL)
   if (is.function(transport)) {
     return(transport(url, timeout))
   }
-  handle <- curl::new_handle(
-    useragent = .remote_user_agent(),
-    timeout = timeout
-  )
-  resp <- tryCatch(
-    curl::curl_fetch_memory(url, handle = handle),
-    error = function(e) {
-      cli::cli_abort(
-        c(
-          "Remote request failed for {.url {url}}.",
-          i = conditionMessage(e)
-        ),
-        class = "biogate_error_remote"
-      )
-    }
-  )
-  list(
-    status = resp$status_code,
-    body = .remote_parse_body(rawToChar(resp$content))
-  )
+  fetch <- function() {
+    handle <- curl::new_handle(
+      useragent = .remote_user_agent(),
+      timeout = timeout
+    )
+    curl::handle_setheaders(handle, "Accept" = "application/json")
+    tryCatch(
+      {
+        resp <- curl::curl_fetch_memory(url, handle = handle)
+        list(
+          status = resp$status_code,
+          body = .remote_parse_body(rawToChar(resp$content))
+        )
+      },
+      error = function(e) NULL
+    )
+  }
+  resp <- .remote_retry(fetch)
+  if (is.null(resp)) {
+    cli::cli_abort(
+      c(
+        "Remote request failed for {.url {.redact_url(url)}}.",
+        i = "The request did not complete after retrying."
+      ),
+      class = "biobouncer_error_remote"
+    )
+  }
+  resp
+}
+
+# POST network seam for GraphQL resolvers (Open Targets), where the query travels
+# in the body. Tests replace it with the biobouncer.remote_transport_post option.
+# Mirrors .remote_http_get, retrying a transient failure before giving up.
+.remote_http_post <- function(url, body, timeout = 30) {
+  transport <- getOption("biobouncer.remote_transport_post", NULL)
+  if (is.function(transport)) {
+    return(transport(url, body, timeout))
+  }
+  fetch <- function() {
+    handle <- curl::new_handle(
+      useragent = .remote_user_agent(),
+      timeout = timeout
+    )
+    curl::handle_setheaders(
+      handle,
+      "Accept" = "application/json",
+      "Content-Type" = "application/json"
+    )
+    curl::handle_setopt(handle, post = TRUE, postfields = body)
+    tryCatch(
+      {
+        resp <- curl::curl_fetch_memory(url, handle = handle)
+        list(
+          status = resp$status_code,
+          body = .remote_parse_body(rawToChar(resp$content))
+        )
+      },
+      error = function(e) NULL
+    )
+  }
+  resp <- .remote_retry(fetch)
+  if (is.null(resp)) {
+    cli::cli_abort(
+      c(
+        "Remote request failed for {.url {.redact_url(url)}}.",
+        i = "The request did not complete after retrying."
+      ),
+      class = "biobouncer_error_remote"
+    )
+  }
+  resp
 }
 
 # Turn an identifier into a safe file name: every character outside
@@ -58,12 +160,61 @@
 # Cache path for a resolved id, keyed by resolver and its subdirectory.
 .remote_cache_path <- function(resolver, subkey, id) {
   file.path(
-    biogate_cache_dir(),
+    biobouncer_cache_dir(),
     "remote",
     resolver,
     subkey,
     paste0(.safe_ident(id), ".json")
   )
+}
+
+# The current UTC time as a second-precision ISO-8601 stamp.
+.utc_stamp <- function() {
+  format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+}
+
+# Cache time-to-live in seconds from BIOBOUNCER_REMOTE_TTL, or NULL. Unset,
+# non-numeric, or non-positive means no expiry: a cached response is served
+# regardless of age. A positive value makes a cached response older than that
+# many seconds stale, so it is refetched.
+.remote_ttl <- function() {
+  raw <- Sys.getenv("BIOBOUNCER_REMOTE_TTL", unset = "")
+  if (!nzchar(raw)) {
+    return(NULL)
+  }
+  ttl <- suppressWarnings(as.numeric(raw))
+  if (is.na(ttl) || ttl <= 0) {
+    return(NULL)
+  }
+  ttl
+}
+
+# Concurrent remote lookups, from BIOBOUNCER_REMOTE_WORKERS (default 1). One means
+# sequential, which keeps the offline suite and the conformance corpus
+# deterministic. A larger value checks a big column faster on the live path.
+.remote_workers <- function() {
+  raw <- Sys.getenv("BIOBOUNCER_REMOTE_WORKERS", unset = "")
+  if (!nzchar(raw)) {
+    return(1L)
+  }
+  n <- suppressWarnings(as.integer(raw))
+  if (is.na(n) || n < 1L) 1L else n
+}
+
+# Whether a response fetched at fetched_at has aged past ttl seconds. A missing
+# or unparseable timestamp is treated as stale so it is refetched.
+.is_stale <- function(fetched_at, ttl) {
+  if (is.null(ttl)) {
+    return(FALSE)
+  }
+  if (is.null(fetched_at) || is.na(fetched_at) || !nzchar(fetched_at)) {
+    return(TRUE)
+  }
+  stamped <- as.POSIXct(fetched_at, format = "%Y-%m-%dT%H:%M:%SZ", tz = "UTC")
+  if (is.na(stamped)) {
+    return(TRUE)
+  }
+  as.numeric(difftime(Sys.time(), stamped, units = "secs")) > ttl
 }
 
 # Matching-term count in an OLS response, 0 when absent or malformed.
@@ -110,7 +261,7 @@
       "Unexpected remote status {.val {status}}.",
       i = "Existence could not be determined."
     ),
-    class = "biogate_error_remote"
+    class = "biobouncer_error_remote"
   )
 }
 
@@ -160,6 +311,107 @@
   as.character(merged[[1]])
 }
 
+# Shared building blocks for existence-only resolvers whose whole verdict is the
+# HTTP status: 200 exists, 404 is absent, the body is never consulted, and the id
+# is neither species scoped nor tracked for retirement.
+.exists_by_404 <- function(status, body) {
+  if (status == 200) {
+    return(TRUE)
+  }
+  if (status == 404) {
+    return(FALSE)
+  }
+  .remote_abort_status(status)
+}
+.no_cache_body <- function(status, body) NULL
+.species_agnostic <- function(source, id, body, species) TRUE
+.never_retired <- function(source, body) list(retired = FALSE, successor = NULL)
+
+# Extra E-utilities query params when an NCBI key is configured, else "". NCBI
+# throttles anonymous E-utilities at three requests a second and lifts it to ten
+# with a key. When NCBI_API_KEY is set the key is added, along with the tool and
+# (when NCBI_EMAIL is set) email that NCBI asks callers to identify with. With no
+# key the URL is unchanged, so the offline fixtures stay valid.
+.ncbi_suffix <- function() {
+  key <- Sys.getenv("NCBI_API_KEY", unset = "")
+  if (!nzchar(key)) {
+    return("")
+  }
+  parts <- c(
+    paste0("api_key=", utils::URLencode(key, reserved = TRUE)),
+    "tool=biobouncer"
+  )
+  email <- Sys.getenv("NCBI_EMAIL", unset = "")
+  if (nzchar(email)) {
+    parts <- c(
+      parts,
+      paste0("email=", utils::URLencode(email, reserved = TRUE))
+    )
+  }
+  paste0("&", paste(parts, collapse = "&"))
+}
+
+# RefSeq accessions split across two NCBI databases by their molecule prefix.
+# Protein accessions live in the protein database; the rest are nucleotide
+# records in nuccore.
+.refseq_protein_prefixes <- c("AP", "NP", "WP", "XP", "YP", "ZP")
+.refseq_db <- function(id) {
+  prefix <- toupper(sub("_.*$", "", id))
+  if (prefix %in% .refseq_protein_prefixes) "protein" else "nuccore"
+}
+# Whether an E-utilities esummary response resolved the accession to a uid.
+.esummary_has_uid <- function(body) {
+  uids <- tryCatch(body$result$uids, error = function(e) NULL)
+  length(uids) >= 1L
+}
+# The hit count from an E-utilities esearch response (it is a string).
+.esearch_count <- function(body) {
+  count <- tryCatch(body$esearchresult$count, error = function(e) NULL)
+  if (is.null(count) || length(count) == 0L) {
+    return(0L)
+  }
+  n <- suppressWarnings(as.integer(count))
+  if (is.na(n)) 0L else n
+}
+
+# The hit count from an EBI Search response, 0 when absent or malformed.
+.ebisearch_hitcount <- function(body) {
+  count <- tryCatch(body$hitCount, error = function(e) NULL)
+  if (is.null(count) || length(count) == 0L) {
+    return(0L)
+  }
+  n <- suppressWarnings(as.integer(count))
+  if (is.na(n)) 0L else n
+}
+
+# A fixed, minimal Open Targets query: fetch the target by its Ensembl gene id.
+.opentargets_query <- paste(
+  "query biobouncer($ensemblId: String!)",
+  "{ target(ensemblId: $ensemblId) { id } }"
+)
+
+# The target node from an Open Targets GraphQL response, or NULL.
+.opentargets_target <- function(body) {
+  tryCatch(body$data$target, error = function(e) NULL)
+}
+
+# Whether a genenames fetch resolved to an approved symbol.
+.genenames_approved <- function(body) {
+  resp <- tryCatch(body$response, error = function(e) NULL)
+  if (is.null(resp)) {
+    return(FALSE)
+  }
+  found <- suppressWarnings(as.integer(resp$numFound))
+  if (is.na(found) || found < 1L) {
+    return(FALSE)
+  }
+  docs <- resp$docs
+  if (is.null(docs) || length(docs) == 0L) {
+    return(FALSE)
+  }
+  identical(as.character(docs[[1]]$status), "Approved")
+}
+
 # Resolver definitions. Each maps a source and id to a URL, decides existence
 # from a status and body, and names the minimal body to persist. A resolver is
 # selected by source$remote$resolver and names its cache and fixture subtree.
@@ -168,10 +420,17 @@
     name = "ols",
     subkey = function(source) source$remote$ols_ontology,
     url = function(source, id) {
+      # A source may set obo_prefix to rewrite the id's prefix for OLS, for
+      # example ORPHA:558 becomes Orphanet:558 for the ordo ontology.
+      obo <- if (!is.null(source$remote$obo_prefix)) {
+        paste0(source$remote$obo_prefix, ":", sub("^[^:]*:", "", id))
+      } else {
+        id
+      }
       sprintf(
         "https://www.ebi.ac.uk/ols4/api/ontologies/%s/terms?obo_id=%s",
         source$remote$ols_ontology,
-        id
+        obo
       )
     },
     exists = function(status, body) {
@@ -340,6 +599,310 @@
         list(retired = FALSE, successor = NULL)
       }
     }
+  ),
+  pdb = list(
+    name = "pdb",
+    subkey = function(source) "entry",
+    url = function(source, id) {
+      paste0("https://data.rcsb.org/rest/v1/core/entry/", id)
+    },
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  chembl = list(
+    name = "chembl",
+    subkey = function(source) "lookup",
+    # The id-lookup endpoint resolves a ChEMBL id of any entity type (compound,
+    # target, assay, document, and so on), so one call covers the whole source.
+    url = function(source, id) {
+      paste0(
+        "https://www.ebi.ac.uk/chembl/api/data/chembl_id_lookup/",
+        id,
+        ".json"
+      )
+    },
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  reactome = list(
+    name = "reactome",
+    subkey = function(source) "query",
+    url = function(source, id) {
+      paste0("https://reactome.org/ContentService/data/query/", id)
+    },
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  interpro = list(
+    name = "interpro",
+    subkey = function(source) source$remote$interpro_db,
+    # One InterPro API serves several member databases; the source names which
+    # (interpro or pfam), and the entry path selects it.
+    url = function(source, id) {
+      paste0(
+        "https://www.ebi.ac.uk/interpro/api/entry/",
+        source$remote$interpro_db,
+        "/",
+        id
+      )
+    },
+    # The entry endpoint answers 204 (no content) for a well-formed accession
+    # that is not a current entry, and 200 when it exists.
+    exists = function(status, body) {
+      if (status == 200) {
+        return(TRUE)
+      }
+      if (status == 204 || status == 404) {
+        return(FALSE)
+      }
+      .remote_abort_status(status)
+    },
+    # The status carries the whole verdict, so no body is worth persisting.
+    cache_body = function(status, body) NULL,
+    # A family or domain accession is not species scoped.
+    species_ok = function(source, id, body, species) TRUE,
+    # Existence only; a deleted accession is reported as absent, not with a
+    # successor.
+    retired = function(source, body) list(retired = FALSE, successor = NULL)
+  ),
+  rfam = list(
+    name = "rfam",
+    subkey = function(source) "family",
+    url = function(source, id) {
+      paste0("https://rfam.org/family/", id, "?content-type=application/json")
+    },
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  uniparc = list(
+    name = "uniparc",
+    subkey = function(source) "uniparc",
+    url = function(source, id) {
+      paste0("https://rest.uniprot.org/uniparc/", id, ".json")
+    },
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  complexportal = list(
+    name = "complexportal",
+    subkey = function(source) "complex",
+    url = function(source, id) {
+      paste0("https://www.ebi.ac.uk/intact/complex-ws/complex/", id)
+    },
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  wikipathways = list(
+    name = "wikipathways",
+    subkey = function(source) "pathways",
+    # The asset path repeats the id: .../pathways/WP554/WP554.gpml.
+    url = function(source, id) {
+      paste0(
+        "https://www.wikipathways.org/wikipathways-assets/pathways/",
+        id,
+        "/",
+        id,
+        ".gpml"
+      )
+    },
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  prosite = list(
+    name = "prosite",
+    subkey = function(source) "entry",
+    # One ExPASy entry endpoint resolves both PROSITE patterns and profiles.
+    url = function(source, id) {
+      paste0("https://prosite.expasy.org/", id)
+    },
+    exists = .exists_by_404,
+    cache_body = .no_cache_body,
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  refseq = list(
+    name = "refseq",
+    subkey = function(source) "esummary",
+    url = function(source, id) {
+      paste0(
+        "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=",
+        .refseq_db(id),
+        "&id=",
+        id,
+        "&retmode=json",
+        .ncbi_suffix()
+      )
+    },
+    # esummary answers 200 with an empty uid list and an error field for an
+    # unknown accession, so existence is decided from the body, not the status.
+    exists = function(status, body) {
+      if (status != 200) {
+        .remote_abort_status(status)
+      }
+      .esummary_has_uid(body)
+    },
+    # Persist only the resolved uid list, which is all existence needs.
+    cache_body = function(status, body) {
+      if (status == 200) {
+        uids <- tryCatch(body$result$uids, error = function(e) NULL)
+        if (is.null(uids)) {
+          uids <- list()
+        }
+        list(result = list(uids = as.list(uids)))
+      } else {
+        NULL
+      }
+    },
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  clinvar = list(
+    name = "clinvar",
+    subkey = function(source) "esearch",
+    # esearch matches a full accession of any type (VCV, RCV, or SCV), so one
+    # search covers the whole source.
+    url = function(source, id) {
+      paste0(
+        "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi",
+        "?db=clinvar&term=",
+        id,
+        "&retmode=json",
+        .ncbi_suffix()
+      )
+    },
+    exists = function(status, body) {
+      if (status != 200) {
+        .remote_abort_status(status)
+      }
+      .esearch_count(body) >= 1L
+    },
+    # Persist only the hit count, which is all existence needs.
+    cache_body = function(status, body) {
+      if (status == 200) {
+        list(esearchresult = list(count = as.character(.esearch_count(body))))
+      } else {
+        NULL
+      }
+    },
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  mirbase = list(
+    name = "mirbase",
+    subkey = function(source) "rnacentral",
+    # miRBase has no existence API, so a mature accession is checked against
+    # RNAcentral through EBI Search, which indexes miRBase.
+    url = function(source, id) {
+      paste0(
+        "https://www.ebi.ac.uk/ebisearch/ws/rest/rnacentral?query=",
+        id,
+        "&format=json"
+      )
+    },
+    exists = function(status, body) {
+      if (status != 200) {
+        .remote_abort_status(status)
+      }
+      .ebisearch_hitcount(body) >= 1L
+    },
+    # Persist only the hit count, which is all existence needs.
+    cache_body = function(status, body) {
+      if (status == 200) {
+        list(hitCount = .ebisearch_hitcount(body))
+      } else {
+        NULL
+      }
+    },
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  genenames = list(
+    name = "genenames",
+    subkey = function(source) "symbol",
+    # The HGNC REST service answers JSON only through the Accept header, which the
+    # transport sends for every request. A previous or withdrawn symbol is not an
+    # approved symbol and so is absent here; cache mode carries the successor map.
+    url = function(source, id) {
+      paste0("https://rest.genenames.org/fetch/symbol/", id)
+    },
+    exists = function(status, body) {
+      if (status == 200) {
+        return(.genenames_approved(body))
+      }
+      if (status == 404) {
+        return(FALSE)
+      }
+      .remote_abort_status(status)
+    },
+    cache_body = function(status, body) {
+      if (status == 200) {
+        docs <- tryCatch(body$response$docs, error = function(e) NULL)
+        kept <- if (length(docs)) {
+          list(list(status = docs[[1]]$status))
+        } else {
+          list()
+        }
+        list(
+          response = list(
+            numFound = tryCatch(body$response$numFound, error = function(e) {
+              NULL
+            }),
+            docs = kept
+          )
+        )
+      } else {
+        NULL
+      }
+    },
+    species_ok = .species_agnostic,
+    retired = .never_retired
+  ),
+  opentargets = list(
+    name = "opentargets",
+    subkey = function(source) "target",
+    # The Open Targets Platform API is GraphQL: one endpoint for every id, with
+    # the query and id in the POST body that .remote_http_post sends.
+    url = function(source, id) {
+      "https://api.platform.opentargets.org/api/v4/graphql"
+    },
+    body = function(source, id) {
+      jsonlite::toJSON(
+        list(query = .opentargets_query, variables = list(ensemblId = id)),
+        auto_unbox = TRUE
+      )
+    },
+    exists = function(status, body) {
+      # 200 with a null target means a gene the platform does not cover.
+      if (status == 200) {
+        return(!is.null(.opentargets_target(body)))
+      }
+      .remote_abort_status(status)
+    },
+    cache_body = function(status, body) {
+      if (status == 200) {
+        target <- .opentargets_target(body)
+        keep <- if (!is.null(target)) list(id = target$id) else NULL
+        list(data = list(target = keep))
+      } else {
+        NULL
+      }
+    },
+    species_ok = .species_agnostic,
+    retired = .never_retired
   )
 )
 
@@ -355,7 +918,7 @@
         "No remote resolver for {.val {source$key}}.",
         i = "Remote mode needs a source with a supported resolver."
       ),
-      class = "biogate_error_no_resolver"
+      class = "biobouncer_error_no_resolver"
     )
   }
   .remote_resolvers[[remote$resolver]]
@@ -364,37 +927,79 @@
 # Resolve one id, reading an on-disk cached response when present and definitive.
 # exists() raises for an indeterminate status, so it runs before the cache write
 # and such a response is never cached. A corrupt cache file is ignored and
-# refetched. The cache is keyed only by id; species is compared at read time
+# refetched, as is one older than BIOBOUNCER_REMOTE_TTL seconds; refresh skips the
+# cache outright. The returned fetched_at is the UTC stamp of the response the
+# verdict came from, fresh or cached, so a caller can report when the check
+# happened. The cache is keyed only by id; species is compared at read time
 # against the cached body, so a mismatch is a FALSE verdict, not a miss.
 .remote_lookup <- function(
   resolver,
   source,
   id,
   species = NULL,
-  refresh = FALSE
+  refresh = FALSE,
+  on_error = "raise"
 ) {
   path <- .remote_cache_path(resolver$name, resolver$subkey(source), id)
   resp <- NULL
+  fetched_at <- NA_character_
   if (!refresh && file.exists(path)) {
     cached <- tryCatch(
       jsonlite::fromJSON(path, simplifyVector = FALSE),
       error = function(e) NULL
     )
     if (!is.null(cached) && !is.null(cached$status)) {
-      resp <- list(status = cached$status, body = cached$body)
+      cached_at <- if (!is.null(cached$fetched_at)) {
+        as.character(cached$fetched_at)
+      } else {
+        NA_character_
+      }
+      if (!.is_stale(cached_at, .remote_ttl())) {
+        resp <- list(status = cached$status, body = cached$body)
+        fetched_at <- cached_at
+      }
     }
   }
   if (is.null(resp)) {
     url <- resolver$url(source, id)
-    resp <- .remote_http_get(url)
-    exists <- resolver$exists(resp$status, resp$body)
+    # An unreachable or undecidable id aborts with class biobouncer_error_remote.
+    # Under on_error = "indeterminate" that becomes an indeterminate verdict for
+    # this id alone, and is never cached, so the rest of the batch still runs.
+    out <- tryCatch(
+      {
+        r <- if (!is.null(resolver$body)) {
+          .remote_http_post(url, resolver$body(source, id))
+        } else {
+          .remote_http_get(url)
+        }
+        list(resp = r, exists = resolver$exists(r$status, r$body))
+      },
+      biobouncer_error_remote = function(e) {
+        if (!identical(on_error, "indeterminate")) {
+          stop(e)
+        }
+        list(error = conditionMessage(e))
+      }
+    )
+    if (!is.null(out$error)) {
+      return(list(
+        valid = NA,
+        suggestion = NULL,
+        fetched_at = .utc_stamp(),
+        error = out$error
+      ))
+    }
+    resp <- out$resp
+    exists <- out$exists
+    fetched_at <- .utc_stamp()
     dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
-    writeLines(
+    .atomic_write_lines(
       jsonlite::toJSON(
         list(
           status = resp$status,
           body = resolver$cache_body(resp$status, resp$body),
-          url = url
+          url = .redact_url(url),
+          fetched_at = fetched_at
         ),
         auto_unbox = TRUE,
         null = "null"
@@ -405,25 +1010,177 @@
     exists <- resolver$exists(resp$status, resp$body)
   }
   if (!isTRUE(exists)) {
-    return(list(valid = FALSE, suggestion = NULL))
+    return(list(
+      valid = FALSE,
+      suggestion = NULL,
+      fetched_at = fetched_at,
+      error = NA_character_
+    ))
   }
   if (!isTRUE(resolver$species_ok(source, id, resp$body, species))) {
-    return(list(valid = FALSE, suggestion = NULL))
+    return(list(
+      valid = FALSE,
+      suggestion = NULL,
+      fetched_at = fetched_at,
+      error = NA_character_
+    ))
   }
   ret <- resolver$retired(source, resp$body)
   if (isTRUE(ret$retired)) {
-    return(list(valid = FALSE, suggestion = ret$successor))
+    return(list(
+      valid = FALSE,
+      suggestion = ret$successor,
+      fetched_at = fetched_at,
+      error = NA_character_
+    ))
   }
-  list(valid = TRUE, suggestion = NULL)
+  list(
+    valid = TRUE,
+    suggestion = NULL,
+    fetched_at = fetched_at,
+    error = NA_character_
+  )
 }
 
 # Batch a resolver over a set of ids, returning a named list of the per-id
-# list(valid, suggestion) results. valid is TRUE only when the id exists and
-# matches the requested species; suggestion carries an obsolete term's successor.
-.resolve_ids <- function(resolver, source, ids, species) {
+# list(valid, suggestion, fetched_at) results. valid is TRUE only when the id
+# exists and matches the requested species; suggestion carries an obsolete
+# term's successor; fetched_at is when its response was retrieved.
+# Whether an id already has a fresh (not stale, per BIOBOUNCER_REMOTE_TTL) cache
+# entry, so a concurrent prefetch can skip it.
+.remote_cache_is_fresh <- function(resolver, source, id, ttl) {
+  path <- .remote_cache_path(resolver$name, resolver$subkey(source), id)
+  if (!file.exists(path)) {
+    return(FALSE)
+  }
+  cached <- tryCatch(
+    jsonlite::fromJSON(path, simplifyVector = FALSE),
+    error = function(e) NULL
+  )
+  if (is.null(cached) || is.null(cached$status)) {
+    return(FALSE)
+  }
+  cached_at <- if (!is.null(cached$fetched_at)) {
+    as.character(cached$fetched_at)
+  } else {
+    NA_character_
+  }
+  !.is_stale(cached_at, ttl)
+}
+
+# Fetch the cache-missing ids concurrently with curl::multi_run and write each
+# one's cache file, so the sequential per-id resolver then reads them without
+# touching the network again. Live path only. A failed or undecidable fetch is
+# left uncached, and the sequential path refetches it and applies on_error, so
+# this only reorders I/O and never changes a verdict. Mirrors the ThreadPool
+# concurrency in the Python package.
+.prefetch_concurrent <- function(resolver, source, ids, workers) {
+  ttl <- .remote_ttl()
+  need <- ids[
+    !vapply(
+      ids,
+      function(id) .remote_cache_is_fresh(resolver, source, id, ttl),
+      logical(1)
+    )
+  ]
+  if (!length(need)) {
+    return(invisible())
+  }
+  if (interactive() && length(need) >= 50L) {
+    cli::cli_inform(
+      "Checking {length(need)} ids remotely over {workers} connections ..."
+    )
+  }
+  fetched <- new.env(parent = emptyenv())
+  pool <- curl::new_pool(total_con = workers, host_con = workers)
+  for (id in need) {
+    local({
+      this_id <- id
+      url <- resolver$url(source, this_id)
+      handle <- curl::new_handle(useragent = .remote_user_agent(), timeout = 30)
+      curl::handle_setheaders(handle, "Accept" = "application/json")
+      curl::multi_add(
+        handle,
+        done = function(resp) {
+          assign(
+            this_id,
+            list(
+              url = url,
+              status = resp$status_code,
+              body = .remote_parse_body(rawToChar(resp$content))
+            ),
+            envir = fetched
+          )
+        },
+        # A failed handle is left uncached; the sequential path refetches it.
+        fail = function(msg) NULL,
+        pool = pool
+      )
+    })
+  }
+  curl::multi_run(pool = pool)
+  for (id in need) {
+    if (!exists(id, envir = fetched, inherits = FALSE)) {
+      next
+    }
+    f <- get(id, envir = fetched)
+    # Only cache a status the resolver can decide; an undecidable one aborts, so
+    # skip it and let the sequential path refetch and apply on_error.
+    ok <- tryCatch(
+      {
+        resolver$exists(f$status, f$body)
+        TRUE
+      },
+      biobouncer_error_remote = function(e) FALSE
+    )
+    if (!ok) {
+      next
+    }
+    path <- .remote_cache_path(resolver$name, resolver$subkey(source), id)
+    dir.create(dirname(path), recursive = TRUE, showWarnings = FALSE)
+    .atomic_write_lines(
+      jsonlite::toJSON(
+        list(
+          status = f$status,
+          body = resolver$cache_body(f$status, f$body),
+          url = .redact_url(f$url),
+          fetched_at = .utc_stamp()
+        ),
+        auto_unbox = TRUE,
+        null = "null"
+      ),
+      path
+    )
+  }
+  invisible()
+}
+
+.resolve_ids <- function(
+  resolver,
+  source,
+  ids,
+  species,
+  refresh = FALSE,
+  on_error = "raise"
+) {
+  # Concurrency is live-path only: with a test transport set, or one worker, or
+  # a refresh (which ignores the cache anyway), stay sequential so every offline
+  # fixture and conformance test remains deterministic.
+  workers <- .remote_workers()
+  transport <- getOption("biobouncer.remote_transport", NULL)
+  if (
+    workers > 1L &&
+      is.null(transport) &&
+      !refresh &&
+      length(ids) > 1L
+  ) {
+    .prefetch_concurrent(resolver, source, ids, workers)
+  }
   results <- lapply(
     ids,
-    function(id) .remote_lookup(resolver, source, id, species)
+    function(id) {
+      .remote_lookup(resolver, source, id, species, refresh, on_error)
+    }
   )
   names(results) <- ids
   results
@@ -431,13 +1188,24 @@
 
 # Live existence verdicts. Mirrors .cache_verdicts, batching lookups into one
 # resolver pass over the unique ids that need checking. When a species is given,
-# a map value is TRUE only when the id exists and matches that species.
-.remote_verdicts <- function(source, x, is_na, species = NULL) {
+# a map value is TRUE only when the id exists and matches that species. The
+# version element carries each id's fetch timestamp, NA where nothing was
+# fetched. refresh skips any cached response and refetches.
+.remote_verdicts <- function(
+  source,
+  x,
+  is_na,
+  species = NULL,
+  refresh = FALSE,
+  on_error = "raise"
+) {
   resolver <- .get_resolver(source)
   n <- length(x)
   valid <- rep(NA, n)
   normalized <- rep(NA_character_, n)
   suggestion <- rep(NA_character_, n)
+  version <- rep(NA_character_, n)
+  error <- rep(NA_character_, n)
   wellformed <- rep(NA, n)
   wellformed[!is_na] <- .matches(source$pattern, x[!is_na])
 
@@ -451,7 +1219,7 @@
     candidate[!is.na(candidate)]
   ))
   results <- if (length(need)) {
-    .resolve_ids(resolver, source, need, species)
+    .resolve_ids(resolver, source, need, species, refresh, on_error)
   } else {
     list()
   }
@@ -462,7 +1230,12 @@
     }
     if (isTRUE(wellformed[i])) {
       res <- results[[x[i]]]
-      if (isTRUE(res$valid)) {
+      version[i] <- res$fetched_at
+      if (!is.na(res$error)) {
+        # The id's own lookup could not be determined; leave it indeterminate.
+        valid[i] <- NA
+        error[i] <- res$error
+      } else if (isTRUE(res$valid)) {
         valid[i] <- TRUE
         normalized[i] <- x[i]
       } else {
@@ -472,12 +1245,23 @@
         }
       }
     } else {
+      # A malformed input is invalid regardless; only offer a suggestion when the
+      # correction candidate was confirmed to exist.
       valid[i] <- FALSE
       cand <- candidate[i]
-      if (!is.na(cand) && isTRUE(results[[cand]]$valid)) {
-        suggestion[i] <- cand
+      if (!is.na(cand)) {
+        version[i] <- results[[cand]]$fetched_at
+        if (isTRUE(results[[cand]]$valid)) {
+          suggestion[i] <- cand
+        }
       }
     }
   }
-  list(valid = valid, normalized = normalized, suggestion = suggestion)
+  list(
+    valid = valid,
+    normalized = normalized,
+    suggestion = suggestion,
+    version = version,
+    error = error
+  )
 }

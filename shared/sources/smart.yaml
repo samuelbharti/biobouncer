@@ -1,0 +1,18 @@
+key: smart
+name: SMART
+description: SMART accessions for protein domains, a member database of InterPro.
+# SM and exactly five digits. Ids are uppercase; a lowercase input is suggested
+# in its canonical case.
+pattern: 'SM[0-9]{5}'
+example: 'SM00248'
+normalize:
+  case: upper
+# remote mode checks existence against the EBI InterPro API, which hosts SMART,
+# reusing the interpro resolver. The entry endpoint answers 204 for a well-formed
+# accession that is not a current entry. This is an existence check only.
+remote:
+  resolver: interpro
+  interpro_db: smart
+provenance:
+  pattern_source: bioregistry
+  homepage: https://smart.embl.de

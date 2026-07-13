@@ -8,3 +8,10 @@
 {"input": "CARS", "source_db": "hgnc", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "CARS1"}, "note": "previous symbol, approved is CARS1"}
 {"input": "C9ORF72", "source_db": "hgnc", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "symbols are case-sensitive; the approved form is C9orf72, and the all-caps form is not a known previous symbol"}
 {"input": "NOTAGENE", "source_db": "hgnc", "how": "cache", "version": "sample", "expect": {"valid": false}, "note": "well-formed shape but not an approved or previous symbol"}
+{"input": "TP53", "source_db": "hgnc", "how": "cache", "version": "2026-07-07", "expect": {"valid": true, "normalized": "TP53"}, "note": "approved symbol in the pinned full snapshot"}
+{"input": "BRCA1", "source_db": "hgnc", "how": "cache", "version": "2026-07-07", "expect": {"valid": true, "normalized": "BRCA1"}, "note": "approved symbol in the pinned full snapshot"}
+{"input": "MLL", "source_db": "hgnc", "how": "cache", "version": "2026-07-07", "expect": {"valid": false, "suggestion": "KMT2A"}, "note": "previous symbol maps to its approved successor"}
+{"input": "LEPRE1", "source_db": "hgnc", "how": "cache", "version": "2026-07-07", "expect": {"valid": false, "suggestion": "P3H1"}, "note": "previous symbol LEPRE1 was renamed P3H1"}
+{"input": "notagene", "source_db": "hgnc", "how": "cache", "version": "2026-07-07", "expect": {"valid": false}, "note": "well-formed shape but not an approved or previous symbol"}
+{"input": "TP52", "source_db": "hgnc", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "TP53"}, "note": "a one-edit typo suggests the nearest approved symbol"}
+{"input": "KMT2E", "source_db": "hgnc", "how": "cache", "version": "sample", "expect": {"valid": false, "suggestion": "KMT2A"}, "note": "a tie at the nearest distance breaks to the code-point-smallest, KMT2A over KMT2D"}

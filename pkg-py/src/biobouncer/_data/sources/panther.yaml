@@ -1,0 +1,18 @@
+key: panther
+name: PANTHER
+description: PANTHER family accessions, a member database of InterPro.
+# PTHR and exactly five digits (a family, not a subfamily). Ids are uppercase; a
+# lowercase input is suggested in its canonical case.
+pattern: 'PTHR[0-9]{5}'
+example: 'PTHR11003'
+normalize:
+  case: upper
+# remote mode checks existence against the EBI InterPro API, which hosts PANTHER,
+# reusing the interpro resolver. The entry endpoint answers 204 for a well-formed
+# accession that is not a current entry. This is an existence check only.
+remote:
+  resolver: interpro
+  interpro_db: panther
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.pantherdb.org

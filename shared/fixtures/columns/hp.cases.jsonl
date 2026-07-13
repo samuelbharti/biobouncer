@@ -1,0 +1,5 @@
+{"input": "HP:0001250", "source_db": "hp", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "HP:0001250", "suggestion": null}}
+{"input": "hp:0001250", "source_db": "hp", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "HP:0001250"}}
+{"input": "HP:0001250!", "source_db": "hp", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "hp", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "HP:0001251", "source_db": "hp", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "HP:0001251", "suggestion": null}}

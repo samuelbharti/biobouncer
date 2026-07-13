@@ -12,7 +12,7 @@ id_predicate(source_db, how = "pattern", species = NULL, version = NULL)
 \item{how}{Checking mode: \code{"pattern"} (offline, shape only), \code{"cache"}
 (offline existence against a snapshot), \code{"remote"} (live existence against
 the source API), or \code{"existence"} (cache when a snapshot is available for
-\code{version}, otherwise remote).}
+\code{version}, otherwise remote, or pattern for a source with no resolver).}
 
 \item{species}{Optional species context, echoed in the result. A name such as
 \code{"homo_sapiens"} or an NCBI taxon id such as \code{9606}. When given, an id of a
@@ -20,12 +20,15 @@ different species is invalid: Ensembl is checked from its id prefix (in
 \code{pattern} and \code{remote} modes), and UniProt from the entry's organism in
 \code{remote} mode. A species outside the source map is not checked.}
 
-\item{version}{Snapshot version. Required for \code{cache} mode; selects the
-snapshot for \code{existence} mode; ignored in \code{pattern} and \code{remote} modes.}
+\item{version}{Snapshot version. In \code{cache} mode it selects the snapshot and
+defaults to the latest installed one when omitted; it selects the snapshot
+for \code{existence} mode; ignored in \code{pattern} and \code{remote} modes.}
 }
 \value{
 A function of one argument that returns a logical vector the same
-length as its input.
+length as its input. A missing cell (\code{NA}) passes, so it is never dropped by
+a filter or flagged by a data-frame rule; only a malformed or non-existent
+id is \code{FALSE}.
 }
 \description{
 Returns a function of one argument that reports, element by element, whether

@@ -1,12 +1,12 @@
 # Sources cookbook
 
-biogate checks 35 sources. Each row below gives a valid example id, the
+biobouncer checks 46 sources. Each row below gives a valid example id, the
 [checking modes](guide.md#the-checking-modes) it supports, and whether it is
 species-aware. To check an id, pass the source key as `source_db`. The call is
 the same for every source:
 
 ```python
-import biogate as bg
+import biobouncer as bg
 
 bg.is_valid_id("MONDO:0005148", source_db="mondo")
 # True
@@ -31,7 +31,8 @@ pinned snapshot, and `remote` checks existence against the live source. See the
 | MONDO Disease Ontology. Cross-referenced disease terms from the Monarch Initiative. | `mondo` | `MONDO:0005148` | pattern, cache, remote | no |
 | Human Disease Ontology. Human diseases, mapped to other disease vocabularies. | `doid` | `DOID:9352` | pattern, cache, remote | no |
 | Experimental Factor Ontology. Diseases, traits, and measurements from the GWAS Catalog and Open Targets. | `efo` | `EFO:0000400` | pattern, cache, remote | no |
-| Orphanet. Rare diseases. | `orphanet` | `ORPHA:558` | pattern | no |
+| Orphanet. Rare diseases. | `orphanet` | `ORPHA:558` | pattern, remote | no |
+| NCI Thesaurus. Cancer and biomedical concepts. | `ncit` | `NCIT:C3224` | pattern, remote | no |
 
 Check any id in the group the same way:
 
@@ -67,13 +68,26 @@ Check any id in the group the same way:
 bg.is_valid_id("UBERON:0002107", source_db="uberon")
 ```
 
+## Organisms and taxa
+
+| Source | `source_db` | Example | Modes | Species-aware |
+|---|---|---|---|---|
+| NCBI Taxonomy. Organisms and other taxa. | `ncbitaxon` | `NCBITaxon:9606` | pattern, remote | no |
+
+Check any id in the group the same way:
+
+```python
+bg.is_valid_id("NCBITaxon:9606", source_db="ncbitaxon")
+```
+
 ## Genes
 
 | Source | `source_db` | Example | Modes | Species-aware |
 |---|---|---|---|---|
-| HGNC gene symbols. Approved symbols. A withdrawn symbol maps to its successor. | `hgnc` | `TP53` | pattern | no |
+| HGNC gene symbols. Approved symbols. A withdrawn symbol maps to its successor. | `hgnc` | `TP53` | pattern, cache, remote | no |
 | Ensembl. Ensembl gene, transcript, and protein ids. Species-aware. | `ensembl` | `ENSG00000139618` | pattern, remote | yes |
-| RefSeq. NCBI RefSeq accessions, with an optional version. | `refseq` | `NM_000546.6` | pattern | no |
+| Open Targets. A human Ensembl gene id checked against the Open Targets Platform for target coverage. | `opentargets` | `ENSG00000139618` | pattern, remote | no |
+| RefSeq. NCBI RefSeq accessions, with an optional version. | `refseq` | `NM_000546.6` | pattern, remote | no |
 
 Check any id in the group the same way:
 
@@ -87,7 +101,7 @@ bg.is_valid_id("TP53", source_db="hgnc")
 |---|---|---|---|---|
 | dbSNP. dbSNP reference SNP ids. | `dbsnp` | `rs7412` | pattern, remote | no |
 | HGVS. HGVS sequence variant syntax, such as a coding substitution. | `hgvs` | `NM_004006.2:c.4375C>T` | pattern, remote | no |
-| ClinVar. ClinVar variation, record, and submission accessions. | `clinvar` | `VCV000012345` | pattern | no |
+| ClinVar. ClinVar variation, record, and submission accessions. | `clinvar` | `VCV000012345` | pattern, remote | no |
 | COSMIC. COSMIC somatic mutation ids. | `cosmic` | `COSM476` | pattern | no |
 
 Check any id in the group the same way:
@@ -101,9 +115,9 @@ bg.is_valid_id("rs7412", source_db="dbsnp")
 | Source | `source_db` | Example | Modes | Species-aware |
 |---|---|---|---|---|
 | UniProt. UniProt protein accessions. Species-aware. | `uniprot` | `P04637` | pattern, remote | yes |
-| UniParc. UniParc unique sequence identifiers. | `uniparc` | `UPI0000000001` | pattern | no |
-| PDB. Protein Data Bank structures. | `pdb` | `4HHB` | pattern | no |
-| Complex Portal. Macromolecular complexes. | `complexportal` | `CPX-2158` | pattern | no |
+| UniParc. UniParc unique sequence identifiers. | `uniparc` | `UPI0000000001` | pattern, remote | no |
+| PDB. Protein Data Bank structures. | `pdb` | `4HHB` | pattern, remote | no |
+| Complex Portal. Macromolecular complexes. | `complexportal` | `CPX-2158` | pattern, remote | no |
 
 Check any id in the group the same way:
 
@@ -115,9 +129,14 @@ bg.is_valid_id("P04637", source_db="uniprot")
 
 | Source | `source_db` | Example | Modes | Species-aware |
 |---|---|---|---|---|
-| Pfam. Protein families and domains. | `pfam` | `PF00001` | pattern | no |
-| InterPro. Integrated protein families, domains, and sites. | `interpro` | `IPR000001` | pattern | no |
-| PROSITE. Protein patterns and profiles. | `prosite` | `PS00001` | pattern | no |
+| Pfam. Protein families and domains. | `pfam` | `PF00001` | pattern, remote | no |
+| InterPro. Integrated protein families, domains, and sites. | `interpro` | `IPR000001` | pattern, remote | no |
+| PROSITE. Protein patterns and profiles. | `prosite` | `PS00001` | pattern, remote | no |
+| SMART. Protein domain accessions. | `smart` | `SM00248` | pattern, remote | no |
+| PANTHER. Protein family accessions. | `panther` | `PTHR11003` | pattern, remote | no |
+| CDD. Conserved Domain Database models. | `cdd` | `cd00029` | pattern, remote | no |
+| PRINTS. Protein fingerprint accessions. | `prints` | `PR00001` | pattern, remote | no |
+| NCBIfam. NCBIfam and TIGRFAM models. | `ncbifam` | `TIGR00001` | pattern, remote | no |
 
 Check any id in the group the same way:
 
@@ -132,6 +151,7 @@ bg.is_valid_id("PF00001", source_db="pfam")
 | Gene Ontology. Gene Ontology terms for function, process, and component. | `go` | `GO:0006915` | pattern, cache, remote | no |
 | Sequence Ontology. Sequence Ontology features. | `so` | `SO:0000704` | pattern, cache, remote | no |
 | EC number. Enzyme Commission numbers. | `ec` | `1.1.1.1` | pattern | no |
+| Evidence and Conclusion Ontology. Evidence types for annotations. | `eco` | `ECO:0000269` | pattern, remote | no |
 
 Check any id in the group the same way:
 
@@ -144,9 +164,10 @@ bg.is_valid_id("GO:0006915", source_db="go")
 | Source | `source_db` | Example | Modes | Species-aware |
 |---|---|---|---|---|
 | ChEBI. Chemical entities of biological interest. | `chebi` | `CHEBI:15377` | pattern, cache, remote | no |
-| ChEMBL. Bioactive molecules. | `chembl` | `CHEMBL25` | pattern | no |
+| ChEMBL. Bioactive molecules. | `chembl` | `CHEMBL25` | pattern, remote | no |
 | DrugBank. Drug accessions. | `drugbank` | `DB00001` | pattern | no |
 | PharmGKB. Pharmacogenomics accessions. | `pharmgkb` | `PA267` | pattern | no |
+| InChIKey. Hashed chemical structure keys. | `inchikey` | `BSYNRYMUTXBXSQ-UHFFFAOYSA-N` | pattern | no |
 
 Check any id in the group the same way:
 
@@ -158,8 +179,8 @@ bg.is_valid_id("CHEBI:15377", source_db="chebi")
 
 | Source | `source_db` | Example | Modes | Species-aware |
 |---|---|---|---|---|
-| Reactome. Reactome pathways, reactions, and entities. | `reactome` | `R-HSA-68886` | pattern | no |
-| WikiPathways. Community-curated pathways. | `wikipathways` | `WP554` | pattern | no |
+| Reactome. Reactome pathways, reactions, and entities. | `reactome` | `R-HSA-68886` | pattern, remote | no |
+| WikiPathways. Community-curated pathways. | `wikipathways` | `WP554` | pattern, remote | no |
 
 Check any id in the group the same way:
 
@@ -171,8 +192,9 @@ bg.is_valid_id("R-HSA-68886", source_db="reactome")
 
 | Source | `source_db` | Example | Modes | Species-aware |
 |---|---|---|---|---|
-| Rfam. RNA families. | `rfam` | `RF00001` | pattern | no |
-| miRBase. Mature microRNAs. | `mirbase` | `MIMAT0000001` | pattern | no |
+| Rfam. RNA families. | `rfam` | `RF00001` | pattern, remote | no |
+| miRBase. Mature microRNAs. | `mirbase` | `MIMAT0000001` | pattern, remote | no |
+| miRBase hairpins. MicroRNA hairpin precursors. | `mirbase_hairpin` | `MI0000001` | pattern, remote | no |
 
 Check any id in the group the same way:
 

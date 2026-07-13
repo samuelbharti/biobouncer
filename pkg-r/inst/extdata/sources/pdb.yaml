@@ -8,6 +8,11 @@ pattern: '[1-9][A-Z0-9]{3}'
 example: '4HHB'
 normalize:
   case: upper
+# remote mode checks existence against the RCSB PDB data API. This is an
+# existence check only; an obsoleted structure that was superseded is not yet
+# reported with its successor.
+remote:
+  resolver: pdb
 provenance:
   pattern_source: bioregistry
   homepage: https://www.rcsb.org

@@ -2,3 +2,5 @@
 {"input": "MIMAT0004481", "source_db": "mirbase", "how": "pattern", "expect": {"valid": true, "normalized": "MIMAT0004481"}, "note": "another mature microRNA"}
 {"input": "mimat0000001", "source_db": "mirbase", "how": "pattern", "expect": {"valid": false, "suggestion": "MIMAT0000001"}, "note": "lowercase is suggestible"}
 {"input": "MIMAT001", "source_db": "mirbase", "how": "pattern", "expect": {"valid": false}, "note": "not seven digits"}
+{"input": "MIMAT0012345", "source_db": "mirbase", "how": "pattern", "expect": {"valid": true, "normalized": "MIMAT0012345"}, "note": "another well-formed identifier"}
+{"input": "MIMAT12345", "source_db": "mirbase", "how": "pattern", "expect": {"valid": false}, "note": "wrong length, not correctable by case"}

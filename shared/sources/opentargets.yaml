@@ -1,0 +1,19 @@
+key: opentargets
+name: Open Targets
+description: Open Targets Platform targets, addressed by their Ensembl human gene id.
+# A human Ensembl gene id (ENSG followed by 11 digits). Open Targets keys its
+# targets on these; a well-formed id the platform does not cover is reported
+# absent by the remote check.
+pattern: "ENSG[0-9]{11}"
+example: 'ENSG00000139618'
+species_aware: false
+version_aware: false
+normalize:
+  case: upper
+# The Open Targets Platform API is GraphQL: the query travels in a POST body, and
+# a target that resolves to a non-null node exists.
+remote:
+  resolver: opentargets
+provenance:
+  pattern_source: bioregistry
+  homepage: https://platform.opentargets.org

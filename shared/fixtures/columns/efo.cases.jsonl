@@ -1,0 +1,5 @@
+{"input": "EFO:0000400", "source_db": "efo", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "EFO:0000400", "suggestion": null}}
+{"input": "efo:0000400", "source_db": "efo", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "EFO:0000400"}}
+{"input": "EFO:0000400!", "source_db": "efo", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "efo", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "EFO:0000401", "source_db": "efo", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "EFO:0000401", "suggestion": null}}

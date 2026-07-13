@@ -2,13 +2,13 @@
 
 import pytest
 
-import biogate
-import biogate._remote as remote
+import biobouncer
+import biobouncer._remote as remote
 
 
 @pytest.fixture(autouse=True)
 def _isolate_cache(tmp_path, monkeypatch):
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
 
 
 def _stub(status, body):
@@ -25,10 +25,15 @@ _HUMAN_BODY = {
     "organism": {"taxonId": 9606},
 }
 
+_RAT_BODY = {
+    "entryType": "UniProtKB reviewed (Swiss-Prot)",
+    "organism": {"taxonId": 10116},
+}
+
 
 def test_ensembl_species_match_is_valid(monkeypatch):
     monkeypatch.setattr(remote, "_http_get", _stub(200, None))
-    res = biogate.check_id(
+    res = biobouncer.check_id(
         "ENSMUSG00000059552", source_db="ensembl", how="remote", species="mus_musculus"
     )[0]
     assert res.valid is True
@@ -37,16 +42,45 @@ def test_ensembl_species_match_is_valid(monkeypatch):
 
 def test_ensembl_species_mismatch_is_invalid(monkeypatch):
     monkeypatch.setattr(remote, "_http_get", _stub(200, None))
-    res = biogate.check_id(
+    res = biobouncer.check_id(
         "ENSMUSG00000059552", source_db="ensembl", how="remote", species="homo_sapiens"
     )[0]
     assert res.valid is False
     assert res.normalized is None
 
 
+def test_ensembl_rat_species_match_is_valid(monkeypatch):
+    monkeypatch.setattr(remote, "_http_get", _stub(200, None))
+    res = biobouncer.check_id(
+        "ENSRNOG00000010756",
+        source_db="ensembl",
+        how="remote",
+        species="rattus_norvegicus",
+    )[0]
+    assert res.valid is True
+    assert res.normalized == "ENSRNOG00000010756"
+
+
+def test_ensembl_rat_species_mismatch_is_invalid(monkeypatch):
+    monkeypatch.setattr(remote, "_http_get", _stub(200, None))
+    res = biobouncer.check_id(
+        "ENSRNOG00000010756", source_db="ensembl", how="remote", species="homo_sapiens"
+    )[0]
+    assert res.valid is False
+
+
+def test_uniprot_rat_species_match_is_valid(monkeypatch):
+    monkeypatch.setattr(remote, "_http_get", _stub(200, _RAT_BODY))
+    res = biobouncer.check_id(
+        "P10361", source_db="uniprot", how="remote", species="rattus_norvegicus"
+    )[0]
+    assert res.valid is True
+    assert res.normalized == "P10361"
+
+
 def test_uniprot_species_match_by_name_is_valid(monkeypatch):
     monkeypatch.setattr(remote, "_http_get", _stub(200, _HUMAN_BODY))
-    res = biogate.check_id(
+    res = biobouncer.check_id(
         "P01308", source_db="uniprot", how="remote", species="homo_sapiens"
     )[0]
     assert res.valid is True
@@ -55,13 +89,15 @@ def test_uniprot_species_match_by_name_is_valid(monkeypatch):
 
 def test_uniprot_species_match_by_taxon_is_valid(monkeypatch):
     monkeypatch.setattr(remote, "_http_get", _stub(200, _HUMAN_BODY))
-    res = biogate.check_id("P01308", source_db="uniprot", how="remote", species=9606)[0]
+    res = biobouncer.check_id(
+        "P01308", source_db="uniprot", how="remote", species=9606
+    )[0]
     assert res.valid is True
 
 
 def test_uniprot_species_mismatch_is_invalid(monkeypatch):
     monkeypatch.setattr(remote, "_http_get", _stub(200, _HUMAN_BODY))
-    res = biogate.check_id(
+    res = biobouncer.check_id(
         "P01308", source_db="uniprot", how="remote", species="mus_musculus"
     )[0]
     assert res.valid is False
@@ -70,7 +106,7 @@ def test_uniprot_species_mismatch_is_invalid(monkeypatch):
 
 def test_unknown_species_is_lenient(monkeypatch):
     monkeypatch.setattr(remote, "_http_get", _stub(200, _HUMAN_BODY))
-    res = biogate.check_id(
+    res = biobouncer.check_id(
         "P01308", source_db="uniprot", how="remote", species="unknown_species"
     )[0]
     assert res.valid is True
@@ -78,7 +114,7 @@ def test_unknown_species_is_lenient(monkeypatch):
 
 def test_uniprot_species_round_trips_through_cache(monkeypatch):
     monkeypatch.setattr(remote, "_http_get", _stub(200, _HUMAN_BODY))
-    assert biogate.check_id(
+    assert biobouncer.check_id(
         "P01308", source_db="uniprot", how="remote", species="homo_sapiens"
     )[0].valid
 
@@ -87,9 +123,9 @@ def test_uniprot_species_round_trips_through_cache(monkeypatch):
 
     monkeypatch.setattr(remote, "_http_get", _forbidden)
     # The cached organism still supports the species check both ways.
-    assert biogate.check_id(
+    assert biobouncer.check_id(
         "P01308", source_db="uniprot", how="remote", species="homo_sapiens"
     )[0].valid
-    assert not biogate.check_id(
+    assert not biobouncer.check_id(
         "P01308", source_db="uniprot", how="remote", species="mus_musculus"
     )[0].valid

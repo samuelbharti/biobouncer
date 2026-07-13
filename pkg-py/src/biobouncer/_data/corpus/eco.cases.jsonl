@@ -1,0 +1,5 @@
+{"input": "ECO:0000269", "source_db": "eco", "how": "pattern", "expect": {"valid": true, "normalized": "ECO:0000269"}, "note": "experimental evidence used in a manual assertion"}
+{"input": "ECO:0000001", "source_db": "eco", "how": "pattern", "expect": {"valid": true, "normalized": "ECO:0000001"}, "note": "a base evidence term"}
+{"input": "eco:0000269", "source_db": "eco", "how": "pattern", "expect": {"valid": false, "suggestion": "ECO:0000269"}, "note": "different-case prefix is suggestible to the canonical form"}
+{"input": "ECO:269", "source_db": "eco", "how": "pattern", "expect": {"valid": false, "suggestion": "ECO:0000269"}, "note": "a short number is zero-padded to seven digits"}
+{"input": "ECO0000269", "source_db": "eco", "how": "pattern", "expect": {"valid": false}, "note": "missing the colon"}

@@ -6,13 +6,13 @@ body:
     id: problem
     attributes:
       label: Problem
-      description: What are you trying to do that biogate does not support yet
+      description: What are you trying to do that biobouncer does not support yet
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
       label: Proposal
-      description: What you would like biogate to do
+      description: What you would like biobouncer to do
     validations:
       required: false

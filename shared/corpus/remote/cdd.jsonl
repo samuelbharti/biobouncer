@@ -1,0 +1,4 @@
+{"input": "cd00029", "source_db": "cdd", "how": "remote", "expect": {"valid": true, "normalized": "cd00029"}, "note": "a real CDD model"}
+{"input": "cd99999", "source_db": "cdd", "how": "remote", "expect": {"valid": false}, "note": "well-formed but not a current entry; the endpoint answers 204"}
+{"input": "CD00029", "source_db": "cdd", "how": "remote", "expect": {"valid": false, "suggestion": "cd00029"}, "note": "uppercase; the canonical form exists remotely"}
+{"input": "cd0029", "source_db": "cdd", "how": "remote", "expect": {"valid": false}, "note": "four digits; fails the grammar before any lookup"}

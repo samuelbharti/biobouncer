@@ -1,9 +1,9 @@
 test_that("cross-language conformance corpus passes", {
   skip_if_not_installed("jsonlite")
   # Isolate the cache dir so cache cases resolve to the bundled sample snapshot.
-  withr::local_envvar(BIOGATE_CACHE_DIR = withr::local_tempdir())
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
 
-  dir <- system.file("extdata", "corpus", package = "biogate")
+  dir <- system.file("extdata", "corpus", package = "biobouncer")
   files <- sort(list.files(dir, pattern = "\\.jsonl$", full.names = TRUE))
   expect_gt(length(files), 0)
 

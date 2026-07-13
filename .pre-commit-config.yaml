@@ -1,4 +1,4 @@
-# prek / pre-commit hooks for biogate.
+# prek / pre-commit hooks for biobouncer.
 # Verify locally with `prek run --all-files`.
 # Install the git hooks once with:
 #   prek install --install-hooks

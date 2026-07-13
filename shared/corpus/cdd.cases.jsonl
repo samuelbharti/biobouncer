@@ -1,0 +1,6 @@
+{"input": "cd00029", "source_db": "cdd", "how": "pattern", "expect": {"valid": true, "normalized": "cd00029"}, "note": "a CDD model"}
+{"input": "cd00096", "source_db": "cdd", "how": "pattern", "expect": {"valid": true, "normalized": "cd00096"}, "note": "another CDD model"}
+{"input": "CD00029", "source_db": "cdd", "how": "pattern", "expect": {"valid": false, "suggestion": "cd00029"}, "note": "uppercase is suggestible to the lowercase prefix"}
+{"input": "cd0029", "source_db": "cdd", "how": "pattern", "expect": {"valid": false}, "note": "four digits, one short"}
+{"input": "cd12345", "source_db": "cdd", "how": "pattern", "expect": {"valid": true, "normalized": "cd12345"}, "note": "another well-formed identifier"}
+{"input": "cd1234", "source_db": "cdd", "how": "pattern", "expect": {"valid": false}, "note": "wrong length, not correctable by case"}

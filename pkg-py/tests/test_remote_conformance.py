@@ -4,26 +4,19 @@ The offline test replaces the network seam with a fixture reader. A live test
 runs the same cases against the real API and is skipped unless opted in.
 """
 
+import functools
 import json
 import os
-import re
-import urllib.parse
 from importlib.resources import files
 
 import pytest
 
-import biogate
-import biogate._remote as remote
-
-_OLS_RE = re.compile(r"ontologies/([^/]+)/terms\?obo_id=(.+)$")
-_ENSEMBL_RE = re.compile(r"lookup/id/([^?]+)")
-_UNIPROT_RE = re.compile(r"uniprotkb/([^.?/]+)")
-_MUTALYZER_RE = re.compile(r"normalize/(.+)$")
-_DBSNP_RE = re.compile(r"refsnp/([0-9]+)")
+import biobouncer
+import biobouncer._remote as remote
 
 
 def _load_cases():
-    root = files("biogate") / "_data" / "corpus" / "remote"
+    root = files("biobouncer") / "_data" / "corpus" / "remote"
     cases = []
     for entry in sorted(root.iterdir(), key=lambda p: p.name):
         if not entry.name.endswith(".jsonl"):
@@ -39,60 +32,72 @@ CASES = _load_cases()
 _IDS = [f"{c['source_db']}-{c['input']}" for c in CASES]
 
 
-def _resolve_fixture(url):
-    """Map any resolver URL to ``(resolver, subkey, ident)`` or fail loudly."""
-    match = _OLS_RE.search(url)
-    if match:
-        return "ols", match.group(1), match.group(2)
-    match = _ENSEMBL_RE.search(url)
-    if match:
-        return "ensembl", "id", match.group(1)
-    match = _UNIPROT_RE.search(url)
-    if match:
-        return "uniprot", "uniprotkb", match.group(1)
-    match = _MUTALYZER_RE.search(url)
-    if match:
-        return "mutalyzer", "normalize", urllib.parse.unquote(match.group(1))
-    match = _DBSNP_RE.search(url)
-    if match:
-        return "dbsnp", "refsnp", f"rs{match.group(1)}"
-    raise AssertionError(f"could not parse remote url: {url!r}")
+def _iter_fixture_files(root):
+    for entry in root.iterdir():
+        if entry.is_dir():
+            yield from _iter_fixture_files(entry)
+        elif entry.name.endswith(".json"):
+            yield entry
 
 
-def _fixture_http_get(url, timeout=30):
-    """Serve a recorded fixture for a resolver existence URL, or fail loudly."""
-    resolver, subkey, ident = _resolve_fixture(url)
-    path = (
-        files("biogate")
-        / "_data"
-        / "fixtures"
-        / "remote"
-        / resolver
-        / subkey
-        / f"{remote._safe_ident(ident)}.json"
-    )
-    if not path.is_file():
-        raise AssertionError(f"missing fixture for {resolver}/{subkey}/{ident}: {path}")
+@functools.cache
+def _fixture_index():
+    """Map each recorded fixture to its file, keyed by ``(url, id)``.
+
+    A GET fixture has no ``id`` and is keyed by URL alone; the URL encodes the
+    query, so the lookup needs no per-resolver parsing. A GraphQL/POST fixture
+    (Open Targets) shares one endpoint URL across ids, so it is keyed by its
+    ``id`` too, matched from the request body at replay time.
+    """
+    root = files("biobouncer") / "_data" / "fixtures" / "remote"
+    index = {}
+    for path in _iter_fixture_files(root):
+        record = json.loads(path.read_text(encoding="utf-8"))
+        index[(record["url"], record.get("id"))] = path
+    return index
+
+
+def _serve(url, ident):
+    path = _fixture_index().get((url, ident))
+    if path is None:
+        raise AssertionError(f"missing fixture for url {url!r} id {ident!r}")
     fx = json.loads(path.read_text(encoding="utf-8"))
     return fx["status"], fx["body"]
 
 
+def _fixture_http_get(url, timeout=30):
+    """Serve the recorded GET fixture whose URL matches, or fail loudly."""
+    return _serve(url, None)
+
+
+def _fixture_http_post(url, data, timeout=30):
+    """Serve a recorded GraphQL fixture, matching the id from the request body."""
+    ident = json.loads(data)["variables"]["ensemblId"]
+    return _serve(url, ident)
+
+
 @pytest.fixture(autouse=True)
 def _isolate_cache(tmp_path, monkeypatch):
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
 
 
 def _assert_case(case):
     expect = case["expect"]
-    result = biogate.check_id(
+    result = biobouncer.check_id(
         case["input"],
         source_db=case["source_db"],
         how="remote",
         species=case.get("species"),
+        on_error=case.get("on_error", "raise"),
     )[0]
     assert result.valid == expect["valid"]
     assert result.normalized == expect.get("normalized")
     assert result.suggestion == expect.get("suggestion")
+    # An indeterminate case carries an error; every other case must not.
+    if expect.get("error"):
+        assert result.error is not None
+    else:
+        assert result.error is None
 
 
 def test_remote_corpus_is_not_empty():
@@ -102,13 +107,17 @@ def test_remote_corpus_is_not_empty():
 @pytest.mark.parametrize("case", CASES, ids=_IDS)
 def test_remote_conformance_offline(case, monkeypatch):
     monkeypatch.setattr(remote, "_http_get", _fixture_http_get)
+    monkeypatch.setattr(remote, "_http_post", _fixture_http_post)
     _assert_case(case)
 
 
 @pytest.mark.skipif(
-    not os.environ.get("BIOGATE_REMOTE_TESTS"),
-    reason="live remote tests are opt-in; set BIOGATE_REMOTE_TESTS to run them",
+    not os.environ.get("BIOBOUNCER_REMOTE_TESTS"),
+    reason="live remote tests are opt-in; set BIOBOUNCER_REMOTE_TESTS to run them",
 )
 @pytest.mark.parametrize("case", CASES, ids=_IDS)
 def test_remote_conformance_live(case):
+    if case.get("offline_only"):
+        # A simulated failure (an unexpected status) cannot be reproduced live.
+        pytest.skip("offline-only case")
     _assert_case(case)

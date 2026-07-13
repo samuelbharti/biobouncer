@@ -1,4 +1,0 @@
-{"input": "PS00001", "source_db": "prosite", "how": "pattern", "expect": {"valid": true, "normalized": "PS00001"}, "note": "N-glycosylation site pattern"}
-{"input": "PS50001", "source_db": "prosite", "how": "pattern", "expect": {"valid": true, "normalized": "PS50001"}, "note": "a profile entry"}
-{"input": "ps00001", "source_db": "prosite", "how": "pattern", "expect": {"valid": false, "suggestion": "PS00001"}, "note": "lowercase is suggestible to uppercase"}
-{"input": "PS0001", "source_db": "prosite", "how": "pattern", "expect": {"valid": false}, "note": "four digits, one short"}

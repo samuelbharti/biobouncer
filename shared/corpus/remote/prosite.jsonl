@@ -1,0 +1,5 @@
+{"input": "PS00001", "source_db": "prosite", "how": "remote", "expect": {"valid": true, "normalized": "PS00001"}, "note": "a real pattern (N-glycosylation site)"}
+{"input": "PS50011", "source_db": "prosite", "how": "remote", "expect": {"valid": true, "normalized": "PS50011"}, "note": "a real profile; one endpoint serves patterns and profiles"}
+{"input": "PS99999", "source_db": "prosite", "how": "remote", "expect": {"valid": false}, "note": "well-formed but no such entry"}
+{"input": "ps00001", "source_db": "prosite", "how": "remote", "expect": {"valid": false, "suggestion": "PS00001"}, "note": "lowercase; the canonical uppercase form exists remotely"}
+{"input": "PS001", "source_db": "prosite", "how": "remote", "expect": {"valid": false}, "note": "too few digits; fails the grammar before any lookup"}

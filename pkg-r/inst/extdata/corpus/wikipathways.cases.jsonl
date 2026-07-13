@@ -2,3 +2,4 @@
 {"input": "WP1", "source_db": "wikipathways", "how": "pattern", "expect": {"valid": true, "normalized": "WP1"}, "note": "a low-numbered pathway"}
 {"input": "wp554", "source_db": "wikipathways", "how": "pattern", "expect": {"valid": false, "suggestion": "WP554"}, "note": "lowercase is suggestible to uppercase"}
 {"input": "WP", "source_db": "wikipathways", "how": "pattern", "expect": {"valid": false}, "note": "prefix without digits"}
+{"input": "WP1234", "source_db": "wikipathways", "how": "pattern", "expect": {"valid": true, "normalized": "WP1234"}, "note": "another well-formed identifier"}

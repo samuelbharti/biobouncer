@@ -1,10 +1,20 @@
-# biogate — Implementation Plan
+# biobouncer — Implementation Plan
 
-A build plan for `biogate`, a cross-language (R + Python) validator for
+A build plan for `biobouncer`, a cross-language (R + Python) validator for
 biological identifiers and inputs. This document is written to be handed to
 Claude Code (or any implementer): it fixes the architecture, the API contract,
 and a phased task list with acceptance criteria. Read it top to bottom before
 writing code; each phase has a **Definition of Done**.
+
+> **Status (2026-07):** Phases 0 through 7 are delivered. This document is kept as
+> the original design spec, for the architecture and the rationale. A few details
+> below describe the original intent and differ from the shipped code: the Python
+> package uses flat modules (`core.py`, `_registry.py`, `_pattern.py`, `_cache.py`,
+> `_remote.py`), not the `modes/`/`resolvers/` layout in section 3; the source
+> schema uses `curie:`/`case:` blocks rather than the `normalize:` and
+> `default_version:` keys shown in section 5; and the Open Targets connector is
+> planned, not built. For the current, accurate source list and the modes each
+> source supports, run `source_info()` or read the package docs.
 
 ---
 
@@ -56,7 +66,7 @@ Distributed separately from code so they can be refreshed without a release.
 Monorepo, one source of truth for shared assets.
 
 ```
-biogate/                             # ONE monorepo
+biobouncer/                             # ONE monorepo
 ├── PLAN.md                          # this file
 ├── README.md
 ├── CLAUDE.md                        # short conventions digest for agents (§11)
@@ -74,8 +84,8 @@ biogate/                             # ONE monorepo
 │   ├── r.yml
 │   ├── python.yml
 │   └── drift.yml
-├── pkg-py/                         # biogate (PyPI)
-│   ├── src/biogate/
+├── pkg-py/                         # biobouncer (PyPI)
+│   ├── src/biobouncer/
 │   │   ├── core.py                  # check_id / is_valid_id, result model
 │   │   ├── registry.py              # loads vendored sources
 │   │   ├── modes/                   # pattern.py, cache.py, remote.py
@@ -85,7 +95,7 @@ biogate/                             # ONE monorepo
 │   │   ├── snapshots.py
 │   │   └── _data/                   # ← vendored copy of shared/ (generated)
 │   └── tests/
-└── pkg-r/                           # biogate (CRAN / R-universe)
+└── pkg-r/                           # biobouncer (CRAN / R-universe)
     ├── R/
     │   ├── check_id.R
     │   ├── registry.R
@@ -107,7 +117,7 @@ under `pkg-py/`; neither can reach a sibling `shared/` folder at install time.
 So `shared/` must be **copied into each package before build**:
 
 - `tools/sync_shared.py` copies `shared/` → `pkg-r/inst/extdata/` and
-  `pkg-py/src/biogate/_data/`. Run it in the build/release step of both
+  `pkg-py/src/biobouncer/_data/`. Run it in the build/release step of both
   packages so the vendored copy is always present and current.
 - At runtime, packages read the vendored copy (`system.file("extdata", ...)` in
   R; `importlib.resources` in Python), never `../shared`.
@@ -168,25 +178,27 @@ adding a file (plus optional resolver code). Proposed schema:
 ```yaml
 key: mondo
 name: MONDO Disease Ontology
-description: Monarch Disease Ontology terms
-# pattern mode
-pattern: '^MONDO:\d{7}$'
-normalize:                 # optional canonicalization rules
-  uppercase_prefix: true
+description: Monarch Disease Ontology terms.
+# pattern mode: unanchored ASCII-class regex so R (PCRE) and Python (re) agree
+pattern: "MONDO:[0-9]{7}"
+example: "MONDO:0005148"
 # metadata
 species_aware: false
 version_aware: true
-default_version: "2024-09"
+# CURIE sources get prefix-case and zero-pad suggestions
+curie:
+  prefix: MONDO
+  pad_to: 7
 # cache mode
 cache:
-  builder: mondo           # id of the snapshot builder
-  id_field: id
+  builder: obo             # id of the snapshot builder
+  obo_url: http://purl.obolibrary.org/obo/mondo.obo
 # remote mode
 remote:
   resolver: ols            # id of the remote resolver
   ols_ontology: mondo
 provenance:
-  pattern_source: bioregistry   # where the regex came from
+  pattern_source: bioregistry   # where the pattern came from
   homepage: https://mondo.monarchinitiative.org
 ```
 
@@ -196,7 +208,7 @@ invent a regex when a curated one exists.
 
 **Initial source set (Phase 1–4):** `mondo`, `efo`, `hgnc`, `ensembl`,
 `refseq`, `dbsnp`, `uniprot`, `chebi`, `go`, `opentargets`. `hgvs` is
-grammar-based and handled specially (Phase 7).
+syntax-based and handled specially (Phase 7).
 
 ---
 
@@ -209,7 +221,7 @@ grammar-based and handled specially (Phase 7).
   set/columnar file of valid IDs (and, where relevant, per-species and
   per-version validity). Membership test is a vectorized join/lookup. If the
   requested `version` snapshot isn't installed, error with instructions to
-  `biogate_pull()`.
+  `biobouncer_pull()`.
 - **remote:** dispatch to the source's resolver (§ resolvers). Batch requests,
   cache responses on disk, respect rate limits, and set sane timeouts. Network
   failure is an error, not a `FALSE`.
@@ -251,10 +263,10 @@ The mechanism that guarantees R and Python agree.
 - Create the monorepo layout (§3): `shared/`, `pkg-r/`, `pkg-py/`, `tools/`,
   `.github/workflows/`.
 - Implement `tools/sync_shared.py` (vendors `shared/` into `pkg-r/inst/extdata/`
-  and `pkg-py/src/biogate/_data/`) and wire it into both build steps.
+  and `pkg-py/src/biobouncer/_data/`) and wire it into both build steps.
 - Add path-filtered CI (`r.yml`, `python.yml`) plus the drift check (`drift.yml`)
   from §3.1; add linting/formatting for both languages.
-- Reserve names: confirm `biogate` is free on **PyPI** and **CRAN**, create the
+- Reserve names: confirm `biobouncer` is free on **PyPI** and **CRAN**, create the
   GitHub repo, and set up **R-universe** as the interim R channel.
 - **DoD:** empty packages build, install, and pass an empty test suite in CI on
   Linux/macOS/Windows; the drift check passes; both packages install from GitHub
@@ -264,27 +276,27 @@ The mechanism that guarantees R and Python agree.
 
 ```json
 [
-  { "package": "biogate", "url": "https://github.com/YOURORG/biogate", "subdir": "pkg-r" }
+  { "package": "biobouncer", "url": "https://github.com/YOURORG/biobouncer", "subdir": "pkg-r" }
 ]
 ```
 
 Install the R-universe GitHub app on the account; the `subdir` field points the
 builder at `pkg-r/`. R-universe then builds Windows/macOS binaries kept in sync
-with source. (After biogate reaches CRAN, opt out of duplicate auto-indexing with
+with source. (After biobouncer reaches CRAN, opt out of duplicate auto-indexing with
 `Config/runiverse/noindex: true` in `pkg-r/DESCRIPTION` if desired.)
 
 **Install commands to verify in CI**
 
 ```r
 # R — published channel
-install.packages("biogate", repos = "https://YOURACCOUNT.r-universe.dev")
+install.packages("biobouncer", repos = "https://YOURACCOUNT.r-universe.dev")
 # R — dev from the monorepo subdirectory
-pak::pak("YOURORG/biogate/pkg-r")
-remotes::install_github("YOURORG/biogate", subdir = "pkg-r")
+pak::pak("YOURORG/biobouncer/pkg-r")
+remotes::install_github("YOURORG/biobouncer", subdir = "pkg-r")
 ```
 ```bash
 # Python — dev from the monorepo subdirectory
-pip install "git+https://github.com/YOURORG/biogate.git#subdirectory=pkg-py"
+pip install "git+https://github.com/YOURORG/biobouncer.git#subdirectory=pkg-py"
 ```
 
 ### Phase 1 — Core + pattern mode
@@ -303,7 +315,7 @@ pip install "git+https://github.com/YOURORG/biogate.git#subdirectory=pkg-py"
 
 ### Phase 3 — Cache mode + snapshots
 - Define the snapshot format and a builder per cacheable source.
-- Implement `cache` mode lookup and `biogate_pull()`/`snapshots()`/`cache_dir()`.
+- Implement `cache` mode lookup and `biobouncer_pull()`/`snapshots()`/`cache_dir()`.
 - Distribute snapshots separately (release asset / data repo), pinned.
 - **DoD:** `cache` mode + `version` argument work for ≥4 sources; corpus `cache`
   cases pass; missing-snapshot path gives an actionable error.
@@ -325,9 +337,9 @@ pip install "git+https://github.com/YOURORG/biogate.git#subdirectory=pkg-py"
   languages.
 
 ### Phase 6 — Framework adapters
-- Python: `biogate.checks.is_id(...)` (pandera Check), `biogate.types.Id(...)`
+- Python: `biobouncer.checks.is_id(...)` (pandera Check), `biobouncer.types.Id(...)`
   (pydantic type). Optional Great Expectations expectation.
-- R: `sv_biogate(...)` (shinyvalidate rule), `assert_id(...)` (checkmate-style),
+- R: `sv_biobouncer(...)` (shinyvalidate rule), `assert_id(...)` (checkmate-style),
   and an `assertr`/`validate`-friendly predicate.
 - **DoD:** each adapter has a worked example in docs and a test; adapters call
   the core classifier (no duplicated logic).
@@ -360,7 +372,7 @@ pip install "git+https://github.com/YOURORG/biogate.git#subdirectory=pkg-py"
 ## 10. Risks and mitigations
 
 - **Reference data goes stale.** → Pin snapshots, never auto-update, always
-  report `version`; provide `biogate_pull()` to refresh deliberately.
+  report `version`; provide `biobouncer_pull()` to refresh deliberately.
 - **Remote APIs drift / rate-limit.** → Isolate resolvers, cache responses,
   back off, and fail loudly rather than returning wrong verdicts.
 - **R and Python diverge.** → The corpus is mandatory; no source ships without
@@ -378,7 +390,7 @@ pip install "git+https://github.com/YOURORG/biogate.git#subdirectory=pkg-py"
 - Pure R and pure Python. No Rust, no compiled extensions.
 - One monorepo; the R package is in `pkg-r/`, the Python package in `pkg-py/`.
 - Never hard-code a pattern outside `shared/sources/`.
-- Never edit a vendored copy (`pkg-r/inst/extdata/`, `pkg-py/src/biogate/_data/`)
+- Never edit a vendored copy (`pkg-r/inst/extdata/`, `pkg-py/src/biobouncer/_data/`)
   by hand — edit `shared/` and re-run `tools/sync_shared.py`. CI drift check
   enforces this.
 - Every extrinsic result must carry its `version`/timestamp.

@@ -1,0 +1,19 @@
+key: mirbase_hairpin
+name: miRBase (hairpin)
+description: miRBase accession numbers for microRNA hairpin precursors.
+# MI and exactly seven digits, a hairpin precursor (distinct from the mature
+# MIMAT accessions in the mirbase source). Ids are uppercase; a lowercase input
+# is suggested in its canonical case.
+pattern: 'MI[0-9]{7}'
+example: 'MI0000001'
+normalize:
+  case: upper
+# remote mode checks existence against RNAcentral through EBI Search, which
+# indexes miRBase, reusing the mirbase resolver. miRBase has no existence API of
+# its own. This is an existence check only; a withdrawn accession is reported as
+# absent.
+remote:
+  resolver: mirbase
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.mirbase.org

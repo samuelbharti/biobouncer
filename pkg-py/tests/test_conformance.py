@@ -5,11 +5,11 @@ from importlib.resources import files
 
 import pytest
 
-import biogate
+import biobouncer
 
 
 def _load_cases():
-    root = files("biogate") / "_data" / "corpus"
+    root = files("biobouncer") / "_data" / "corpus"
     cases = []
     for entry in sorted(root.iterdir(), key=lambda p: p.name):
         if not entry.name.endswith(".jsonl"):
@@ -27,7 +27,7 @@ CASES = _load_cases()
 @pytest.fixture(autouse=True)
 def _isolate_cache(tmp_path, monkeypatch):
     # Empty cache dir, so cache cases resolve to the bundled sample snapshot.
-    monkeypatch.setenv("BIOGATE_CACHE_DIR", str(tmp_path))
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
 
 
 def test_corpus_is_not_empty():
@@ -39,7 +39,7 @@ def test_corpus_is_not_empty():
 )
 def test_conformance(case):
     expect = case["expect"]
-    result = biogate.check_id(
+    result = biobouncer.check_id(
         case["input"],
         source_db=case["source_db"],
         how=case["how"],

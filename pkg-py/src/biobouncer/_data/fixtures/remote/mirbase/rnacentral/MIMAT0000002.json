@@ -1,0 +1,7 @@
+{
+  "resolver": "mirbase",
+  "url": "https://www.ebi.ac.uk/ebisearch/ws/rest/rnacentral?query=MIMAT0000002&format=json",
+  "recorded": "2026-07-11",
+  "status": 200,
+  "body": {"hitCount": 1}
+}

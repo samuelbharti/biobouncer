@@ -11,7 +11,8 @@ test_that("check_id returns a tibble with the documented columns", {
       "source_db",
       "version",
       "species",
-      "how"
+      "how",
+      "error"
     )
   )
 })
@@ -19,7 +20,7 @@ test_that("check_id returns a tibble with the documented columns", {
 test_that("empty input yields a zero-row result with the right columns", {
   res <- check_id(character(0), source_db = "mondo")
   expect_identical(nrow(res), 0L)
-  expect_identical(ncol(res), 8L)
+  expect_identical(ncol(res), 9L)
 })
 
 test_that("NA input yields an NA verdict and no normalized or suggestion", {
@@ -43,11 +44,11 @@ test_that("argument validation rejects bad types", {
 test_that("mode and source errors carry a condition class", {
   expect_error(
     check_id("x", source_db = "mondo", how = "bogus"),
-    class = "biogate_error_invalid_mode"
+    class = "biobouncer_error_invalid_mode"
   )
   expect_error(
     check_id("x", source_db = "not_a_source"),
-    class = "biogate_error_unknown_source"
+    class = "biobouncer_error_unknown_source"
   )
 })
 
@@ -63,7 +64,9 @@ test_that("source_info returns a tibble of metadata", {
   expect_false(info$species_aware[info$key == "mondo"])
   expect_equal(info$example[info$key == "mondo"], "MONDO:0005148")
   expect_equal(info$modes[info$key == "mondo"], "pattern, cache, remote")
-  expect_equal(info$modes[info$key == "pfam"], "pattern")
+  expect_equal(info$modes[info$key == "drugbank"], "pattern")
+  # hgnc supports pattern, cache (a bundled snapshot), and remote (genenames).
+  expect_equal(info$modes[info$key == "hgnc"], "pattern, cache, remote")
 })
 
 test_that("every source example is valid in pattern mode", {

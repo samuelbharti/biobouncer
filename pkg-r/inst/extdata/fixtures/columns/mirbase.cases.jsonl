@@ -1,0 +1,5 @@
+{"input": "MIMAT0000001", "source_db": "mirbase", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "MIMAT0000001", "suggestion": null}}
+{"input": "mimat0000001", "source_db": "mirbase", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "MIMAT0000001"}}
+{"input": "MIMAT0000001!", "source_db": "mirbase", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "mirbase", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "MIMAT0000002", "source_db": "mirbase", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "MIMAT0000002", "suggestion": null}}

@@ -1,7 +1,7 @@
-# biogate (R package)
+# biobouncer (R package)
 
-This directory holds the R package for biogate. See the repository root
-`README.md` for what biogate does and `PLAN.md` for the architecture.
+This directory holds the R package for biobouncer. See the repository root
+`README.md` for what biobouncer does and `PLAN.md` for the architecture.
 
 The package is in early development. Offline `pattern` and `cache` modes, live
 `remote` mode, and `existence` mode (snapshot first, then remote) work for an
@@ -10,7 +10,7 @@ initial set of sources.
 ## Usage
 
 ```r
-library(biogate)
+library(biobouncer)
 
 # List what can be checked.
 sources()
@@ -23,17 +23,17 @@ check_id(c("MONDO:0005148", "mondo:5148", "GO:0006915"), source_db = "mondo")
 check_id("MONDO:0005148", source_db = "mondo", how = "cache", version = "sample")
 
 # Snapshot management.
-biogate_snapshots()
-biogate_cache_dir()
-biogate_pull("go") # download a full snapshot into the cache directory
+biobouncer_snapshots()
+biobouncer_cache_dir()
+biobouncer_pull("go") # download a full snapshot into the cache directory
 
 # Just the verdict.
 is_valid_id("P04637", source_db = "uniprot")
 ```
 
 `check_id()` returns a tibble with one row per input and the columns `input`,
-`valid`, `normalized`, `suggestion`, `source_db`, `version`, `species`, and
-`how`.
+`valid`, `normalized`, `suggestion`, `source_db`, `version`, `species`, `how`,
+and `error` (the reason a remote check was left indeterminate, else `NA`).
 
 ## Validation frameworks
 
@@ -48,7 +48,7 @@ test_valid_id("MONDO:0005148", "mondo")
 
 # shinyvalidate rule.
 iv <- shinyvalidate::InputValidator$new()
-iv$add_rule("term", sv_biogate("mondo"))
+iv$add_rule("term", sv_biobouncer("mondo"))
 
 # Data-frame validation. id_predicate() returns an elementwise predicate.
 is_mondo <- id_predicate("mondo")

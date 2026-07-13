@@ -1,0 +1,5 @@
+{"input": "BTO:0000759", "source_db": "bto", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "BTO:0000759", "suggestion": null}}
+{"input": "bto:0000759", "source_db": "bto", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "BTO:0000759"}}
+{"input": "BTO:0000759!", "source_db": "bto", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "bto", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "BTO:0000760", "source_db": "bto", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "BTO:0000760", "suggestion": null}}

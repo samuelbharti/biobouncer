@@ -1,56 +1,56 @@
-# biogate
+# biobouncer
 
 > A gate for biological inputs. Validate gene symbols, ontology terms, variant
-> formats, and database identifiers — the same way, with the same answer, in
+> formats, and database identifiers, the same way, with the same answer, in
 > both **R** and **Python**.
 
 <!-- Badges (fill in once published) -->
 <!--
-[![CRAN status](https://www.r-pkg.org/badges/version/biogate)](https://cran.r-project.org/package=biogate)
-[![PyPI version](https://img.shields.io/pypi/v/biogate)](https://pypi.org/project/biogate/)
+[![CRAN status](https://www.r-pkg.org/badges/version/biobouncer)](https://cran.r-project.org/package=biobouncer)
+[![PyPI version](https://img.shields.io/pypi/v/biobouncer)](https://pypi.org/project/biobouncer/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 -->
 
 > **Status: early development.** The API described below is the intended public
 > surface and may change before the first tagged release.
 
-**Documentation:** [R package](https://www.samuelbharti.com/biogate/r/) (pkgdown)
-and [Python package](https://www.samuelbharti.com/biogate/py/) (MkDocs), from
-one [landing page](https://www.samuelbharti.com/biogate/).
+**Documentation:** [R package](https://www.samuelbharti.com/biobouncer/r/) (pkgdown)
+and [Python package](https://www.samuelbharti.com/biobouncer/py/) (MkDocs), from
+one [landing page](https://www.samuelbharti.com/biobouncer/).
 
 ---
 
-## Why biogate
+## Why biobouncer
 
 If you build analyses or Shiny/Dash apps in computational biology, you keep
 rewriting the same guards: *is this a real gene symbol? a well-formed MONDO ID?
-a valid HGVS string? an Open Targets ID that actually exists?* Those checks end
+a valid HGVS string? a UniProt accession that actually exists?* Those checks end
 up scattered across projects as ad-hoc regexes and utility functions, and the R
 version and the Python version quietly disagree on edge cases.
 
-`biogate` puts those checks in one place, behind one small API, and guarantees
+`biobouncer` puts those checks in one place, behind one small API, and guarantees
 that R and Python give the **same verdict** for the same input by testing both
 against a shared conformance corpus. It does not try to replace annotation
-engines like biomaRt, ensembldb, or mygene — it validates *inputs* before they
+engines like biomaRt, ensembldb, or mygene. It validates *inputs* before they
 reach those tools.
 
 ## Key features
 
 - **One entry point, many sources.** `check_id()` / `is_valid_id()` work across
-  a growing set of databases and ontologies (MONDO, EFO, Open Targets, HGNC,
-  Ensembl, RefSeq, dbSNP, UniProt, ChEBI, GO, HGVS, …) selected with a single
-  `source_db` argument.
+  46 databases and ontologies (MONDO, EFO, HGNC, Ensembl, RefSeq, dbSNP, UniProt,
+  ChEBI, GO, HGVS, and more) selected with a single `source_db` argument.
 - **Three checking modes.** Choose how strict and how online you want to be:
   `pattern` (offline regex/grammar), `cache` (offline existence against a pinned
   snapshot), or `remote` (live existence against the source's API).
 - **Species-, source-, and version-aware.** Ask not just *"is this valid?"* but
   *"was this valid for this species, in this source, at this version?"*
 - **Rich, vectorized results.** Get a per-element table of `valid` /
-  `normalized` / `suggestion`, not just a single boolean — so you can filter or
+  `normalized` / `suggestion`, not just a single boolean, so you can filter or
   repair a column, not just reject one field.
 - **Plugs into the tools you already use.** Adapters for `pandera`, `pydantic`,
-  `shinyvalidate`, `checkmate`, and `assertr`/`validate`/`pointblank`.
-- **Works from the shell.** The Python package installs a `biogate` command that
+  `great_expectations`, and `narwhals` in Python, and `shinyvalidate`,
+  `checkmate`, and `assertr`/`validate`/`pointblank` in R.
+- **Works from the shell.** The Python package installs a `biobouncer` command that
   validates ids from a file or a pipe and exits non-zero on any invalid input,
   for use in scripts and CI.
 - **Reproducible by design.** `pattern` and `cache` modes are pure functions of
@@ -58,31 +58,31 @@ reach those tools.
 
 ## Installation
 
-`biogate` lives in a monorepo; the R package is in the `pkg-r/` subdirectory and
-the Python package in `pkg-py/`. Users never see that — just point the installer at
+`biobouncer` lives in a monorepo; the R package is in the `pkg-r/` subdirectory and
+the Python package in `pkg-py/`. Users never see that; just point the installer at
 the right subdirectory (or use a published channel).
 
 **R**
 
 ```r
-# R-universe — binary installs, recommended before the first CRAN release
-install.packages("biogate", repos = "https://samuelbharti.r-universe.dev")
+# R-universe: binary installs, recommended before the first CRAN release
+install.packages("biobouncer", repos = "https://samuelbharti.r-universe.dev")
 
 # CRAN (once released)
-install.packages("biogate")
+install.packages("biobouncer")
 
 # development version from GitHub (package is in the pkg-r/ subdirectory)
-pak::pak("samuelbharti/biogate/pkg-r")
-# or: remotes::install_github("samuelbharti/biogate", subdir = "pkg-r")
+pak::pak("samuelbharti/biobouncer/pkg-r")
+# or: remotes::install_github("samuelbharti/biobouncer", subdir = "pkg-r")
 ```
 
 **Python**
 
 ```bash
-pip install biogate
+pip install biobouncer
 
 # development version from GitHub (package is in the pkg-py/ subdirectory)
-pip install "git+https://github.com/samuelbharti/biogate.git#subdirectory=pkg-py"
+pip install "git+https://github.com/samuelbharti/biobouncer.git#subdirectory=pkg-py"
 ```
 
 ## Quickstart
@@ -90,18 +90,18 @@ pip install "git+https://github.com/samuelbharti/biogate.git#subdirectory=pkg-py
 **R**
 
 ```r
-library(biogate)
+library(biobouncer)
 
-# 1. pattern mode — offline, deterministic, no reference data
+# 1. pattern mode: offline, deterministic, no reference data
 is_valid_id("MONDO:0005148", source_db = "mondo", how = "pattern")
 #> [1] TRUE
 
-# 2. cache mode — existence against a pinned local snapshot
+# 2. cache mode: existence against a pinned local snapshot
 is_valid_id("MONDO:0005148", source_db = "mondo", how = "cache",
-            version = "2024-09")
+            version = "sample")
 #> [1] TRUE
 
-# 3. remote mode — live existence check against the source
+# 3. remote mode: live existence check against the source
 is_valid_id("ENSG00000139618", source_db = "ensembl", how = "remote",
             species = "homo_sapiens")
 #> [1] TRUE
@@ -111,20 +111,20 @@ check_id(
   c("MONDO:0005148", "MONDO:9999999", "mondo:5148"),
   source_db = "mondo",
   how       = "cache",
-  version   = "2024-09"
+  version   = "sample"
 )
-#> # A tibble: 3 x 8
-#>   input          valid normalized     suggestion    source_db version species how
-#>   <chr>          <lgl> <chr>          <chr>         <chr>     <chr>   <chr>   <chr>
-#> 1 MONDO:0005148  TRUE  MONDO:0005148  NA            mondo     2024-09 NA      cache
-#> 2 MONDO:9999999  FALSE NA             NA            mondo     2024-09 NA      cache
-#> 3 mondo:5148     FALSE NA             MONDO:0005148 mondo     2024-09 NA      cache
+#> # A tibble: 3 x 9
+#>   input         valid normalized    suggestion    source_db version species how   error
+#>   <chr>         <lgl> <chr>         <chr>         <chr>     <chr>   <chr>   <chr> <chr>
+#> 1 MONDO:0005148 TRUE  MONDO:0005148 NA            mondo     sample  NA      cache NA
+#> 2 MONDO:9999999 FALSE NA            NA            mondo     sample  NA      cache NA
+#> 3 mondo:5148    FALSE NA            MONDO:0005148 mondo     sample  NA      cache NA
 ```
 
 **Python**
 
 ```python
-import biogate as bg
+import biobouncer as bg
 
 bg.is_valid_id("MONDO:0005148", source_db="mondo", how="pattern")
 # True
@@ -135,12 +135,56 @@ bg.is_valid_id(
 )
 # True
 
-# Vectorized: returns a DataFrame (pandas or polars) of per-element results
+# Vectorized: returns a list of per-element Result records, in input order
 bg.check_id(
     ["MONDO:0005148", "MONDO:9999999", "mondo:5148"],
-    source_db="mondo", how="cache", version="2024-09",
+    source_db="mondo", how="cache", version="sample",
 )
 ```
+
+## Clean a column
+
+The everyday job is a whole column: which values are wrong, and can you fix the
+ones you can. `report_id()` / `report()` validate the column and print a summary;
+`repair_id()` / `Report.repair()` substitute the fixable values (a withdrawn gene
+symbol becomes its successor) and leave valid, unmappable, and missing values
+untouched. In cache mode the snapshot version defaults to the latest installed,
+so you do not have to name one.
+
+**R**
+
+```r
+genes <- c("TP53", "MLL", "notagene", NA)
+
+report_id(genes, "hgnc", how = "cache")
+#> # biobouncer report on hgnc (cache mode): 1 valid, 1 repairable, 1 invalid, 1 missing of 4
+#> # A tibble: 4 x 9
+#>   input    valid normalized suggestion source_db version    species how   error
+#>   <chr>    <lgl> <chr>      <chr>      <chr>     <chr>      <chr>   <chr> <chr>
+#> 1 TP53     TRUE  TP53       NA         hgnc      2026-07-07 NA      cache NA
+#> 2 MLL      FALSE NA         KMT2A      hgnc      2026-07-07 NA      cache NA
+#> 3 notagene FALSE NA         NA         hgnc      2026-07-07 NA      cache NA
+#> 4 NA       NA    NA         NA         hgnc      2026-07-07 NA      cache NA
+
+repair_id(genes, "hgnc", how = "cache")
+#> [1] "TP53"     "KMT2A"    "notagene" NA
+```
+
+**Python**
+
+```python
+genes = ["TP53", "MLL", "notagene", None]
+
+rep = bg.report(genes, "hgnc", how="cache")
+rep
+# <biobouncer report on 'hgnc' (cache mode): 1 valid, 1 repairable, 1 invalid, 1 missing of 4>
+
+rep.repair()
+# ['TP53', 'KMT2A', 'notagene', None]
+```
+
+`report`/`report_id` are for inspecting and cleaning; to enforce validity inside
+a framework (pandera, Great Expectations, pydantic, shiny) use the adapters.
 
 ## The three checking modes
 
@@ -155,14 +199,14 @@ bg.check_id(
 
 The split matters for reproducibility: `pattern` and `cache` are pure functions
 of code and pinned data, so the same call always returns the same answer.
-`remote` reflects the live source and can change between runs — every result
+`remote` reflects the live source and can change between runs; every result
 records which mode and snapshot produced it.
 
 ## Species, source, and version awareness
 
 Identifiers are not valid in a vacuum. A symbol can be current in one species
 and meaningless in another; an ID can exist in one release of a source and be
-retired in the next. `biogate` makes these explicit arguments:
+retired in the next. `biobouncer` makes these explicit arguments:
 
 ```r
 # Same accession, different species contexts
@@ -171,17 +215,17 @@ check_id("ENSMUSG00000059552", source_db = "ensembl",
 check_id("ENSMUSG00000059552", source_db = "ensembl",
          species = "homo_sapiens", how = "remote")    # not a human ID
 
-# Version-aware: was this symbol valid at a specific HGNC release?
-check_id("LEPRE1", source_db = "hgnc", how = "cache", version = "2014-11")
-#> valid = TRUE  (this symbol was later replaced by P3H1)
-check_id("LEPRE1", source_db = "hgnc", how = "cache", version = "2024-09")
-#> valid = FALSE, suggestion = "P3H1"
+# Retired symbols map to their approved successor
+check_id("MLL", source_db = "hgnc", how = "cache", version = "sample")
+#> valid = FALSE, suggestion = "KMT2A"  (MLL was renamed KMT2A)
 ```
 
-- `species` accepts a name (`"homo_sapiens"`) or an NCBI Taxonomy ID (`9606`).
-- `version` accepts a source release tag or snapshot date; omit it to use the
-  package's default pinned snapshot.
-- Both are ignored (with a note) by sources for which they don't apply.
+- `species` accepts a name (`"homo_sapiens"`) or an NCBI Taxonomy ID (`9606`). It
+  is enforced by the sources for which it applies (such as Ensembl and UniProt)
+  and ignored by the rest.
+- `version` selects the snapshot for `cache` mode. The packages ship a small
+  `sample` snapshot; `biobouncer_pull()` fetches full, dated snapshots for the OBO
+  ontologies.
 
 ## Result schema
 
@@ -196,43 +240,51 @@ Every `check_id()` row carries enough context to be self-describing:
 | `source_db`  | source the check ran against                                   |
 | `version`    | snapshot/release that produced the answer                      |
 | `species`    | species context, when applicable                               |
-| `how`        | mode used (`pattern` / `cache` / `remote`)                     |
+| `how`        | mode used (`pattern` / `cache` / `remote` / `existence`)       |
+| `error`      | reason a remote check was left indeterminate, else `NA`/`None` |
 
 ## Supported sources (growing)
 
-| `source_db`   | Source                     | Example ID                 | pattern | cache | remote | species-aware |
-|---------------|----------------------------|----------------------------|:-------:|:-----:|:------:|:-------------:|
-| `hgnc`        | HGNC gene symbols          | `TP53`                     |   ~     |   ✓   |   ✓    |   human/mouse |
-| `ensembl`     | Ensembl gene/transcript    | `ENSG00000141510`          |   ✓     |   ✓   |   ✓    |      ✓        |
-| `refseq`      | RefSeq accessions          | `NM_000546`                |   ✓     |   ✓   |   ✓    |      ✓        |
-| `dbsnp`       | dbSNP variants             | `rs7412`                   |   ✓     |   ~   |   ✓    |      ✓        |
-| `hgvs`        | HGVS variant descriptions  | `NM_000546.6:c.215C>G`     |   ✓†    |   —   |   ✓    |      —        |
-| `mondo`       | MONDO disease ontology     | `MONDO:0005148`            |   ✓     |   ✓   |   ✓    |      —        |
-| `efo`         | Experimental Factor Ont.   | `EFO:0000400`              |   ✓     |   ✓   |   ✓    |      —        |
-| `opentargets` | Open Targets IDs           | `ENSG00000141510`          |   ✓     |   ✓   |   ✓    |      —        |
-| `uniprot`     | UniProt accessions         | `P04637`                   |   ✓     |   ✓   |   ✓    |      ✓        |
-| `chebi`       | ChEBI compounds            | `CHEBI:15377`              |   ✓     |   ✓   |   ✓    |      —        |
-| `go`          | Gene Ontology terms        | `GO:0006915`               |   ✓     |   ✓   |   ✓    |      —        |
+biobouncer checks 46 sources. A selection is shown below; run `source_info()` or see
+the [sources cookbook](https://www.samuelbharti.com/biobouncer/py/sources/) for the
+full list with the modes each source supports.
 
-`✓` supported · `~` partial · `—` not applicable · `†` grammar-based, not a
-single regex. Identifier patterns are sourced from the maintained
+| `source_db`    | Source                     | Example ID                 | pattern | cache | remote | species-aware |
+|----------------|----------------------------|----------------------------|:-------:|:-----:|:------:|:-------------:|
+| `mondo`        | MONDO disease ontology     | `MONDO:0005148`            |   ✓     |   ✓   |   ✓    |      -        |
+| `efo`          | Experimental Factor Ont.   | `EFO:0000400`              |   ✓     |   ✓   |   ✓    |      -        |
+| `go`           | Gene Ontology terms        | `GO:0006915`               |   ✓     |   ✓   |   ✓    |      -        |
+| `chebi`        | ChEBI compounds            | `CHEBI:15377`              |   ✓     |   ✓   |   ✓    |      -        |
+| `hgnc`         | HGNC gene symbols          | `TP53`                     |   ~     |   ✓   |   ✓    |      -        |
+| `ensembl`      | Ensembl gene/transcript    | `ENSG00000139618`          |   ✓     |   -   |   ✓    |      ✓        |
+| `opentargets`  | Open Targets targets       | `ENSG00000139618`          |   ✓     |   -   |   ✓    |      -        |
+| `refseq`       | RefSeq accessions          | `NM_000546.6`              |   ✓     |   -   |   ✓    |      -        |
+| `uniprot`      | UniProt accessions         | `P04637`                   |   ✓     |   -   |   ✓    |      ✓        |
+| `dbsnp`        | dbSNP variants             | `rs7412`                   |   ✓     |   -   |   ✓    |      -        |
+| `hgvs`         | HGVS variant syntax        | `NM_004006.2:c.4375C>T`    |   ✓†    |   -   |   ✓    |      -        |
+
+`✓` supported · `~` shape check only, a loose token match · `-` not available ·
+`†` syntax only, a single regex (not coordinate-level validation). The Open
+Targets connector checks whether a human Ensembl gene id is a target the platform
+covers, through its GraphQL API. Identifier patterns come from the
 Identifiers.org / Bioregistry registries where available.
 
 ## Integrating with your stack
 
-`biogate` provides the domain checks; your existing validation framework
+`biobouncer` provides the domain checks; your existing validation framework
 provides the plumbing.
 
 **pandera (Python)**
 
 ```python
 import pandera.pandas as pa
-import biogate as bg
+from biobouncer.checks import is_id
 
 schema = pa.DataFrameSchema({
-    "disease_id": pa.Column(str, bg.checks.is_id(source_db="mondo", how="cache")),
-    "target_id":  pa.Column(str, bg.checks.is_id(source_db="ensembl",
-                                                 species="homo_sapiens")),
+    "disease_id": pa.Column(str, is_id(source_db="mondo", how="cache",
+                                       version="sample")),
+    "target_id":  pa.Column(str, is_id(source_db="ensembl",
+                                       species="homo_sapiens")),
 })
 ```
 
@@ -240,18 +292,18 @@ schema = pa.DataFrameSchema({
 
 ```python
 from pydantic import BaseModel
-from biogate.types import Id
+from biobouncer.types import Id
 
 class Association(BaseModel):
     disease: Id("mondo", how="pattern")
-    target:  Id("ensembl", species="homo_sapiens", how="cache")
+    target:  Id("ensembl", species="homo_sapiens", how="pattern")
 ```
 
 **shinyvalidate (R)**
 
 ```r
 iv <- InputValidator$new()
-iv$add_rule("gene", sv_biogate(source_db = "hgnc", how = "cache"))
+iv$add_rule("gene", sv_biobouncer(source_db = "hgnc", how = "cache", version = "sample"))
 iv$enable()
 ```
 
@@ -259,10 +311,12 @@ iv$enable()
 
 ```r
 # stop early in a pipeline
-assert_id(df$disease, source_db = "mondo", how = "cache")
+assert_valid_id(df$disease, source_db = "mondo", how = "cache", version = "sample")
 
 # assertr verb inside a dplyr chain
-df |> assertr::verify(is_valid_id(disease, source_db = "mondo", how = "cache"))
+df |> assertr::verify(
+  is_valid_id(disease, source_db = "mondo", how = "cache", version = "sample")
+)
 ```
 
 ## Design principles
@@ -288,23 +342,34 @@ reproducible, and are distributed separately from the code so they can be
 refreshed without a package release:
 
 ```r
-biogate_snapshots()                       # list installed snapshots
-biogate_pull("mondo", version = "2024-09") # fetch/refresh a snapshot
-biogate_cache_dir()                        # where snapshots live
+biobouncer_snapshots()          # list installed snapshots
+biobouncer_pull("mondo")        # fetch the current MONDO snapshot
+biobouncer_cache_dir()          # where snapshots live
 ```
 
 `remote` mode caches responses locally and respects each source's rate limits.
 
 ## Roadmap
 
-- [ ] `pattern` mode + core API + result schema
-- [ ] Shared conformance corpus + R/Python parity CI
-- [ ] `cache` mode + snapshot tooling for the initial source set
-- [ ] `remote` resolvers (OLS, Ensembl REST, Open Targets, UniProt, dbSNP)
-- [ ] Species and version awareness across applicable sources
-- [ ] Framework adapters (pandera, pydantic, shinyvalidate, checkmate, assertr)
-- [ ] HGVS grammar validator
-- [ ] First tagged releases on PyPI and CRAN/R-universe
+Delivered:
+
+- [x] `pattern` mode, the core API, and the rich result schema
+- [x] Shared conformance corpus with R and Python parity
+- [x] `cache` mode and snapshot tooling for the OBO ontologies
+- [x] `remote` resolvers (OLS, Ensembl, UniProt, NCBI, EBI, and more: 19 resolvers across 41 sources)
+- [x] Species and version awareness
+- [x] Framework adapters (pandera, pydantic, Great Expectations, narwhals; shinyvalidate, checkmate, assertr/validate/pointblank)
+- [x] HGVS syntax validator
+- [x] Command-line interface
+- [x] Real gene-symbol validation (a full HGNC snapshot and a genenames.org resolver)
+- [x] Fuzzy "did you mean" suggestions
+- [x] A validate-and-repair report for data-frame columns (`report` / `report_id`)
+- [x] Per-id indeterminate state and concurrent large-column remote checks
+- [x] An Open Targets connector (GraphQL)
+
+Planned:
+
+- [ ] First tagged releases on PyPI and CRAN / R-universe
 
 ## Contributing
 
@@ -314,9 +379,9 @@ resolver. See `CONTRIBUTING.md` and the source-registry spec in `PLAN.md`.
 
 ## License
 
-MIT © biogate authors.
+MIT © biobouncer authors.
 
 ## Citation
 
-If `biogate` supports your work, please cite it (a `CITATION` file will be
-provided with the first release).
+If `biobouncer` supports your work, please cite it. See `CITATION.cff` for citation
+metadata.

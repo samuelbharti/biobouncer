@@ -4,7 +4,7 @@ title: "Examples"
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-library(biogate)
+library(biobouncer)
 ```
 
 Practical recipes. Each one is a short, real task. For the full list of sources
@@ -117,11 +117,11 @@ create_agent(df) |>
 
 ## Validate a Shiny input
 
-`sv_biogate()` returns a shinyvalidate rule. It returns `NULL` for a valid input
+`sv_biobouncer()` returns a shinyvalidate rule. It returns `NULL` for a valid input
 and a message otherwise.
 
 ```{r}
-rule <- sv_biogate("mondo")
+rule <- sv_biobouncer("mondo")
 rule("MONDO:0005148") # NULL, valid
 rule("mondo:5148") # a message
 ```

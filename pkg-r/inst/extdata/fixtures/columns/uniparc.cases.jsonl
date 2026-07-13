@@ -1,0 +1,5 @@
+{"input": "UPI0000000001", "source_db": "uniparc", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "UPI0000000001", "suggestion": null}}
+{"input": "upi0000000001", "source_db": "uniparc", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "UPI0000000001"}}
+{"input": "UPI0000000001!", "source_db": "uniparc", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "uniparc", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "UPI0000000002", "source_db": "uniparc", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "UPI0000000002", "suggestion": null}}

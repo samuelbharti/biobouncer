@@ -1,4 +1,4 @@
-Package: biogate
+Package: biobouncer
 Title: Validate Biological Identifiers and Inputs
 Version: 0.1.0
 Authors@R:
@@ -8,17 +8,21 @@ Description: A gate for biological inputs. Validate gene symbols, ontology
     using offline pattern and cache checks or live remote checks. Results are
     designed to match the companion Python package for the same inputs.
 License: MIT + file LICENSE
-URL: https://github.com/samuelbharti/biogate, https://www.samuelbharti.com/biogate/r/
-BugReports: https://github.com/samuelbharti/biogate/issues
+URL: https://github.com/samuelbharti/biobouncer, https://www.samuelbharti.com/biobouncer/r/
+BugReports: https://github.com/samuelbharti/biobouncer/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
+Depends:
+    R (>= 4.0)
 Imports:
     checkmate,
     cli,
     curl,
     jsonlite,
     tibble,
+    tools,
+    utils,
     yaml
 Suggests:
     knitr,
