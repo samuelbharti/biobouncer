@@ -103,6 +103,7 @@ jobs:
         run: |
           mkdir -p _site
           cp docs-hub/index.html _site/index.html
+          cp -r docs-hub/assets _site/assets
           touch _site/.nojekyll
 
       - uses: actions/download-artifact@v4

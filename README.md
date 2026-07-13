@@ -4,6 +4,11 @@
 > formats, and database identifiers, the same way, with the same answer, in
 > both **R** and **Python**.
 
+<p align="center">
+  <img src="docs-hub/assets/overview.svg" width="820"
+       alt="biobouncer takes a messy column of biological identifiers, checks each through one gate with four modes (pattern, cache, remote, existence), and returns one labeled verdict (valid, repairable, invalid, or missing) that is the same in R and Python." />
+</p>
+
 <!-- Badges (fill in once published) -->
 <!--
 [![CRAN status](https://www.r-pkg.org/badges/version/biobouncer)](https://cran.r-project.org/package=biobouncer)
@@ -11,8 +16,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 -->
 
-> **Status: early development.** The API described below is the intended public
-> surface and may change before the first tagged release.
+> **Status: pre-1.0.** The public API is in use and documented below. It may
+> still change before the 1.0 release.
 
 **Documentation:** [R package](https://www.samuelbharti.com/biobouncer/r/) (pkgdown)
 and [Python package](https://www.samuelbharti.com/biobouncer/py/) (MkDocs), from
@@ -23,7 +28,7 @@ one [landing page](https://www.samuelbharti.com/biobouncer/).
 ## Why biobouncer
 
 If you build analyses or Shiny/Dash apps in computational biology, you keep
-rewriting the same guards: *is this a real gene symbol? a well-formed MONDO ID?
+rewriting the same guards: *is this a real gene symbol? a well-formed MONDO id?
 a valid HGVS string? a UniProt accession that actually exists?* Those checks end
 up scattered across projects as ad-hoc regexes and utility functions, and the R
 version and the Python version quietly disagree on edge cases.
@@ -39,7 +44,7 @@ reach those tools.
 - **One entry point, many sources.** `check_id()` / `is_valid_id()` work across
   46 databases and ontologies (MONDO, EFO, HGNC, Ensembl, RefSeq, dbSNP, UniProt,
   ChEBI, GO, HGVS, and more) selected with a single `source_db` argument.
-- **Three checking modes.** Choose how strict and how online you want to be:
+- **Checking modes.** Choose how strict and how online you want to be:
   `pattern` (offline regex/grammar), `cache` (offline existence against a pinned
   snapshot), or `remote` (live existence against the source's API).
 - **Species-, source-, and version-aware.** Ask not just *"is this valid?"* but
@@ -58,17 +63,17 @@ reach those tools.
 
 ## Installation
 
-`biobouncer` lives in a monorepo; the R package is in the `pkg-r/` subdirectory and
-the Python package in `pkg-py/`. Users never see that; just point the installer at
-the right subdirectory (or use a published channel).
+`biobouncer` lives in a monorepo: the R package in `pkg-r/`, the Python package in
+`pkg-py/`. This matters only for a development install from GitHub, where you
+point the installer at the subdirectory. The released packages install by name.
 
 **R**
 
 ```r
-# R-universe: binary installs, recommended before the first CRAN release
+# R-universe (binary installs)
 install.packages("biobouncer", repos = "https://samuelbharti.r-universe.dev")
 
-# CRAN (once released)
+# CRAN
 install.packages("biobouncer")
 
 # development version from GitHub (package is in the pkg-r/ subdirectory)
@@ -186,13 +191,13 @@ rep.repair()
 `report`/`report_id` are for inspecting and cleaning; to enforce validity inside
 a framework (pandera, Great Expectations, pydantic, shiny) use the adapters.
 
-## The three checking modes
+## The checking modes
 
 | Mode      | What it answers                                   | Network | Reproducible | Speed |
 |-----------|---------------------------------------------------|:-------:|:------------:|:-----:|
 | `pattern` | Is the string **well-formed** for this source?    |   no    |     yes      | fast  |
-| `cache`   | Does the ID **exist** in a pinned local snapshot? |   no    |     yes      | fast  |
-| `remote`  | Does the ID **exist right now** in the source?    |  yes    |      no      | slow  |
+| `cache`   | Does the id **exist** in a pinned local snapshot? |   no    |     yes      | fast  |
+| `remote`  | Does the id **exist right now** in the source?    |  yes    |      no      | slow  |
 
 `how = "existence"` is a convenience that tries `cache` first and falls back to
 `remote` if no local snapshot is available.
@@ -205,7 +210,7 @@ records which mode and snapshot produced it.
 ## Species, source, and version awareness
 
 Identifiers are not valid in a vacuum. A symbol can be current in one species
-and meaningless in another; an ID can exist in one release of a source and be
+and meaningless in another; an id can exist in one release of a source and be
 retired in the next. `biobouncer` makes these explicit arguments:
 
 ```r
@@ -213,14 +218,14 @@ retired in the next. `biobouncer` makes these explicit arguments:
 check_id("ENSMUSG00000059552", source_db = "ensembl",
          species = "mus_musculus",  how = "remote")   # valid
 check_id("ENSMUSG00000059552", source_db = "ensembl",
-         species = "homo_sapiens", how = "remote")    # not a human ID
+         species = "homo_sapiens", how = "remote")    # not a human id
 
 # Retired symbols map to their approved successor
 check_id("MLL", source_db = "hgnc", how = "cache", version = "sample")
 #> valid = FALSE, suggestion = "KMT2A"  (MLL was renamed KMT2A)
 ```
 
-- `species` accepts a name (`"homo_sapiens"`) or an NCBI Taxonomy ID (`9606`). It
+- `species` accepts a name (`"homo_sapiens"`) or an NCBI Taxonomy id (`9606`). It
   is enforced by the sources for which it applies (such as Ensembl and UniProt)
   and ignored by the rest.
 - `version` selects the snapshot for `cache` mode. The packages ship a small
@@ -249,7 +254,7 @@ biobouncer checks 46 sources. A selection is shown below; run `source_info()` or
 the [sources cookbook](https://www.samuelbharti.com/biobouncer/py/sources/) for the
 full list with the modes each source supports.
 
-| `source_db`    | Source                     | Example ID                 | pattern | cache | remote | species-aware |
+| `source_db`    | Source                     | Example id                 | pattern | cache | remote | species-aware |
 |----------------|----------------------------|----------------------------|:-------:|:-----:|:------:|:-------------:|
 | `mondo`        | MONDO disease ontology     | `MONDO:0005148`            |   ✓     |   ✓   |   ✓    |      -        |
 | `efo`          | Experimental Factor Ont.   | `EFO:0000400`              |   ✓     |   ✓   |   ✓    |      -        |
