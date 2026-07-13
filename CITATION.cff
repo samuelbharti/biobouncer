@@ -8,7 +8,15 @@ abstract: >-
   corpus.
 type: software
 version: 0.1.0
+doi: 10.5281/zenodo.21346522
 date-released: "2026-07-13"
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.21346522
+    description: Concept DOI for all versions
+  - type: doi
+    value: 10.5281/zenodo.21346523
+    description: DOI for version 0.1.0
 authors:
   - family-names: Bharti
     given-names: Samuel
