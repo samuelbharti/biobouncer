@@ -97,5 +97,5 @@ mondo   sample   6      bundled
 ```
 
 `biobouncer pull --source mondo` downloads a full snapshot for a source that has a
-builder (the OBO ontologies) and writes it to the cache directory. A source with
-no builder, such as `hgnc` or `ensembl`, exits `2`.
+builder (the OBO ontologies, or `hgnc` via its complete-set TSV) and writes it to
+the cache directory. A source with no builder, such as `ensembl`, exits `2`.

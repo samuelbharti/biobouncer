@@ -32,8 +32,8 @@ is_valid_id("P04637", source_db = "uniprot")
 ```
 
 `check_id()` returns a tibble with one row per input and the columns `input`,
-`valid`, `normalized`, `suggestion`, `source_db`, `version`, `species`, and
-`how`.
+`valid`, `normalized`, `suggestion`, `source_db`, `version`, `species`, `how`,
+and `error` (the reason a remote check was left indeterminate, else `NA`).
 
 ## Validation frameworks
 

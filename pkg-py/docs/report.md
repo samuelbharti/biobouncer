@@ -27,11 +27,11 @@ rep
 
 ```python
 rep.to_frame()
-#       input  valid normalized suggestion
-# 0      TP53   True       TP53        NaN
-# 1       MLL  False        NaN      KMT2A
-# 2  notagene  False        NaN        NaN
-# 3       NaN   None        NaN        NaN
+#       input  valid normalized suggestion error
+# 0      TP53   True       TP53        NaN  None
+# 1       MLL  False        NaN      KMT2A  None
+# 2  notagene  False        NaN        NaN  None
+# 3       NaN   None        NaN        NaN  None
 ```
 
 ## Repair what you can
@@ -62,7 +62,7 @@ list and read `.results` (a list of `Result`) or `.summary` (the counts):
 ```python
 rep = bg.report(genes, "hgnc", how="cache")
 rep.summary
-# {'total': 4, 'valid': 1, 'invalid': 2, 'repairable': 1, 'missing': 1}
+# {'total': 4, 'valid': 1, 'invalid': 2, 'repairable': 1, 'missing': 1, 'indeterminate': 0}
 ```
 
 `to_frame` and repairing a native series use narwhals; install it with

@@ -83,16 +83,18 @@ class Report:
 
     @property
     def summary(self) -> dict:
-        """Counts over the column: total, valid, invalid, repairable, missing."""
+        """Counts: total, valid, invalid, repairable, missing, indeterminate."""
         return summarize(self.results)
 
     def to_frame(self, backend=None):
         """Return a native data frame of the per-row verdicts.
 
-        The frame has the columns ``input``, ``valid``, ``normalized``, and
-        ``suggestion``. It comes back on the same backend as the column passed to
-        ``report`` (pandas, polars, or pyarrow); a report built from a plain list
-        defaults to pandas. Pass ``backend`` to force one. Requires narwhals.
+        The frame has the columns ``input``, ``valid``, ``normalized``,
+        ``suggestion``, and ``error`` (the reason a remote check was left
+        indeterminate, else null). It comes back on the same backend as the column
+        passed to ``report`` (pandas, polars, or pyarrow); a report built from a
+        plain list defaults to pandas. Pass ``backend`` to force one. Requires
+        narwhals.
         """
         nw = _require_narwhals()
         target = backend if backend is not None else self._backend

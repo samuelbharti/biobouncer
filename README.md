@@ -1,7 +1,7 @@
 # biobouncer
 
 > A gate for biological inputs. Validate gene symbols, ontology terms, variant
-> formats, and database identifiers — the same way, with the same answer, in
+> formats, and database identifiers, the same way, with the same answer, in
 > both **R** and **Python**.
 
 <!-- Badges (fill in once published) -->
@@ -31,13 +31,13 @@ version and the Python version quietly disagree on edge cases.
 `biobouncer` puts those checks in one place, behind one small API, and guarantees
 that R and Python give the **same verdict** for the same input by testing both
 against a shared conformance corpus. It does not try to replace annotation
-engines like biomaRt, ensembldb, or mygene — it validates *inputs* before they
+engines like biomaRt, ensembldb, or mygene. It validates *inputs* before they
 reach those tools.
 
 ## Key features
 
 - **One entry point, many sources.** `check_id()` / `is_valid_id()` work across
-  45 databases and ontologies (MONDO, EFO, HGNC, Ensembl, RefSeq, dbSNP, UniProt,
+  46 databases and ontologies (MONDO, EFO, HGNC, Ensembl, RefSeq, dbSNP, UniProt,
   ChEBI, GO, HGVS, and more) selected with a single `source_db` argument.
 - **Three checking modes.** Choose how strict and how online you want to be:
   `pattern` (offline regex/grammar), `cache` (offline existence against a pinned
@@ -45,10 +45,11 @@ reach those tools.
 - **Species-, source-, and version-aware.** Ask not just *"is this valid?"* but
   *"was this valid for this species, in this source, at this version?"*
 - **Rich, vectorized results.** Get a per-element table of `valid` /
-  `normalized` / `suggestion`, not just a single boolean — so you can filter or
+  `normalized` / `suggestion`, not just a single boolean, so you can filter or
   repair a column, not just reject one field.
 - **Plugs into the tools you already use.** Adapters for `pandera`, `pydantic`,
-  `shinyvalidate`, `checkmate`, and `assertr`/`validate`/`pointblank`.
+  `great_expectations`, and `narwhals` in Python, and `shinyvalidate`,
+  `checkmate`, and `assertr`/`validate`/`pointblank` in R.
 - **Works from the shell.** The Python package installs a `biobouncer` command that
   validates ids from a file or a pipe and exits non-zero on any invalid input,
   for use in scripts and CI.
@@ -58,13 +59,13 @@ reach those tools.
 ## Installation
 
 `biobouncer` lives in a monorepo; the R package is in the `pkg-r/` subdirectory and
-the Python package in `pkg-py/`. Users never see that — just point the installer at
+the Python package in `pkg-py/`. Users never see that; just point the installer at
 the right subdirectory (or use a published channel).
 
 **R**
 
 ```r
-# R-universe — binary installs, recommended before the first CRAN release
+# R-universe: binary installs, recommended before the first CRAN release
 install.packages("biobouncer", repos = "https://samuelbharti.r-universe.dev")
 
 # CRAN (once released)
@@ -91,16 +92,16 @@ pip install "git+https://github.com/samuelbharti/biobouncer.git#subdirectory=pkg
 ```r
 library(biobouncer)
 
-# 1. pattern mode — offline, deterministic, no reference data
+# 1. pattern mode: offline, deterministic, no reference data
 is_valid_id("MONDO:0005148", source_db = "mondo", how = "pattern")
 #> [1] TRUE
 
-# 2. cache mode — existence against a pinned local snapshot
+# 2. cache mode: existence against a pinned local snapshot
 is_valid_id("MONDO:0005148", source_db = "mondo", how = "cache",
             version = "sample")
 #> [1] TRUE
 
-# 3. remote mode — live existence check against the source
+# 3. remote mode: live existence check against the source
 is_valid_id("ENSG00000139618", source_db = "ensembl", how = "remote",
             species = "homo_sapiens")
 #> [1] TRUE
@@ -112,12 +113,12 @@ check_id(
   how       = "cache",
   version   = "sample"
 )
-#> # A tibble: 3 x 8
-#>   input          valid normalized     suggestion    source_db version species how
-#>   <chr>          <lgl> <chr>          <chr>         <chr>     <chr>   <chr>   <chr>
-#> 1 MONDO:0005148  TRUE  MONDO:0005148  NA            mondo     sample  NA      cache
-#> 2 MONDO:9999999  FALSE NA             NA            mondo     sample  NA      cache
-#> 3 mondo:5148     FALSE NA             MONDO:0005148 mondo     sample  NA      cache
+#> # A tibble: 3 x 9
+#>   input         valid normalized    suggestion    source_db version species how   error
+#>   <chr>         <lgl> <chr>         <chr>         <chr>     <chr>   <chr>   <chr> <chr>
+#> 1 MONDO:0005148 TRUE  MONDO:0005148 NA            mondo     sample  NA      cache NA
+#> 2 MONDO:9999999 FALSE NA            NA            mondo     sample  NA      cache NA
+#> 3 mondo:5148    FALSE NA            MONDO:0005148 mondo     sample  NA      cache NA
 ```
 
 **Python**
@@ -157,13 +158,13 @@ genes <- c("TP53", "MLL", "notagene", NA)
 
 report_id(genes, "hgnc", how = "cache")
 #> # biobouncer report on hgnc (cache mode): 1 valid, 1 repairable, 1 invalid, 1 missing of 4
-#> # A tibble: 4 x 8
-#>   input      valid normalized suggestion source_db version    species how
-#>   <chr>      <lgl> <chr>      <chr>      <chr>     <chr>      <chr>   <chr>
-#> 1 TP53       TRUE  TP53       NA         hgnc      2026-07-07 NA      cache
-#> 2 MLL        FALSE NA         KMT2A      hgnc      2026-07-07 NA      cache
-#> 3 notagene   FALSE NA         NA         hgnc      2026-07-07 NA      cache
-#> 4 NA         NA    NA         NA         hgnc      2026-07-07 NA      cache
+#> # A tibble: 4 x 9
+#>   input    valid normalized suggestion source_db version    species how   error
+#>   <chr>    <lgl> <chr>      <chr>      <chr>     <chr>      <chr>   <chr> <chr>
+#> 1 TP53     TRUE  TP53       NA         hgnc      2026-07-07 NA      cache NA
+#> 2 MLL      FALSE NA         KMT2A      hgnc      2026-07-07 NA      cache NA
+#> 3 notagene FALSE NA         NA         hgnc      2026-07-07 NA      cache NA
+#> 4 NA       NA    NA         NA         hgnc      2026-07-07 NA      cache NA
 
 repair_id(genes, "hgnc", how = "cache")
 #> [1] "TP53"     "KMT2A"    "notagene" NA
@@ -198,7 +199,7 @@ a framework (pandera, Great Expectations, pydantic, shiny) use the adapters.
 
 The split matters for reproducibility: `pattern` and `cache` are pure functions
 of code and pinned data, so the same call always returns the same answer.
-`remote` reflects the live source and can change between runs — every result
+`remote` reflects the live source and can change between runs; every result
 records which mode and snapshot produced it.
 
 ## Species, source, and version awareness
@@ -240,6 +241,7 @@ Every `check_id()` row carries enough context to be self-describing:
 | `version`    | snapshot/release that produced the answer                      |
 | `species`    | species context, when applicable                               |
 | `how`        | mode used (`pattern` / `cache` / `remote` / `existence`)       |
+| `error`      | reason a remote check was left indeterminate, else `NA`/`None` |
 
 ## Supported sources (growing)
 
@@ -249,19 +251,19 @@ full list with the modes each source supports.
 
 | `source_db`    | Source                     | Example ID                 | pattern | cache | remote | species-aware |
 |----------------|----------------------------|----------------------------|:-------:|:-----:|:------:|:-------------:|
-| `mondo`        | MONDO disease ontology     | `MONDO:0005148`            |   ✓     |   ✓   |   ✓    |      —        |
-| `efo`          | Experimental Factor Ont.   | `EFO:0000400`              |   ✓     |   ✓   |   ✓    |      —        |
-| `go`           | Gene Ontology terms        | `GO:0006915`               |   ✓     |   ✓   |   ✓    |      —        |
-| `chebi`        | ChEBI compounds            | `CHEBI:15377`              |   ✓     |   ✓   |   ✓    |      —        |
-| `hgnc`         | HGNC gene symbols          | `TP53`                     |   ~     |   ✓   |   ✓    |      —        |
-| `ensembl`      | Ensembl gene/transcript    | `ENSG00000139618`          |   ✓     |   —   |   ✓    |      ✓        |
-| `opentargets`  | Open Targets targets       | `ENSG00000139618`          |   ✓     |   —   |   ✓    |      —        |
-| `refseq`       | RefSeq accessions          | `NM_000546.6`              |   ✓     |   —   |   ✓    |      —        |
-| `uniprot`      | UniProt accessions         | `P04637`                   |   ✓     |   —   |   ✓    |      ✓        |
-| `dbsnp`        | dbSNP variants             | `rs7412`                   |   ✓     |   —   |   ✓    |      —        |
-| `hgvs`         | HGVS variant syntax        | `NM_004006.2:c.4375C>T`    |   ✓†    |   —   |   ✓    |      —        |
+| `mondo`        | MONDO disease ontology     | `MONDO:0005148`            |   ✓     |   ✓   |   ✓    |      -        |
+| `efo`          | Experimental Factor Ont.   | `EFO:0000400`              |   ✓     |   ✓   |   ✓    |      -        |
+| `go`           | Gene Ontology terms        | `GO:0006915`               |   ✓     |   ✓   |   ✓    |      -        |
+| `chebi`        | ChEBI compounds            | `CHEBI:15377`              |   ✓     |   ✓   |   ✓    |      -        |
+| `hgnc`         | HGNC gene symbols          | `TP53`                     |   ~     |   ✓   |   ✓    |      -        |
+| `ensembl`      | Ensembl gene/transcript    | `ENSG00000139618`          |   ✓     |   -   |   ✓    |      ✓        |
+| `opentargets`  | Open Targets targets       | `ENSG00000139618`          |   ✓     |   -   |   ✓    |      -        |
+| `refseq`       | RefSeq accessions          | `NM_000546.6`              |   ✓     |   -   |   ✓    |      -        |
+| `uniprot`      | UniProt accessions         | `P04637`                   |   ✓     |   -   |   ✓    |      ✓        |
+| `dbsnp`        | dbSNP variants             | `rs7412`                   |   ✓     |   -   |   ✓    |      -        |
+| `hgvs`         | HGVS variant syntax        | `NM_004006.2:c.4375C>T`    |   ✓†    |   -   |   ✓    |      -        |
 
-`✓` supported · `~` shape check only, a loose token match · `—` not available ·
+`✓` supported · `~` shape check only, a loose token match · `-` not available ·
 `†` syntax only, a single regex (not coordinate-level validation). The Open
 Targets connector checks whether a human Ensembl gene id is a target the platform
 covers, through its GraphQL API. Identifier patterns come from the
@@ -276,13 +278,13 @@ provides the plumbing.
 
 ```python
 import pandera.pandas as pa
-import biobouncer as bg
+from biobouncer.checks import is_id
 
 schema = pa.DataFrameSchema({
-    "disease_id": pa.Column(str, bg.checks.is_id(source_db="mondo", how="cache",
-                                                 version="sample")),
-    "target_id":  pa.Column(str, bg.checks.is_id(source_db="ensembl",
-                                                 species="homo_sapiens")),
+    "disease_id": pa.Column(str, is_id(source_db="mondo", how="cache",
+                                       version="sample")),
+    "target_id":  pa.Column(str, is_id(source_db="ensembl",
+                                       species="homo_sapiens")),
 })
 ```
 
@@ -354,7 +356,7 @@ Delivered:
 - [x] `pattern` mode, the core API, and the rich result schema
 - [x] Shared conformance corpus with R and Python parity
 - [x] `cache` mode and snapshot tooling for the OBO ontologies
-- [x] `remote` resolvers (OLS, Ensembl, UniProt, NCBI, EBI, and more: 17 resolvers across 39 sources)
+- [x] `remote` resolvers (OLS, Ensembl, UniProt, NCBI, EBI, and more: 19 resolvers across 41 sources)
 - [x] Species and version awareness
 - [x] Framework adapters (pandera, pydantic, Great Expectations, narwhals; shinyvalidate, checkmate, assertr/validate/pointblank)
 - [x] HGVS syntax validator

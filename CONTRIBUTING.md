@@ -66,9 +66,9 @@ package, only data:
    can be wrong.
 3. Run `python tools/sync_shared.py`, then the R and Python test suites.
 
-The `hgnc` and `hgvs` sources were both added this way, as data only. A source
-that also needs a cache builder or a remote resolver adds those in each package;
-see the existing resolvers for the shape.
+Many sources start life this way, as pattern-only data, before any builder or
+resolver exists. A source that also needs a cache builder or a remote resolver
+adds those in each package; see the existing resolvers for the shape.
 
 ## Secrets
 

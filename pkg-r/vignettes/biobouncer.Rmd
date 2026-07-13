@@ -187,6 +187,26 @@ rule("MONDO:0005148")
 rule("mondo:5148")
 ```
 
+## Generating test data
+
+`synthesize_ids()` builds a labeled "messy column" for any source, so you can
+exercise a validation pipeline without hand-writing test ids. Each row carries
+the input, its category (valid, repairable, invalid, or missing), and the
+verdict fields the checker returned for it.
+
+```{r synthesize}
+rows <- synthesize_ids("mondo")
+rows[, c("input", "category", "suggestion")]
+
+# Feed the column straight into a report.
+report_id(rows$input, "mondo")
+```
+
+The column is deterministic and offline, and the Python `synthesize()` produces
+the same one. `ec`, `hgvs`, and `hgnc` have no repairable form, so they omit that
+category. Pass `how = "cache"` for a snapshot-mode column, where a repairable
+value can be a retired id that maps to its successor.
+
 ## Summary
 
 - `pattern` mode checks shape, `cache` and `remote` check existence, and

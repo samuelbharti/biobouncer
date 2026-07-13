@@ -67,3 +67,5 @@ the narwhals adapter with `pip install "biobouncer[narwhals]"`.
 ::: biobouncer.types.Id
 
 ::: biobouncer.narwhals.valid_id_mask
+
+::: biobouncer.gx.ExpectColumnValuesToBeValidId
