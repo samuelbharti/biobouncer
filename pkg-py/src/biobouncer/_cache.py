@@ -74,6 +74,7 @@ def _find_snapshot(source_db: str, version: str, suffix: str):
     map. Returns a path-like (a filesystem ``Path`` or a package resource) or
     ``None`` when neither form is installed.
     """
+    _validate_version(version)
     user = cache_dir() / source_db
     for ext in (suffix, suffix + ".gz"):
         candidate = user / f"{version}{ext}"
@@ -257,6 +258,23 @@ def _sanitize_version(raw: str) -> str:
     return re.sub(r"[^A-Za-z0-9._-]", "-", raw)
 
 
+class InvalidVersionError(ValueError):
+    """Raised when a snapshot version could escape the snapshot directory."""
+
+
+def _validate_version(version: str) -> str:
+    """Reject a caller-supplied version that could traverse the filesystem.
+
+    ``version`` is interpolated into a snapshot filename, so a value with a path
+    separator or a ``..`` component must not be allowed to read or write outside
+    the per-source snapshot folder. Legitimate versions (``sample``, a dated
+    ``2026-07-07``) pass through unchanged.
+    """
+    if not version or "/" in version or "\\" in version or ".." in version:
+        raise InvalidVersionError(f"Invalid snapshot version: {version!r}.")
+    return version
+
+
 def parse_obo(text: str, pattern: str) -> tuple[str | None, list[str]]:
     """Extract (version, ids) from OBO text, keeping ids that match the pattern."""
     version: str | None = None
@@ -383,6 +401,8 @@ def pull(
     own data-version; an HGNC version defaults to the source's ``default_version``.
     """
     source = get_source(source_db)
+    if version is not None:
+        _validate_version(str(version))
     cache = source.cache
     builder = _BUILDERS.get(cache.get("builder")) if cache else None
     if builder is None:

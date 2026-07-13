@@ -66,6 +66,25 @@ test_that("a missing snapshot is an actionable error", {
   )
 })
 
+test_that("a traversal version is refused, not read", {
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  for (bad in c("../../etc/passwd", "..\\..\\secret", "a/b", "sub/../x", "")) {
+    expect_error(
+      check_id(
+        "MONDO:0005148",
+        source_db = "mondo",
+        how = "cache",
+        version = bad
+      ),
+      class = "biobouncer_error_invalid_version"
+    )
+  }
+  expect_error(
+    biobouncer_pull("mondo", version = "../../evil"),
+    class = "biobouncer_error_invalid_version"
+  )
+})
+
 test_that("biobouncer_cache_dir honours the environment override", {
   d <- withr::local_tempdir()
   withr::local_envvar(BIOBOUNCER_CACHE_DIR = d)

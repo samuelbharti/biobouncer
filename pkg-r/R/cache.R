@@ -28,6 +28,7 @@
 # ".txt" for the id set or ".retired.tsv" for the retired map. readLines() reads a
 # .gz path transparently, so only the lookup needs to know about compression.
 .find_snapshot <- function(source_db, version, suffix) {
+  .validate_version(version)
   roots <- c(biobouncer_cache_dir(), .bundled_snapshots_dir())
   for (root in roots) {
     if (!nzchar(root)) {
@@ -67,7 +68,9 @@
       )
     }
   }
-  sort(unique(versions))
+  # Radix sort for code-point order matching Python's sorted(), so R and Python
+  # pick the same default snapshot when several are installed.
+  sort(unique(versions), method = "radix")
 }
 
 # The snapshot version cache mode uses when the caller gives none. Prefers the
@@ -250,6 +253,28 @@ biobouncer_snapshots <- function() {
   gsub("[^A-Za-z0-9._-]", "-", raw)
 }
 
+# Reject a caller-supplied version that could traverse the filesystem. The
+# version is interpolated into a snapshot filename, so a value with a path
+# separator or a ".." component must not be able to read or write outside the
+# per-source snapshot folder. Legitimate versions ("sample", a dated
+# "2026-07-07") pass through unchanged. Mirrors _validate_version() in Python.
+.validate_version <- function(version) {
+  if (
+    length(version) != 1 ||
+      is.na(version) ||
+      !nzchar(version) ||
+      grepl("/", version, fixed = TRUE) ||
+      grepl("\\", version, fixed = TRUE) ||
+      grepl("..", version, fixed = TRUE)
+  ) {
+    cli::cli_abort(
+      "Invalid snapshot version: {.val {version}}.",
+      class = "biobouncer_error_invalid_version"
+    )
+  }
+  version
+}
+
 # Extract (version, ids) from OBO lines, keeping ids that match the pattern.
 .parse_obo <- function(lines, pattern) {
   version <- NA_character_
@@ -405,6 +430,9 @@ biobouncer_snapshots <- function() {
 #' @export
 biobouncer_pull <- function(source_db, version = NULL, quiet = FALSE) {
   source <- .get_source(source_db)
+  if (!is.null(version)) {
+    .validate_version(as.character(version))
+  }
   cache <- source$cache
   builder <- if (is.null(cache) || is.null(cache$builder)) {
     NULL

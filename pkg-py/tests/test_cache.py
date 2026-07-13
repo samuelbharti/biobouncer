@@ -63,6 +63,26 @@ def test_missing_snapshot_errors():
         )
 
 
+@pytest.mark.parametrize(
+    "version", ["../../etc/passwd", "..\\..\\secret", "a/b", "sub/../x", ""]
+)
+def test_cache_rejects_traversal_version(version):
+    # A version that could escape the snapshot directory is refused, not read.
+    from biobouncer._cache import InvalidVersionError
+
+    with pytest.raises(InvalidVersionError):
+        biobouncer.check_id(
+            "MONDO:0005148", source_db="mondo", how="cache", version=version
+        )
+
+
+def test_pull_rejects_traversal_version():
+    from biobouncer._cache import InvalidVersionError
+
+    with pytest.raises(InvalidVersionError):
+        biobouncer.pull("mondo", version="../../evil")
+
+
 def test_cache_dir_env_override(tmp_path, monkeypatch):
     monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
     assert biobouncer.cache_dir() == tmp_path
