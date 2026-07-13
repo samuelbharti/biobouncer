@@ -3,9 +3,8 @@
 This directory holds the Python package for biobouncer. See the repository root
 `README.md` for what biobouncer does and `PLAN.md` for the architecture.
 
-The package is in early development. Offline `pattern` and `cache` modes, live
-`remote` mode, and `existence` mode (snapshot first, then remote) work for an
-initial set of sources.
+Offline `pattern` and `cache` modes, live `remote` mode, and `existence` mode
+(snapshot first, then remote) work across 46 sources.
 
 ## Usage
 

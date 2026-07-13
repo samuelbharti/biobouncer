@@ -1,7 +1,7 @@
 # Clean a column
 
 The most common job is not "is this one id valid" but "here is a column of ids,
-which are wrong, and can you fix the ones you can". `report` does that in one
+which ones are wrong, and can you fix the ones you can". `report` does that in one
 call. It runs [`check_id`](reference.md#checking-identifiers) over the whole
 column and hands back a `Report` you can turn into a data frame, count, or use to
 substitute the fixable values.
