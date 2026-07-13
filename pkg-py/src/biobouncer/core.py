@@ -50,7 +50,7 @@ def check_id(
     x: str | Iterable[str],
     source_db: str,
     how: str = "pattern",
-    species: str | None = None,
+    species: str | int | None = None,
     version: str | None = None,
     refresh: bool = False,
     on_error: str = "raise",
@@ -189,7 +189,7 @@ def is_valid_id(
     x: str | Iterable[str],
     source_db: str,
     how: str = "pattern",
-    species: str | None = None,
+    species: str | int | None = None,
     version: str | None = None,
     refresh: bool = False,
 ) -> bool | None | list[bool | None]:

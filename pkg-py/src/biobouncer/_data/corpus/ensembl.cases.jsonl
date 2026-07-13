@@ -16,3 +16,5 @@
 {"input": "ENSG00000139618", "source_db": "ensembl", "how": "pattern", "species": "rattus_norvegicus", "expect": {"valid": false}, "note": "human id but rat requested is a species mismatch"}
 {"input": "ensrnog00000010756", "source_db": "ensembl", "how": "pattern", "species": "rattus_norvegicus", "expect": {"valid": false, "suggestion": "ENSRNOG00000010756"}, "note": "malformed case; the corrected id matches the requested species"}
 {"input": "ensrnog00000010756", "source_db": "ensembl", "how": "pattern", "species": "homo_sapiens", "expect": {"valid": false}, "note": "malformed case; the corrected id is rat, not human, so no suggestion"}
+{"input": "ENSMUSG00000059552", "source_db": "ensembl", "how": "pattern", "species": 9606, "expect": {"valid": false}, "note": "mouse id but human taxon (numeric) requested is a species mismatch"}
+{"input": "ENSMUSG00000059552", "source_db": "ensembl", "how": "pattern", "species": "9606", "expect": {"valid": true, "normalized": "ENSMUSG00000059552"}, "note": "a taxon passed as a string is not matched as a taxon, so shape decides; keeps R and Python in lockstep"}

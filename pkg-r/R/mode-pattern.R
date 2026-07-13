@@ -65,12 +65,15 @@
 }
 
 # Expected species prefix for the requested species, or NULL when the species
-# is not in the map. Matches by name or by NCBI taxon id.
+# is not in the map. Matches by name or by NCBI taxon id. The taxon branch only
+# fires for a numeric species, mirroring Python's `entry["taxon"] == species`
+# where an int never equals a string: a string like "9606" is not treated as a
+# taxon here (only a name), so R and Python agree.
 .ensembl_species_prefix <- function(species_block, species) {
   for (entry in species_block$map) {
     if (
       identical(as.character(entry$name), as.character(species)) ||
-        isTRUE(entry$taxon == species)
+        (is.numeric(species) && isTRUE(entry$taxon == species))
     ) {
       return(entry$prefix)
     }

@@ -31,6 +31,6 @@ class Result:
     suggestion: str | None
     source_db: str
     version: str | None
-    species: str | None
+    species: str | int | None
     how: str
     error: str | None = None
