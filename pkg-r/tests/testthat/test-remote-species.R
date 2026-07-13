@@ -35,6 +35,11 @@
   organism = list(taxonId = 10090)
 )
 
+.rat_body <- list(
+  entryType = "UniProtKB reviewed (Swiss-Prot)",
+  organism = list(taxonId = 10116)
+)
+
 test_that("an ensembl id is gated by its encoded species", {
   withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
   withr::local_options(
@@ -58,6 +63,56 @@ test_that("an ensembl id is gated by its encoded species", {
   )
   expect_false(mismatch$valid)
   expect_true(is.na(mismatch$normalized))
+})
+
+test_that("a rat ensembl id is gated by its encoded species", {
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  withr::local_options(
+    biobouncer.remote_transport = .stub_ensembl_species("ENSRNOG00000010756")
+  )
+
+  match <- check_id(
+    "ENSRNOG00000010756",
+    source_db = "ensembl",
+    how = "remote",
+    species = "rattus_norvegicus"
+  )
+  expect_true(match$valid)
+  expect_identical(match$normalized, "ENSRNOG00000010756")
+
+  mismatch <- check_id(
+    "ENSRNOG00000010756",
+    source_db = "ensembl",
+    how = "remote",
+    species = "homo_sapiens"
+  )
+  expect_false(mismatch$valid)
+})
+
+test_that("a rat uniprot accession matches by taxon", {
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  withr::local_options(
+    biobouncer.remote_transport = .stub_uniprot_species(list(
+      P10361 = .rat_body
+    ))
+  )
+
+  expect_true(
+    check_id(
+      "P10361",
+      source_db = "uniprot",
+      how = "remote",
+      species = "rattus_norvegicus"
+    )$valid
+  )
+  expect_false(
+    check_id(
+      "P10361",
+      source_db = "uniprot",
+      how = "remote",
+      species = 9606
+    )$valid
+  )
 })
 
 test_that("a uniprot accession is gated by the entry's organism taxon", {

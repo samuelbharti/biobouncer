@@ -10,3 +10,9 @@
 {"input": "ensmusg00000059552", "source_db": "ensembl", "how": "pattern", "species": "mus_musculus", "expect": {"valid": false, "suggestion": "ENSMUSG00000059552"}, "note": "malformed case; the corrected id matches the requested species"}
 {"input": "ensmusg00000059552", "source_db": "ensembl", "how": "pattern", "species": "homo_sapiens", "expect": {"valid": false}, "note": "malformed case; the corrected id is mouse, not human, so no suggestion"}
 {"input": "ENSG00000139618", "source_db": "ensembl", "how": "pattern", "species": "platypus", "expect": {"valid": true, "normalized": "ENSG00000139618"}, "note": "a species outside the map is not checked, so shape decides"}
+{"input": "ENSRNOG00000010756", "source_db": "ensembl", "how": "pattern", "expect": {"valid": true, "normalized": "ENSRNOG00000010756"}, "note": "rat gene Tp53"}
+{"input": "ENSRNOG00000010756", "source_db": "ensembl", "how": "pattern", "species": "rattus_norvegicus", "expect": {"valid": true, "normalized": "ENSRNOG00000010756"}, "note": "rat id, rat requested"}
+{"input": "ENSRNOG00000010756", "source_db": "ensembl", "how": "pattern", "species": "homo_sapiens", "expect": {"valid": false}, "note": "rat id but human requested is a species mismatch"}
+{"input": "ENSG00000139618", "source_db": "ensembl", "how": "pattern", "species": "rattus_norvegicus", "expect": {"valid": false}, "note": "human id but rat requested is a species mismatch"}
+{"input": "ensrnog00000010756", "source_db": "ensembl", "how": "pattern", "species": "rattus_norvegicus", "expect": {"valid": false, "suggestion": "ENSRNOG00000010756"}, "note": "malformed case; the corrected id matches the requested species"}
+{"input": "ensrnog00000010756", "source_db": "ensembl", "how": "pattern", "species": "homo_sapiens", "expect": {"valid": false}, "note": "malformed case; the corrected id is rat, not human, so no suggestion"}

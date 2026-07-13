@@ -5,3 +5,5 @@
 {"input": "P01308", "source_db": "uniprot", "how": "remote", "species": "mus_musculus", "expect": {"valid": false}, "note": "human accession but the requested species is mouse"}
 {"input": "P04925", "source_db": "uniprot", "how": "remote", "species": "mus_musculus", "expect": {"valid": true, "normalized": "P04925"}, "note": "mouse accession matches the requested species"}
 {"input": "P04925", "source_db": "uniprot", "how": "remote", "species": 9606, "expect": {"valid": false}, "note": "mouse accession but the requested taxon is human"}
+{"input": "P10361", "source_db": "uniprot", "how": "remote", "species": "rattus_norvegicus", "expect": {"valid": true, "normalized": "P10361"}, "note": "rat accession matches the requested species"}
+{"input": "P10361", "source_db": "uniprot", "how": "remote", "species": 9606, "expect": {"valid": false}, "note": "rat accession but the requested taxon is human"}

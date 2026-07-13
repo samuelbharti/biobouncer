@@ -1,6 +1,7 @@
 test_that(".ensembl_id_prefix extracts the species code", {
   expect_identical(.ensembl_id_prefix("ENSG00000139618"), "")
   expect_identical(.ensembl_id_prefix("ENSMUSG00000059552"), "MUS")
+  expect_identical(.ensembl_id_prefix("ENSRNOG00000010756"), "RNO")
   expect_identical(.ensembl_id_prefix("not-an-ensembl-id"), NA_character_)
 })
 
@@ -57,6 +58,24 @@ test_that("a species check applies to suggestions", {
   )
   expect_false(mismatched$valid)
   expect_true(is.na(mismatched$suggestion))
+})
+
+test_that("a rat id is gated by its encoded species", {
+  invalid <- check_id(
+    "ENSRNOG00000010756",
+    source_db = "ensembl",
+    species = "homo_sapiens"
+  )
+  expect_false(invalid$valid)
+  expect_true(is.na(invalid$suggestion))
+
+  suggested <- check_id(
+    "ensrnog00000010756",
+    source_db = "ensembl",
+    species = "rattus_norvegicus"
+  )
+  expect_false(suggested$valid)
+  expect_identical(suggested$suggestion, "ENSRNOG00000010756")
 })
 
 test_that("a non-species-aware source ignores species", {

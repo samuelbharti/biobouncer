@@ -25,6 +25,11 @@ _HUMAN_BODY = {
     "organism": {"taxonId": 9606},
 }
 
+_RAT_BODY = {
+    "entryType": "UniProtKB reviewed (Swiss-Prot)",
+    "organism": {"taxonId": 10116},
+}
+
 
 def test_ensembl_species_match_is_valid(monkeypatch):
     monkeypatch.setattr(remote, "_http_get", _stub(200, None))
@@ -42,6 +47,35 @@ def test_ensembl_species_mismatch_is_invalid(monkeypatch):
     )[0]
     assert res.valid is False
     assert res.normalized is None
+
+
+def test_ensembl_rat_species_match_is_valid(monkeypatch):
+    monkeypatch.setattr(remote, "_http_get", _stub(200, None))
+    res = biobouncer.check_id(
+        "ENSRNOG00000010756",
+        source_db="ensembl",
+        how="remote",
+        species="rattus_norvegicus",
+    )[0]
+    assert res.valid is True
+    assert res.normalized == "ENSRNOG00000010756"
+
+
+def test_ensembl_rat_species_mismatch_is_invalid(monkeypatch):
+    monkeypatch.setattr(remote, "_http_get", _stub(200, None))
+    res = biobouncer.check_id(
+        "ENSRNOG00000010756", source_db="ensembl", how="remote", species="homo_sapiens"
+    )[0]
+    assert res.valid is False
+
+
+def test_uniprot_rat_species_match_is_valid(monkeypatch):
+    monkeypatch.setattr(remote, "_http_get", _stub(200, _RAT_BODY))
+    res = biobouncer.check_id(
+        "P10361", source_db="uniprot", how="remote", species="rattus_norvegicus"
+    )[0]
+    assert res.valid is True
+    assert res.normalized == "P10361"
 
 
 def test_uniprot_species_match_by_name_is_valid(monkeypatch):
