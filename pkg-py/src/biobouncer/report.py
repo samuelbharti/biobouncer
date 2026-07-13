@@ -13,6 +13,8 @@ shiny), reach for the adapters instead; ``report`` is for inspecting and cleanin
 
 from __future__ import annotations
 
+from typing import Any
+
 from ._deps import MissingDependencyError
 from ._result import Result
 from .core import check_id
@@ -139,7 +141,7 @@ class Report:
 
 
 def report(
-    column,
+    column: Any,
     source_db: str,
     how: str = "pattern",
     species: str | None = None,
