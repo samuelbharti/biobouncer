@@ -1,0 +1,5 @@
+{"input": "cd00029", "source_db": "cdd", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "cd00029", "suggestion": null}}
+{"input": "CD00029", "source_db": "cdd", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "cd00029"}}
+{"input": "cd00029!", "source_db": "cdd", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "cdd", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "cd00030", "source_db": "cdd", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "cd00030", "suggestion": null}}

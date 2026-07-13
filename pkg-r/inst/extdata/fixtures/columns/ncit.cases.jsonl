@@ -1,0 +1,5 @@
+{"input": "NCIT:C3224", "source_db": "ncit", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "NCIT:C3224", "suggestion": null}}
+{"input": "ncit:C3224", "source_db": "ncit", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "NCIT:C3224"}}
+{"input": "NCIT:C3224!", "source_db": "ncit", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "ncit", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "NCIT:C3225", "source_db": "ncit", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "NCIT:C3225", "suggestion": null}}

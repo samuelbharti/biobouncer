@@ -1,0 +1,5 @@
+{"input": "R-HSA-68886", "source_db": "reactome", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "R-HSA-68886", "suggestion": null}}
+{"input": "r-hsa-68886", "source_db": "reactome", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "R-HSA-68886"}}
+{"input": "R-HSA-68886!", "source_db": "reactome", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "reactome", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "R-HSA-68887", "source_db": "reactome", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "R-HSA-68887", "suggestion": null}}

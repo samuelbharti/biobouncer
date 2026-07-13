@@ -1,0 +1,4 @@
+{"input": "NM_004006.2:c.4375C>T", "source_db": "hgvs", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "NM_004006.2:c.4375C>T", "suggestion": null}}
+{"input": "NM_004006.2:c.4375C>T!", "source_db": "hgvs", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "hgvs", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "NM_004006.2:c.4376C>T", "source_db": "hgvs", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "NM_004006.2:c.4376C>T", "suggestion": null}}

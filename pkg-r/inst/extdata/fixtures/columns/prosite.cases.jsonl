@@ -1,0 +1,5 @@
+{"input": "PS00001", "source_db": "prosite", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "PS00001", "suggestion": null}}
+{"input": "ps00001", "source_db": "prosite", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "PS00001"}}
+{"input": "PS00001!", "source_db": "prosite", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "prosite", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "PS00002", "source_db": "prosite", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "PS00002", "suggestion": null}}

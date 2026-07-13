@@ -27,6 +27,7 @@ from ._result import Result
 from .core import InvalidModeError, check_id, is_valid_id
 from .report import Report, report
 from .schema import SCHEMA_VERSION
+from .synthetic import synthesize
 
 # Single-sourced from the package metadata (pyproject.toml), so the version is
 # declared in exactly one place.
@@ -55,5 +56,6 @@ __all__ = [
     "snapshots",
     "source_info",
     "sources",
+    "synthesize",
     "__version__",
 ]

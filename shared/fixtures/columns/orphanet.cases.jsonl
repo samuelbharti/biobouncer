@@ -1,0 +1,5 @@
+{"input": "ORPHA:558", "source_db": "orphanet", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "ORPHA:558", "suggestion": null}}
+{"input": "orpha:558", "source_db": "orphanet", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "ORPHA:558"}}
+{"input": "ORPHA:558!", "source_db": "orphanet", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "orphanet", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "ORPHA:559", "source_db": "orphanet", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "ORPHA:559", "suggestion": null}}

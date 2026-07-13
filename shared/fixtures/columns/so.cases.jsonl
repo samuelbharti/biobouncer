@@ -1,0 +1,5 @@
+{"input": "SO:0000704", "source_db": "so", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "SO:0000704", "suggestion": null}}
+{"input": "so:0000704", "source_db": "so", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "SO:0000704"}}
+{"input": "SO:0000704!", "source_db": "so", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "so", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "SO:0000705", "source_db": "so", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "SO:0000705", "suggestion": null}}
