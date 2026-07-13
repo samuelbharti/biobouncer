@@ -87,3 +87,57 @@ test_that("the adapters flag repairable and invalid but pass a missing cell", {
     expect_type(check_valid_id(inputs, s, how = "pattern"), "character")
   }
 })
+
+.cache_col_sources <- function() {
+  info <- source_info()
+  info$key[grepl("cache", info$modes)]
+}
+
+.cache_column <- function(source_db) {
+  path <- file.path(
+    system.file("extdata", "fixtures", "columns", package = "biobouncer"),
+    paste0(source_db, ".cache.jsonl")
+  )
+  lines <- readLines(path, warn = FALSE)
+  lines <- lines[nzchar(trimws(lines))]
+  lapply(lines, jsonlite::fromJSON, simplifyVector = FALSE)
+}
+
+test_that("report_id and repair_id work over a cache-mode column", {
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  for (s in .cache_col_sources()) {
+    fx <- .cache_column(s)
+    cats <- .fx_categories(fx)
+    inputs <- .fx_inputs(fx)
+    summ <- summary(report_id(inputs, s, how = "cache", version = "sample"))
+    expect_equal(summ$valid, sum(cats == "valid"))
+    expect_equal(summ$repairable, sum(cats == "repairable"))
+    expect_equal(summ$invalid, sum(cats %in% c("invalid", "repairable")))
+    expect_equal(summ$missing, sum(cats == "missing"))
+
+    expected <- ifelse(cats == "repairable", .fx_suggestions(fx), inputs)
+    expect_identical(
+      repair_id(inputs, s, how = "cache", version = "sample"),
+      expected
+    )
+  }
+})
+
+test_that("is_valid_id and the adapters work over a cache-mode column", {
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  for (s in .cache_col_sources()) {
+    fx <- .cache_column(s)
+    cats <- .fx_categories(fx)
+    inputs <- .fx_inputs(fx)
+    verdicts <- is_valid_id(inputs, s, how = "cache", version = "sample")
+    expected <- ifelse(
+      cats == "valid",
+      TRUE,
+      ifelse(cats == "missing", NA, FALSE)
+    )
+    expect_identical(verdicts, expected)
+
+    predicate <- id_predicate(s, how = "cache", version = "sample")
+    expect_identical(predicate(inputs), !(cats %in% c("repairable", "invalid")))
+  }
+})

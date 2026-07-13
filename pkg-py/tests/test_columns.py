@@ -15,15 +15,31 @@ import biobouncer as bb
 
 _COLUMNS = files("biobouncer") / "_data" / "fixtures" / "columns"
 _SOURCES = sorted(bb.sources())
+_CACHE_SOURCES = sorted(
+    row["key"] for row in bb.source_info() if "cache" in row["modes"]
+)
 
 
-def _rows(source_db):
-    path = _COLUMNS / f"{source_db}.cases.jsonl"
+@pytest.fixture(autouse=True)
+def _bundled_cache(tmp_path, monkeypatch):
+    # Force cache mode to the bundled sample snapshots, as the fixtures were built.
+    monkeypatch.setenv("BIOBOUNCER_CACHE_DIR", str(tmp_path))
+
+
+def _load(path):
     return [
         json.loads(line)
         for line in path.read_text(encoding="utf-8").splitlines()
         if line.strip()
     ]
+
+
+def _rows(source_db):
+    return _load(_COLUMNS / f"{source_db}.cases.jsonl")
+
+
+def _cache_rows(source_db):
+    return _load(_COLUMNS / f"{source_db}.cache.jsonl")
 
 
 def _column(rows):
@@ -102,3 +118,60 @@ def test_pandera_flags_the_messy_column(source_db):
     # The full messy column always contains a hard invalid, so it must fail.
     with pytest.raises(pa.errors.SchemaError):
         schema.validate(pd.DataFrame({"id": _column(rows)}))
+
+
+@pytest.mark.parametrize("source_db", _CACHE_SOURCES)
+def test_cache_report_summary_matches_categories(source_db):
+    rows = _cache_rows(source_db)
+    categories = [row["category"] for row in rows]
+    summary = bb.report(_column(rows), source_db, how="cache", version="sample").summary
+    assert summary["total"] == len(rows)
+    assert summary["valid"] == categories.count("valid")
+    assert summary["repairable"] == categories.count("repairable")
+    assert summary["invalid"] == categories.count("invalid") + categories.count(
+        "repairable"
+    )
+    assert summary["missing"] == categories.count("missing")
+
+
+@pytest.mark.parametrize("source_db", _CACHE_SOURCES)
+def test_cache_repair_substitutes_only_the_repairable_cells(source_db):
+    rows = _cache_rows(source_db)
+    expected = [
+        row["expect"]["suggestion"] if row["category"] == "repairable" else row["input"]
+        for row in rows
+    ]
+    report = bb.report(_column(rows), source_db, how="cache", version="sample")
+    assert report.repair() == expected
+
+
+@pytest.mark.parametrize("source_db", _CACHE_SOURCES)
+def test_cache_is_valid_id_per_row(source_db):
+    rows = _cache_rows(source_db)
+    verdicts = bb.is_valid_id(_column(rows), source_db, how="cache", version="sample")
+    for row, verdict in zip(rows, verdicts):
+        if row["category"] == "valid":
+            assert verdict is True
+        elif row["category"] == "missing":
+            assert verdict is None
+        else:
+            assert verdict is False
+
+
+@pytest.mark.parametrize("source_db", _CACHE_SOURCES)
+def test_cache_narwhals_mask_over_the_column(source_db):
+    pytest.importorskip("narwhals")
+    pd = pytest.importorskip("pandas")
+    from biobouncer.narwhals import valid_id_mask
+
+    rows = _cache_rows(source_db)
+    mask = list(
+        valid_id_mask(
+            pd.Series(_column(rows), name="id"),
+            source_db,
+            how="cache",
+            version="sample",
+        )
+    )
+    for row, passes in zip(rows, mask):
+        assert passes == (row["category"] not in ("repairable", "invalid"))

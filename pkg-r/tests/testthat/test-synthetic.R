@@ -87,3 +87,49 @@ test_that("synthesize_ids rejects an unknown source", {
     class = "biobouncer_error_unknown_source"
   )
 })
+
+.cache_sources <- function() {
+  info <- source_info()
+  info$key[grepl("cache", info$modes)]
+}
+
+.load_cache_column_fixture <- function(source_db) {
+  path <- file.path(
+    system.file("extdata", "fixtures", "columns", package = "biobouncer"),
+    paste0(source_db, ".cache.jsonl")
+  )
+  lines <- readLines(path, warn = FALSE)
+  lines <- lines[nzchar(trimws(lines))]
+  lapply(lines, jsonlite::fromJSON, simplifyVector = FALSE)
+}
+
+test_that("synthesize_ids cache columns cover all four categories", {
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  for (s in .cache_sources()) {
+    cats <- sort(unique(synthesize_ids(s, how = "cache")$category))
+    expect_identical(cats, c("invalid", "missing", "repairable", "valid"))
+  }
+})
+
+test_that("synthesize_ids reproduces the committed cache fixtures", {
+  withr::local_envvar(BIOBOUNCER_CACHE_DIR = withr::local_tempdir())
+  for (s in .cache_sources()) {
+    fx <- .load_cache_column_fixture(s)
+    gen <- synthesize_ids(s, how = "cache", version = "sample")
+    expect_identical(nrow(gen), length(fx))
+    for (i in seq_along(fx)) {
+      fi <- fx[[i]]
+      inp <- if (is.null(fi$input)) NA_character_ else fi$input
+      vld <- if (is.null(fi$expect$valid)) NA else fi$expect$valid
+      sug <- if (is.null(fi$expect$suggestion)) {
+        NA_character_
+      } else {
+        fi$expect$suggestion
+      }
+      expect_identical(gen$input[i], inp)
+      expect_identical(gen$category[i], fi$category)
+      expect_identical(gen$valid[i], vld)
+      expect_identical(gen$suggestion[i], sug)
+    }
+  }
+})
