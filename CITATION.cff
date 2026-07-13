@@ -12,6 +12,7 @@ date-released: "2026-07-13"
 authors:
   - family-names: Bharti
     given-names: Samuel
+    orcid: "https://orcid.org/0000-0003-4190-7058"
 license: MIT
 repository-code: https://github.com/samuelbharti/biobouncer
 url: https://github.com/samuelbharti/biobouncer
