@@ -16,6 +16,7 @@
         --muted: #536b75;
         --teal: #176d75;
         --gold: #d39b32;
+        --blue: #2761e3;
         --border: #d8e2eb;
         --card-shadow: 0 1rem 2.5rem rgba(27, 62, 80, 0.1);
         --card-shadow-sm: 0 0.4rem 1.25rem rgba(27, 62, 80, 0.07);
@@ -33,6 +34,44 @@
         line-height: 1.65;
         -webkit-font-smoothing: antialiased;
       }
+      a {
+        color: var(--blue);
+      }
+
+      /* Site-style navbar, matching the Quarto pages on samuelbharti.com */
+      .nav {
+        border-bottom: 1px solid var(--border);
+        background: #fff;
+      }
+      .nav-inner {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 0.7rem 1.25rem;
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      .brand {
+        color: var(--ink);
+        font-weight: 700;
+        font-size: 1.05rem;
+        text-decoration: none;
+      }
+      .nav-links {
+        display: flex;
+        gap: 1.35rem;
+        font-size: 0.96rem;
+      }
+      .nav-links a {
+        color: var(--muted);
+        text-decoration: none;
+      }
+      .nav-links a:hover {
+        color: var(--blue);
+      }
+
       .page {
         max-width: 920px;
         margin: 2rem auto 4rem;
@@ -88,6 +127,28 @@
         color: var(--muted);
         font-size: 1.05rem;
       }
+
+      /* Overview figure */
+      figure.overview {
+        margin: 2rem 0 0;
+        padding: 1.25rem;
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        background: #fff;
+        box-shadow: var(--card-shadow-sm);
+      }
+      figure.overview img {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+      figure.overview figcaption {
+        margin-top: 0.85rem;
+        color: var(--muted);
+        font-size: 0.95rem;
+        text-align: center;
+      }
+
       .cards {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -133,23 +194,59 @@
         color: var(--muted);
         font-size: 0.98rem;
       }
-      .foot a {
-        color: var(--teal);
-        font-weight: 600;
-      }
       code {
         padding: 0.1rem 0.4rem;
         border: 1px solid var(--border);
         border-radius: 5px;
         background: #f6f9fb;
         color: var(--ink);
-        font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+        font-family:
+          SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
           "Courier New", monospace;
         font-size: 0.88em;
+      }
+
+      /* Site-style footer */
+      .site-foot {
+        border-top: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+      .site-foot-inner {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 1.4rem 1.25rem 2.25rem;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+      .site-foot a {
+        color: var(--teal);
+        font-weight: 600;
+        text-decoration: none;
+      }
+      .site-foot a:hover {
+        text-decoration: underline;
+      }
+      .site-foot .links {
+        display: flex;
+        gap: 1.1rem;
       }
     </style>
   </head>
   <body>
+    <nav class="nav">
+      <div class="nav-inner">
+        <a class="brand" href="https://www.samuelbharti.com/">Samuel Bharti</a>
+        <div class="nav-links">
+          <a href="r/">R package</a>
+          <a href="py/">Python package</a>
+          <a href="https://github.com/samuelbharti/biobouncer">GitHub</a>
+        </div>
+      </div>
+    </nav>
+
     <main class="page">
       <section class="hero">
         <p class="kicker">R and Python</p>
@@ -168,10 +265,24 @@
         </p>
       </section>
 
+      <figure class="overview">
+        <img
+          src="assets/overview.svg"
+          alt="biobouncer takes a messy column of biological identifiers, checks each through one gate with four modes (pattern, cache, remote, existence), and returns one labeled verdict (valid, repairable, invalid, or missing) that is the same in R and Python."
+        />
+        <figcaption>
+          A messy column goes in; one labeled verdict comes out, identical in R
+          and Python.
+        </figcaption>
+      </figure>
+
       <div class="cards">
         <a class="card" href="r/">
           <h2>R package &rarr;</h2>
-          <p>Function reference, a getting-started vignette, and recipes (pkgdown).</p>
+          <p>
+            Function reference, a getting-started vignette, and recipes
+            (pkgdown).
+          </p>
         </a>
         <a class="card" href="py/">
           <h2>Python package &rarr;</h2>
@@ -181,10 +292,21 @@
 
       <p class="foot">
         Source and issues on
-        <a href="https://github.com/samuelbharti/biobouncer">GitHub</a>. Install with
-        <code>install.packages("biobouncer")</code> or
+        <a href="https://github.com/samuelbharti/biobouncer">GitHub</a>. Install
+        with <code>install.packages("biobouncer")</code> or
         <code>pip install biobouncer</code>.
       </p>
     </main>
+
+    <footer class="site-foot">
+      <div class="site-foot-inner">
+        <span>&copy; 2026 Samuel Bharti</span>
+        <span class="links">
+          <a href="https://www.samuelbharti.com/">Website</a>
+          <a href="https://github.com/samuelbharti/biobouncer">GitHub</a>
+          <a href="https://orcid.org/0000-0003-4190-7058">ORCID</a>
+        </span>
+      </div>
+    </footer>
   </body>
 </html>
