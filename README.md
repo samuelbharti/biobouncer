@@ -388,5 +388,6 @@ MIT © biobouncer authors.
 
 ## Citation
 
-If `biobouncer` supports your work, please cite it. See `CITATION.cff` for citation
-metadata.
+If `biobouncer` supports your work, please cite it. A preprint is in preparation,
+and its citation will be added here as soon as it is available. Until then, please
+cite the software using the metadata in `CITATION.cff`.
