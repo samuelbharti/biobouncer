@@ -63,13 +63,11 @@ class ColumnValuesBiobouncerValid(ColumnMapMetricProvider):
 class ExpectColumnValuesToBeValidId(ColumnMapExpectation):
     """Expect each value in a column to be a valid identifier for a source.
 
-    Args:
-        column: The column to validate.
-        source_db: Source key, for example ``"mondo"``.
-        how: Checking mode. ``"pattern"`` and ``"cache"`` are offline; ``"remote"``
-            checks live existence.
-        species: Optional species context for species-aware sources.
-        mostly: The usual Great Expectations tolerance, a fraction in [0, 1].
+    Configure it with ``source_db`` (the source key, for example ``"mondo"``) and
+    ``how`` (the checking mode: ``"pattern"`` and ``"cache"`` are offline while
+    ``"remote"`` checks live existence), plus an optional ``species`` for
+    species-aware sources and the usual Great Expectations ``mostly`` tolerance, a
+    fraction in [0, 1].
     """
 
     map_metric = "column_values.biobouncer_valid"
