@@ -7,6 +7,8 @@ abstract: >-
   returns the same verdict in R and Python, enforced by a shared conformance
   corpus.
 type: software
+version: 0.1.0
+date-released: "2026-07-13"
 authors:
   - family-names: Bharti
     given-names: Samuel

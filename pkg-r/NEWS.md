@@ -1,5 +1,11 @@
-# biobouncer (development version)
+# biobouncer 0.1.0
 
+* Remote mode no longer writes an `NCBI_API_KEY` (or contact email) into the
+  on-disk response cache or into error messages; the credential is redacted from
+  the request URL before it is stored or shown.
+* Cache mode and `biobouncer_pull()` reject a snapshot `version` that contains a
+  path separator or `..`, so a version label cannot read or write outside the
+  snapshot directory.
 * New `synthesize_ids()` builds a synthetic, labeled column of identifiers for any
   source: a mix of valid, repairable, invalid, and missing values, each labeled by
   the checker in `pattern` mode (any source) or `cache` mode (a source that ships a
@@ -145,9 +151,6 @@
 * `id_predicate()` now documents its use as a pointblank `col_vals_expr()` step,
   alongside assertr and validate. The predicate is unchanged; pointblank
   consumes it directly.
-
-# biobouncer 0.1.0
-
 * First numbered release. Sets the version to 0.1.0 in both the R and Python
   packages so they track together.
 * `source_info()` gains an `example` identifier and a `modes` column for each

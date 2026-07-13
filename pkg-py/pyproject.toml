@@ -15,8 +15,15 @@ keywords = ["bioinformatics", "validation", "identifiers", "ontology"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Typing :: Typed",
 ]
 dependencies = ["platformdirs>=3", "pyyaml>=6"]
 
@@ -34,7 +41,10 @@ biobouncer = "biobouncer.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/samuelbharti/biobouncer"
+Documentation = "https://www.samuelbharti.com/biobouncer/py/"
+Source = "https://github.com/samuelbharti/biobouncer"
 Issues = "https://github.com/samuelbharti/biobouncer/issues"
+Changelog = "https://github.com/samuelbharti/biobouncer/blob/main/pkg-py/CHANGELOG.md"
 
 [dependency-groups]
 dev = [
