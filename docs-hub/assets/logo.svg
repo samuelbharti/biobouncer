@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 500" font-family="'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <clipPath id="hexclip">
+      <path d="M220,32 L399,136 L399,344 L220,448 L41,344 L41,136 Z"/>
+    </clipPath>
+    <radialGradient id="spot" cx="50%" cy="46%" r="62%">
+      <stop offset="0%" stop-color="#2f9d7d"/>
+      <stop offset="62%" stop-color="#1a7259"/>
+      <stop offset="100%" stop-color="#124f3d"/>
+    </radialGradient>
+    <linearGradient id="arch" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f3ecd8"/>
+      <stop offset="55%" stop-color="#e6f2ea"/>
+      <stop offset="100%" stop-color="#cbe7db"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ===== hex body + scene ===== -->
+  <g clip-path="url(#hexclip)">
+    <rect x="41" y="32" width="358" height="416" fill="url(#spot)"/>
+
+    <!-- doorway arch (the 'door' the bouncer guards) -->
+    <path d="M150,452 V236 Q150,168 220,168 Q290,168 290,236 V452 Z" fill="url(#arch)" opacity="0.96"/>
+    <path d="M150,452 V236 Q150,168 220,168 Q290,168 290,236 V452" fill="none" stroke="#bfe0d1" stroke-width="2"/>
+
+    <!-- ===== bouncer silhouette ===== -->
+    <!-- shoulders / torso -->
+    <path d="M198,318 C150,324 108,362 92,452 L348,452 C332,362 290,324 242,318 Z" fill="#16262f"/>
+    <!-- head -->
+    <circle cx="220" cy="266" r="56" fill="#16262f"/>
+    <!-- ears -->
+    <circle cx="166" cy="270" r="10" fill="#16262f"/>
+    <circle cx="274" cy="270" r="10" fill="#16262f"/>
+
+    <!-- sunglasses -->
+    <rect x="178" y="250" width="40" height="27" rx="9" fill="#0c1519" stroke="#e0af45" stroke-width="4"/>
+    <rect x="222" y="250" width="40" height="27" rx="9" fill="#0c1519" stroke="#e0af45" stroke-width="4"/>
+    <path d="M218,260 h4" stroke="#e0af45" stroke-width="4"/>
+    <path d="M164,258 l14,-2 M262,256 l14,2" stroke="#e0af45" stroke-width="4" stroke-linecap="round"/>
+    <!-- lens glints -->
+    <path d="M186,270 l10,-12 M230,270 l10,-12" stroke="#3a5560" stroke-width="3" stroke-linecap="round"/>
+
+    <!-- earpiece -->
+    <circle cx="276" cy="272" r="5.5" fill="#e0af45"/>
+    <path d="M277,276 C296,290 298,322 266,338" fill="none" stroke="#e0af45" stroke-width="4.5" stroke-linecap="round"/>
+
+    <!-- lanyard (velvet-rope red) + ID card -->
+    <path d="M202,324 L220,362 M238,324 L220,362" stroke="#b23a48" stroke-width="6" fill="none"/>
+    <rect x="192" y="360" width="56" height="44" rx="6" fill="#f4ecdb" stroke="#e0af45" stroke-width="3"/>
+    <rect x="200" y="368" width="16" height="12" rx="2" fill="#c9d8d1"/>
+    <path d="M224,372 h18 M224,378 h14" stroke="#9bb0a8" stroke-width="3" stroke-linecap="round"/>
+    <path d="M200,392 l7,7 l14,-16" fill="none" stroke="#1a6b54" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+
+    <!-- wordmark -->
+    <text x="220" y="147" font-size="36" font-weight="800" fill="#f4ecdb" text-anchor="middle" letter-spacing="-0.5">biobouncer</text>
+  </g>
+
+  <!-- ===== hex border ===== -->
+  <path d="M220,32 L399,136 L399,344 L220,448 L41,344 L41,136 Z" fill="none" stroke="#0f4a3a" stroke-width="14"/>
+  <path d="M220,32 L399,136 L399,344 L220,448 L41,344 L41,136 Z" fill="none" stroke="#e0af45" stroke-width="3"/>
+</svg>
