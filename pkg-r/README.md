@@ -1,4 +1,4 @@
-# biobouncer (R package)
+# biobouncer (R package) <img src="man/figures/logo.png" align="right" height="150" alt="biobouncer logo" />
 
 This directory holds the R package for biobouncer. See the repository root
 `README.md` for what biobouncer does and `PLAN.md` for the architecture.

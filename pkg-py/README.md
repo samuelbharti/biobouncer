@@ -1,4 +1,4 @@
-# biobouncer (Python package)
+# biobouncer (Python package) <img src="https://raw.githubusercontent.com/samuelbharti/biobouncer/main/pkg-r/man/figures/logo.png" align="right" height="150" alt="biobouncer logo" />
 
 This directory holds the Python package for biobouncer. See the repository root
 `README.md` for what biobouncer does and `PLAN.md` for the architecture.
