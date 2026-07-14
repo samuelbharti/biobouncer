@@ -13,8 +13,6 @@ template:
     image:
       src: https://www.samuelbharti.com/biobouncer/r/social-card.png
       alt: "biobouncer: validate biological identifiers, the same verdict in R and Python"
-    twitter:
-      card: summary_large_image
 
 home:
   title: biobouncer
