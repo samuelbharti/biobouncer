@@ -2,8 +2,19 @@ url: https://www.samuelbharti.com/biobouncer/r
 
 template:
   bootstrap: 5
+  light-switch: true
   bslib:
     primary: "#1a6b54"
+    base_font: {google: "Source Sans 3"}
+    heading_font: {google: "Bricolage Grotesque"}
+    code_font: {google: "JetBrains Mono"}
+    border-radius: "0.25rem"
+  opengraph:
+    image:
+      src: https://www.samuelbharti.com/biobouncer/r/social-card.png
+      alt: "biobouncer: validate biological identifiers, the same verdict in R and Python"
+    twitter:
+      card: summary_large_image
 
 home:
   title: biobouncer

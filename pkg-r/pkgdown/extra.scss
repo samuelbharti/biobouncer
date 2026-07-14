@@ -1,0 +1,36 @@
+/* biobouncer: pkgdown theme touches.
+   Compiled together with the bslib theme, so Bootstrap/bslib Sass is in scope.
+   Kept deliberately small: the hex, the fonts, and a gold accent do the work. */
+
+$bb-gold: #e0af45;
+$bb-red: #b23a48;
+
+/* The hex earns a little more presence in the navbar. */
+.navbar-brand img {
+  height: 2.15rem;
+  width: auto;
+}
+
+/* Calm, lightly-squared code surfaces. */
+pre,
+div.sourceCode {
+  border-radius: 0.25rem;
+}
+
+/* Links pick up the gold accent on hover rather than the default underline. */
+main a:not(.btn):hover {
+  text-decoration-color: $bb-gold;
+  text-underline-offset: 0.15em;
+}
+
+/* Home strapline sits closer to the title. */
+.template-home .page-header {
+  border-bottom: none;
+  margin-bottom: 1.25rem;
+}
+
+/* A thin gold rule under reference-index section titles. */
+.template-reference-index h2 {
+  border-bottom: 2px solid rgba($bb-gold, 0.4);
+  padding-bottom: 0.25rem;
+}
