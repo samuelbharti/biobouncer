@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block extrahead %}
+  {% set card = "https://www.samuelbharti.com/biobouncer/py/assets/social-card.png" %}
+  <meta property="og:image" content="{{ card }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="biobouncer: validate biological identifiers, the same verdict in R and Python">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="{{ card }}">
+{% endblock %}

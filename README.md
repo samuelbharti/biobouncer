@@ -1,4 +1,4 @@
-# biobouncer
+# biobouncer <img src="pkg-r/man/figures/logo.png" align="right" height="150" alt="biobouncer logo" />
 
 > A gate for biological inputs. Validate gene symbols, ontology terms, variant
 > formats, and database identifiers, the same way, with the same answer, in

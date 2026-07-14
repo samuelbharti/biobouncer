@@ -4,235 +4,121 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>biobouncer</title>
-    <meta
-      name="description"
-      content="Validate biological identifiers and inputs the same way in R and Python."
-    />
+    <meta name="description" content="Validate biological identifiers and inputs the same way in R and Python. One small API, three checking modes, 46 sources, one verdict in both languages." />
+    <link rel="icon" href="assets/favicon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="biobouncer" />
+    <meta property="og:description" content="Validate biological identifiers, with the same verdict in R and Python." />
+    <meta property="og:image" content="https://www.samuelbharti.com/biobouncer/social-card.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <style>
       :root {
-        --bg: #ffffff;
-        --ink: #173744;
-        --body: #343a40;
-        --muted: #536b75;
-        --teal: #176d75;
-        --gold: #d39b32;
-        --blue: #2761e3;
-        --border: #d8e2eb;
-        --card-shadow: 0 1rem 2.5rem rgba(27, 62, 80, 0.1);
-        --card-shadow-sm: 0 0.4rem 1.25rem rgba(27, 62, 80, 0.07);
+        --bg: #f7f8f6;
+        --panel: #ffffff;
+        --ink: #12241d;
+        --body: #35443d;
+        --muted: #64756d;
+        --line: #d5ded8;
+        --line-strong: #b9c6be;
+        --teal: #17624c;
+        --teal-deep: #0f4a3a;
+        --gold: #b98a24;
+        --red: #a5323f;
+        --radius: 4px;
       }
-      * {
-        box-sizing: border-box;
-      }
-      body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--body);
-        font-family:
-          "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI",
-          Roboto, "Helvetica Neue", Arial, sans-serif;
-        line-height: 1.65;
-        -webkit-font-smoothing: antialiased;
-      }
-      a {
-        color: var(--blue);
-      }
-
-      /* Site-style navbar, matching the Quarto pages on samuelbharti.com */
-      .nav {
-        border-bottom: 1px solid var(--border);
-        background: #fff;
-      }
-      .nav-inner {
-        max-width: 920px;
-        margin: 0 auto;
-        padding: 0.7rem 1.25rem;
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 1rem;
-        flex-wrap: wrap;
-      }
-      .brand {
-        color: var(--ink);
-        font-weight: 700;
-        font-size: 1.05rem;
-        text-decoration: none;
-      }
-      .nav-links {
-        display: flex;
-        gap: 1.35rem;
-        font-size: 0.96rem;
-      }
-      .nav-links a {
-        color: var(--muted);
-        text-decoration: none;
-      }
-      .nav-links a:hover {
-        color: var(--blue);
-      }
-
-      .page {
-        max-width: 920px;
-        margin: 2rem auto 4rem;
-        padding: 0 1.25rem;
-      }
-      .hero {
-        position: relative;
-        overflow: hidden;
-        padding: clamp(2rem, 6vw, 4.5rem);
-        border: 1px solid var(--border);
-        border-radius: 1.25rem;
-        background:
-          radial-gradient(
-            circle at 92% 10%,
-            rgba(89, 191, 181, 0.24),
-            transparent 28%
-          ),
-          linear-gradient(145deg, #f8fbfd 0%, #edf5f7 100%);
-        box-shadow: var(--card-shadow);
-      }
-      .kicker {
-        margin: 0 0 1.1rem;
-        color: var(--teal);
-        font-size: 0.82rem;
-        font-weight: 700;
-        letter-spacing: 0.14em;
-        text-transform: uppercase;
-      }
-      h1 {
-        margin: 0;
-        color: var(--ink);
-        font-size: clamp(2.4rem, 6vw, 3.65rem);
-        line-height: 1.05;
-        letter-spacing: -0.035em;
-      }
-      .rule {
-        width: 4.5rem;
-        height: 0.3rem;
-        margin: 1.6rem 0;
-        border-radius: 1rem;
-        background: var(--gold);
-      }
-      .tagline {
-        max-width: 40rem;
-        margin: 0;
-        color: var(--ink);
-        font-size: clamp(1.15rem, 2.4vw, 1.4rem);
-        font-weight: 600;
-      }
-      .lead {
-        max-width: 44rem;
-        margin: 1.25rem 0 0;
-        color: var(--muted);
-        font-size: 1.05rem;
-      }
-
-      /* Overview figure */
-      figure.overview {
-        margin: 2rem 0 0;
-        padding: 1.25rem;
-        border: 1px solid var(--border);
-        border-radius: 1rem;
-        background: #fff;
-        box-shadow: var(--card-shadow-sm);
-      }
-      figure.overview img {
-        display: block;
-        width: 100%;
-        height: auto;
-      }
-      figure.overview figcaption {
-        margin-top: 0.85rem;
-        color: var(--muted);
-        font-size: 0.95rem;
-        text-align: center;
-      }
-
-      .cards {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1.25rem;
-        margin-top: 2rem;
-      }
-      @media (max-width: 560px) {
-        .cards {
-          grid-template-columns: 1fr;
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0e1712;
+          --panel: #121e18;
+          --ink: #eaf1ec;
+          --body: #aebbb2;
+          --muted: #7f938a;
+          --line: #24322b;
+          --line-strong: #33463c;
+          --teal: #47ac8a;
+          --teal-deep: #6cc4a4;
+          --gold: #d8a949;
         }
       }
-      a.card {
-        display: block;
-        padding: 1.6rem 1.75rem;
-        border: 1px solid var(--border);
-        border-left: 0.3rem solid var(--gold);
-        border-radius: 0.75rem;
-        background: #fff;
-        text-decoration: none;
-        color: inherit;
-        box-shadow: var(--card-shadow-sm);
-        transition:
-          transform 0.15s ease,
-          box-shadow 0.15s ease;
+      * { box-sizing: border-box; }
+      body {
+        margin: 0; background: var(--bg); color: var(--body);
+        font-family: "Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        line-height: 1.6; -webkit-font-smoothing: antialiased;
       }
-      a.card:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--card-shadow);
-      }
-      a.card h2 {
-        margin: 0 0 0.3rem;
-        color: var(--teal);
-        font-size: 1.25rem;
-        letter-spacing: -0.01em;
-      }
-      a.card p {
-        margin: 0;
-        color: var(--muted);
-        font-size: 0.98rem;
-      }
-      .foot {
-        margin: 2.25rem 0.25rem 0;
-        color: var(--muted);
-        font-size: 0.98rem;
-      }
-      code {
-        padding: 0.1rem 0.4rem;
-        border: 1px solid var(--border);
-        border-radius: 5px;
-        background: #f6f9fb;
-        color: var(--ink);
-        font-family:
-          SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-          "Courier New", monospace;
-        font-size: 0.88em;
-      }
+      a { color: var(--teal); }
+      .mono, code { font-family: "JetBrains Mono", SFMono-Regular, Menlo, Consolas, monospace; }
 
-      /* Site-style footer */
-      .site-foot {
-        border-top: 1px solid var(--border);
-        color: var(--muted);
-        font-size: 0.92rem;
-      }
-      .site-foot-inner {
-        max-width: 920px;
-        margin: 0 auto;
-        padding: 1.4rem 1.25rem 2.25rem;
-        display: flex;
-        justify-content: space-between;
-        gap: 1rem;
-        flex-wrap: wrap;
-      }
-      .site-foot a {
-        color: var(--teal);
-        font-weight: 600;
-        text-decoration: none;
-      }
-      .site-foot a:hover {
-        text-decoration: underline;
-      }
-      .site-foot .links {
-        display: flex;
-        gap: 1.1rem;
-      }
+      .nav { border-bottom: 1px solid var(--line); background: var(--panel); }
+      .nav-inner, .page, .site-foot-inner { max-width: 980px; margin: 0 auto; padding-left: 1.4rem; padding-right: 1.4rem; }
+      .nav-inner { padding-top: .8rem; padding-bottom: .8rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+      .brand { color: var(--ink); font-weight: 700; text-decoration: none; }
+      .nav-links { display: flex; gap: 1.5rem; font-size: .95rem; }
+      .nav-links a { color: var(--muted); text-decoration: none; }
+      .nav-links a:hover { color: var(--teal); }
+
+      .page { padding-top: 3rem; padding-bottom: 4rem; }
+      .eyebrow { font-family: "JetBrains Mono", monospace; font-size: .74rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--teal); margin: 0; }
+
+      /* hero: flat, left-aligned, a rule instead of a card */
+      .hero { display: grid; grid-template-columns: 1fr 220px; gap: 2.5rem; align-items: center;
+        padding-bottom: 2.75rem; border-bottom: 1px solid var(--line); }
+      @media (max-width: 720px) { .hero { grid-template-columns: 1fr; gap: 1.75rem; } .hero-art { order: -1; justify-self: start; } }
+      h1 { margin: .9rem 0 0; font-family: "Bricolage Grotesque", "Source Sans 3", sans-serif; color: var(--ink);
+        font-size: clamp(2.7rem, 7vw, 4rem); line-height: .98; letter-spacing: -.035em; font-weight: 800; }
+      .tagline { margin: 1rem 0 0; color: var(--ink); font-size: clamp(1.1rem, 2vw, 1.3rem); font-weight: 600; }
+      .lead { margin: .85rem 0 0; color: var(--muted); font-size: 1.02rem; max-width: 52ch; }
+      .hero-art img { width: 100%; max-width: 220px; height: auto; display: block; }
+      .cta { display: flex; gap: .7rem; margin-top: 1.6rem; flex-wrap: wrap; }
+      .btn { display: inline-flex; align-items: center; gap: .4rem; padding: .6rem 1.15rem; border-radius: var(--radius);
+        font-weight: 600; text-decoration: none; font-size: .96rem; border: 1px solid transparent; }
+      .btn-primary { background: var(--teal); color: #fff; }
+      .btn-primary:hover { background: var(--teal-deep); }
+      .btn-ghost { border-color: var(--line-strong); color: var(--ink); }
+      .btn-ghost:hover { border-color: var(--teal); color: var(--teal); }
+
+      /* section head: mono eyebrow + rule */
+      .sec { margin-top: 3.25rem; }
+      .sec-h { margin: .5rem 0 0; font-family: "Bricolage Grotesque", sans-serif; color: var(--ink); font-size: 1.5rem; font-weight: 700; letter-spacing: -.015em; }
+      .sec-sub { margin: .35rem 0 1.35rem; color: var(--muted); }
+
+      /* two doors: flat bordered blocks, no shadow, no rail, no lift */
+      .doors { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+      @media (max-width: 620px) { .doors { grid-template-columns: 1fr; } }
+      a.door { display: block; padding: 1.5rem 1.6rem; border: 1px solid var(--line); border-radius: var(--radius);
+        background: var(--panel); text-decoration: none; color: inherit; }
+      a.door:hover { border-color: var(--teal); }
+      a.door .lang { font-family: "JetBrains Mono", monospace; font-size: .74rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+      a.door h3 { margin: .3rem 0 .3rem; font-size: 1.25rem; color: var(--ink); letter-spacing: -.01em; }
+      a.door p { margin: 0 0 1rem; color: var(--muted); font-size: .97rem; }
+      a.door .install { font-family: "JetBrains Mono", monospace; font-size: .82rem; color: var(--ink);
+        background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: .45rem .65rem; display: inline-block; }
+      a.door .go { margin-top: 1rem; color: var(--teal); font-weight: 600; font-size: .93rem; }
+      a.door:hover .go { text-decoration: underline; }
+
+      /* modes: flat cells, monospace names, no colored rails */
+      .modes { display: grid; grid-template-columns: repeat(3, 1fr); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+      @media (max-width: 620px) { .modes { grid-template-columns: 1fr; } }
+      .mode { padding: 1.1rem 1.25rem; background: var(--panel); }
+      .mode + .mode { border-left: 1px solid var(--line); }
+      @media (max-width: 620px) { .mode + .mode { border-left: 0; border-top: 1px solid var(--line); } }
+      .mode b { display: block; color: var(--ink); font-family: "JetBrains Mono", monospace; font-size: .92rem; font-weight: 600; margin-bottom: .2rem; }
+      .mode span { color: var(--muted); font-size: .9rem; }
+
+      /* overview: flat framed figure */
+      figure.overview { margin: 0; padding: 1.1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
+      figure.overview img { display: block; width: 100%; height: auto; }
+      figure.overview figcaption { margin-top: .8rem; color: var(--muted); font-size: .92rem; }
+
+      .site-foot { border-top: 1px solid var(--line); color: var(--muted); font-size: .9rem; margin-top: 3.5rem; }
+      .site-foot-inner { padding-top: 1.4rem; padding-bottom: 2.25rem; display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+      .site-foot a { color: var(--teal); font-weight: 600; text-decoration: none; }
+      .site-foot .links { display: flex; gap: 1.2rem; }
     </style>
   </head>
   <body>
@@ -249,58 +135,72 @@
 
     <main class="page">
       <section class="hero">
-        <p class="kicker">R and Python</p>
-        <h1>biobouncer</h1>
-        <div class="rule"></div>
-        <p class="tagline">
-          Validate biological identifiers and inputs the same way in R and
-          Python.
-        </p>
-        <p class="lead">
-          One small API answers "is this a valid identifier?" for gene symbols,
-          ontology terms, variant formats, and database accessions. R and Python
-          return the same verdict for the same input, checked against a shared
-          conformance corpus. Choose an offline shape check, an offline existence
-          check against a pinned snapshot, or a live check against the source.
-        </p>
+        <div class="hero-copy">
+          <p class="eyebrow">R and Python · one verdict</p>
+          <h1>biobouncer</h1>
+          <p class="tagline">A gate for biological inputs. It checks IDs at the door.</p>
+          <p class="lead">
+            One small API answers <em>"is this a valid identifier?"</em> for gene symbols, ontology
+            terms, variant formats, and database accessions across 46 sources. R and Python return
+            the same verdict for the same input, enforced by a shared conformance corpus.
+          </p>
+          <div class="cta">
+            <a class="btn btn-primary" href="r/">R docs &rarr;</a>
+            <a class="btn btn-ghost" href="py/">Python docs &rarr;</a>
+          </div>
+        </div>
+        <div class="hero-art">
+          <img src="assets/logo.svg" alt="biobouncer hex logo: a bouncer with sunglasses and a checked ID badge" />
+        </div>
       </section>
 
-      <figure class="overview">
-        <img
-          src="assets/overview.svg"
-          alt="biobouncer takes a messy column of biological identifiers, checks each through one gate with four modes (pattern, cache, remote, existence), and returns one labeled verdict (valid, repairable, invalid, or missing) that is the same in R and Python."
-        />
-        <figcaption>
-          A messy column goes in; one labeled verdict comes out, identical in R
-          and Python.
-        </figcaption>
-      </figure>
+      <section class="sec">
+        <p class="eyebrow">Two doors</p>
+        <h2 class="sec-h">One bouncer, two doors</h2>
+        <p class="sec-sub">Same ID, same answer. Pick the language you work in.</p>
+        <div class="doors">
+          <a class="door" href="r/">
+            <span class="lang">R</span>
+            <h3>The R package</h3>
+            <p>Function reference, a getting-started vignette, and recipes, built with pkgdown.</p>
+            <span class="install mono">install.packages("biobouncer")</span>
+            <div class="go">Enter the R door &rarr;</div>
+          </a>
+          <a class="door" href="py/">
+            <span class="lang">Python</span>
+            <h3>The Python package</h3>
+            <p>Guide, examples, a sources cookbook, and API reference, built with MkDocs.</p>
+            <span class="install mono">pip install biobouncer</span>
+            <div class="go">Enter the Python door &rarr;</div>
+          </a>
+        </div>
+      </section>
 
-      <div class="cards">
-        <a class="card" href="r/">
-          <h2>R package &rarr;</h2>
-          <p>
-            Function reference, a getting-started vignette, and recipes
-            (pkgdown).
-          </p>
-        </a>
-        <a class="card" href="py/">
-          <h2>Python package &rarr;</h2>
-          <p>Guide, examples, a sources cookbook, and API reference (MkDocs).</p>
-        </a>
-      </div>
+      <section class="sec">
+        <p class="eyebrow">Checking modes</p>
+        <h2 class="sec-h">Three ways to check</h2>
+        <p class="sec-sub">One argument, <code>how</code>, decides how strict and how online the check is.</p>
+        <div class="modes">
+          <div class="mode"><b>pattern</b><span>Is it well-formed? Offline, deterministic.</span></div>
+          <div class="mode"><b>cache</b><span>Does it exist in a pinned snapshot? Offline, reproducible.</span></div>
+          <div class="mode"><b>remote</b><span>Does it exist right now in the source? Live.</span></div>
+        </div>
+      </section>
 
-      <p class="foot">
-        Source and issues on
-        <a href="https://github.com/samuelbharti/biobouncer">GitHub</a>. Install
-        with <code>install.packages("biobouncer")</code> or
-        <code>pip install biobouncer</code>.
-      </p>
+      <section class="sec">
+        <p class="eyebrow">How it works</p>
+        <h2 class="sec-h">A column in, a verdict out</h2>
+        <p class="sec-sub">A messy column goes in; one labeled verdict comes out, identical in R and Python.</p>
+        <figure class="overview">
+          <img src="assets/overview.svg" alt="biobouncer takes a messy column of biological identifiers, checks each through one gate with the checking modes, and returns one labeled verdict that is the same in R and Python." />
+          <figcaption>Validate, normalize, and repair a whole column, not just one field.</figcaption>
+        </figure>
+      </section>
     </main>
 
     <footer class="site-foot">
       <div class="site-foot-inner">
-        <span>&copy; 2026 Samuel Bharti</span>
+        <span>&copy; 2026 Samuel Bharti · MIT licensed</span>
         <span class="links">
           <a href="https://www.samuelbharti.com/">Website</a>
           <a href="https://github.com/samuelbharti/biobouncer">GitHub</a>

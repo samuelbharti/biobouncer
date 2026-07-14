@@ -1,0 +1,57 @@
+/* biobouncer: Material for MkDocs brand touches.
+   Pins Material's teal to the exact hex used across the R site and the logo,
+   and adds a gold accent so the two languages read as one product. */
+
+:root {
+  --md-primary-fg-color:        #1a6b54;
+  --md-primary-fg-color--light: #2a8f72;
+  --md-primary-fg-color--dark:  #124f3d;
+  --md-accent-fg-color:         #a8791a;   /* gold, for hover/links */
+  --bb-gold: #e0af45;
+  --bb-red:  #b23a48;
+}
+
+/* Dark scheme: lift the teal so it stays legible on the slate ground. */
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #2f9d7d;
+  --md-primary-fg-color--light: #43ad8b;
+  --md-primary-fg-color--dark:  #16624d;
+  --md-accent-fg-color:         var(--bb-gold);
+}
+
+/* Headings echo the wordmark: tight, confident. */
+.md-typeset h1,
+.md-typeset h2 {
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+/* The hex gets a touch more room in the header. */
+.md-header__button.md-logo img,
+.md-header__button.md-logo svg {
+  height: 1.6rem;
+  width: auto;
+}
+
+/* Grid cards: flat. A hairline that picks up teal on hover, no lift, no shadow. */
+.md-typeset .grid.cards > ul > li {
+  border-radius: 4px;
+  transition: border-color 0.12s ease;
+}
+.md-typeset .grid.cards > ul > li:hover {
+  border-color: var(--md-primary-fg-color);
+}
+
+/* Linked content tabs (R / Python) read as a real toggle. */
+.md-typeset .tabbed-labels > label {
+  font-weight: 600;
+}
+
+/* A gold rule under the tagline on the landing page. */
+.md-typeset .bb-rule {
+  width: 4rem;
+  height: 0.28rem;
+  border-radius: 1rem;
+  background: var(--bb-gold);
+  margin: 1.1rem 0 1.4rem;
+}

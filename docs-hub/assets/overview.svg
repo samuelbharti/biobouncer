@@ -1,121 +1,104 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1160 520" role="img"
      aria-label="biobouncer takes a messy column of biological identifiers, checks each through one gate with four modes, and returns one labeled verdict that is the same in R and Python.">
-  <defs>
-    <linearGradient id="bb-bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#f8fbfd"/>
-      <stop offset="1" stop-color="#edf5f7"/>
-    </linearGradient>
-    <radialGradient id="bb-glow" cx="0.9" cy="0.08" r="0.5">
-      <stop offset="0" stop-color="#59bfb5" stop-opacity="0.22"/>
-      <stop offset="0.55" stop-color="#59bfb5" stop-opacity="0"/>
-    </radialGradient>
-    <filter id="bb-shadow" x="-20%" y="-20%" width="140%" height="150%">
-      <feDropShadow dx="0" dy="5" stdDeviation="9" flood-color="#1b3e50" flood-opacity="0.10"/>
-    </filter>
-  </defs>
-
   <style>
-    .t   { font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
-    .mono{ font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-    .hdr { fill: #536b75; font-size: 13px; font-weight: 700; letter-spacing: 2.2px; }
+    .t    { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Source Sans 3", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    .mono { font-family: "JetBrains Mono", SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 2px; fill: #1a6b54; }
   </style>
 
-  <!-- panel -->
-  <rect x="1" y="1" width="1158" height="518" rx="24" fill="url(#bb-bg)" stroke="#d8e2eb" stroke-width="1.5"/>
-  <rect x="1" y="1" width="1158" height="518" rx="24" fill="url(#bb-glow)"/>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M1,1.5 L9,5 L1,8.5 Z" fill="#a8b4ac"/>
+    </marker>
+  </defs>
+
+  <!-- panel: flat fill, hairline border, minimal radius -->
+  <rect x="0.5" y="0.5" width="1159" height="519" rx="4" fill="#f7f8f6" stroke="#d5ded8" stroke-width="1"/>
 
   <g class="t">
     <!-- column headers -->
-    <text x="205"  y="66" text-anchor="middle" class="hdr">MESSY COLUMN</text>
-    <text x="925"  y="66" text-anchor="middle" class="hdr">LABELED VERDICT</text>
+    <text x="205" y="66" text-anchor="middle" class="mono eyebrow">MESSY COLUMN</text>
+    <text x="925" y="66" text-anchor="middle" class="mono eyebrow">LABELED VERDICT</text>
 
-    <!-- ================= flow connectors (organic funnel) ================= -->
-    <g fill="none" stroke="#c3d4dc" stroke-width="1.6">
-      <path d="M332,133 C388,133 402,255 430,262"/>
-      <path d="M332,195 C388,195 404,258 430,262"/>
-      <path d="M332,257 C382,257 404,262 430,262"/>
-      <path d="M332,319 C388,319 404,269 430,262"/>
-      <path d="M730,262 C784,255 766,133 812,133"/>
-      <path d="M730,262 C784,258 766,195 812,195"/>
-      <path d="M730,262 C778,262 766,257 812,257"/>
-      <path d="M730,262 C784,269 766,319 812,319"/>
+    <!-- flow connectors: one arrow per row, input into the gate and gate out to its verdict -->
+    <g fill="none" stroke="#a8b4ac" stroke-width="1.6" marker-end="url(#arrow)">
+      <path d="M332,133 H428"/>
+      <path d="M332,195 H428"/>
+      <path d="M332,257 H428"/>
+      <path d="M332,319 H428"/>
+      <path d="M730,133 H764"/>
+      <path d="M730,195 H764"/>
+      <path d="M730,257 H764"/>
+      <path d="M730,319 H764"/>
     </g>
 
     <!-- ================= input chips ================= -->
-    <g class="mono" font-size="16" fill="#173744">
-      <g filter="url(#bb-shadow)">
-        <rect x="80" y="110" width="252" height="46" rx="11" fill="#ffffff" stroke="#d8e2eb"/>
-        <rect x="80" y="172" width="252" height="46" rx="11" fill="#ffffff" stroke="#d8e2eb"/>
-        <rect x="80" y="234" width="252" height="46" rx="11" fill="#ffffff" stroke="#d8e2eb"/>
-        <rect x="80" y="296" width="252" height="46" rx="11" fill="#ffffff" stroke="#d8e2eb"/>
-      </g>
+    <g class="mono" font-size="16" fill="#16262f">
+      <rect x="80" y="110" width="252" height="46" rx="4" fill="#ffffff" stroke="#d5ded8"/>
+      <rect x="80" y="172" width="252" height="46" rx="4" fill="#ffffff" stroke="#d5ded8"/>
+      <rect x="80" y="234" width="252" height="46" rx="4" fill="#ffffff" stroke="#d5ded8"/>
+      <rect x="80" y="296" width="252" height="46" rx="4" fill="#ffffff" stroke="#d5ded8"/>
       <text x="206" y="139" text-anchor="middle">MONDO:0005148</text>
       <text x="206" y="201" text-anchor="middle">mondo:5148</text>
       <text x="206" y="263" text-anchor="middle">notagene</text>
       <text x="206" y="325" text-anchor="middle">NA</text>
     </g>
-    <text x="206" y="378" text-anchor="middle" class="t" font-size="12.5" font-style="italic" fill="#7b909a">
+    <text x="206" y="378" text-anchor="middle" class="t" font-size="12.5" font-style="italic" fill="#64756d">
       gene symbols, ontology terms, accessions, variants
     </text>
 
     <!-- ================= the gate ================= -->
-    <!-- organic membrane blob behind the card -->
-    <path d="M582,86 C700,84 754,150 748,262 C742,372 690,438 574,436
-             C470,434 408,368 414,258 C420,158 476,88 582,86 Z"
-          fill="#176d75" opacity="0.06"/>
-    <g filter="url(#bb-shadow)">
-      <rect x="430" y="96" width="300" height="332" rx="20" fill="#ffffff" stroke="#176d75" stroke-width="1.5"/>
-    </g>
-    <text x="580" y="152" text-anchor="middle" font-size="30" font-weight="800" letter-spacing="-0.5" fill="#173744">biobouncer</text>
-    <rect x="554" y="166" width="52" height="5" rx="2.5" fill="#d39b32"/>
-    <text x="580" y="196" text-anchor="middle" font-size="13.5" font-style="italic" fill="#536b75">a gate for biological inputs</text>
+    <rect x="430" y="96" width="300" height="332" rx="4" fill="#ffffff" stroke="#1a6b54" stroke-width="1.5"/>
+    <text x="580" y="152" text-anchor="middle" font-size="30" font-weight="800" letter-spacing="-0.5" fill="#16262f">biobouncer</text>
+    <rect x="554" y="167" width="52" height="3" fill="#b98a24"/>
+    <text x="580" y="196" text-anchor="middle" font-size="13.5" font-style="italic" fill="#64756d">a gate for biological inputs</text>
 
-    <!-- mode pills -->
-    <g font-size="12.5" font-weight="600" fill="#176d75" text-anchor="middle">
-      <rect x="452" y="216" width="112" height="28" rx="14" fill="#176d75" fill-opacity="0.07" stroke="#176d75" stroke-opacity="0.5"/>
+    <!-- mode chips: flat, hairline border, mono -->
+    <g class="mono" font-size="12.5" font-weight="600" fill="#1a6b54" text-anchor="middle">
+      <rect x="452" y="216" width="112" height="28" rx="3" fill="none" stroke="#1a6b54" stroke-opacity="0.45"/>
       <text x="508" y="234">pattern</text>
-      <rect x="596" y="216" width="112" height="28" rx="14" fill="#176d75" fill-opacity="0.07" stroke="#176d75" stroke-opacity="0.5"/>
+      <rect x="596" y="216" width="112" height="28" rx="3" fill="none" stroke="#1a6b54" stroke-opacity="0.45"/>
       <text x="652" y="234">cache</text>
-      <rect x="452" y="252" width="112" height="28" rx="14" fill="#176d75" fill-opacity="0.07" stroke="#176d75" stroke-opacity="0.5"/>
+      <rect x="452" y="252" width="112" height="28" rx="3" fill="none" stroke="#1a6b54" stroke-opacity="0.45"/>
       <text x="508" y="270">remote</text>
-      <rect x="596" y="252" width="112" height="28" rx="14" fill="#176d75" fill-opacity="0.07" stroke="#176d75" stroke-opacity="0.5"/>
+      <rect x="596" y="252" width="112" height="28" rx="3" fill="none" stroke="#1a6b54" stroke-opacity="0.45"/>
       <text x="652" y="270">existence</text>
     </g>
 
-    <line x1="452" y1="300" x2="708" y2="300" stroke="#e3ecf1" stroke-width="1.4"/>
+    <line x1="452" y1="300" x2="708" y2="300" stroke="#e3e9e5" stroke-width="1.4"/>
 
-    <!-- parity badge -->
-    <rect x="466" y="316" width="228" height="34" rx="17" fill="#d39b32" fill-opacity="0.12" stroke="#d39b32" stroke-opacity="0.55"/>
-    <text x="580" y="338" text-anchor="middle" font-size="13.5" font-weight="700" fill="#9a6f1f">R  &#8646;  Python &#183; one answer</text>
-    <text x="580" y="380" text-anchor="middle" font-size="11.5" font-style="italic" fill="#7b909a">checked against a shared conformance corpus</text>
+    <!-- parity badge: flat, hairline gold border -->
+    <rect x="466" y="316" width="228" height="34" rx="3" fill="none" stroke="#b98a24" stroke-opacity="0.6"/>
+    <text x="580" y="338" text-anchor="middle" font-size="13.5" font-weight="700" fill="#8a6518">R  &#8646;  Python &#183; one answer</text>
+    <text x="580" y="380" text-anchor="middle" font-size="11.5" font-style="italic" fill="#64756d">checked against a shared conformance corpus</text>
 
     <!-- ================= verdict rows ================= -->
     <g>
       <!-- valid -->
-      <circle cx="786" cy="133" r="15" fill="#176d75"/>
+      <circle cx="786" cy="133" r="15" fill="#1a6b54"/>
       <text x="786" y="139" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">&#10003;</text>
-      <text x="814" y="129" font-size="15" font-weight="700" fill="#173744">valid</text>
-      <text x="814" y="147" class="mono" font-size="12.5" fill="#536b75">MONDO:0005148</text>
+      <text x="814" y="129" font-size="15" font-weight="700" fill="#16262f">valid</text>
+      <text x="814" y="147" class="mono" font-size="12.5" fill="#64756d">MONDO:0005148</text>
       <!-- repairable -->
-      <circle cx="786" cy="195" r="15" fill="#d39b32"/>
+      <circle cx="786" cy="195" r="15" fill="#b98a24"/>
       <text x="786" y="201" text-anchor="middle" font-size="16" font-weight="700" fill="#ffffff">&#8594;</text>
-      <text x="814" y="191" font-size="15" font-weight="700" fill="#173744">repairable</text>
-      <text x="814" y="209" class="mono" font-size="12.5" fill="#9a6f1f">&#8594; MONDO:0005148</text>
+      <text x="814" y="191" font-size="15" font-weight="700" fill="#16262f">repairable</text>
+      <text x="814" y="209" class="mono" font-size="12.5" fill="#8a6518">&#8594; MONDO:0005148</text>
       <!-- invalid -->
-      <circle cx="786" cy="257" r="15" fill="#536b75"/>
+      <circle cx="786" cy="257" r="15" fill="#64756d"/>
       <text x="786" y="263" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff">&#10005;</text>
-      <text x="814" y="253" font-size="15" font-weight="700" fill="#173744">invalid</text>
-      <text x="814" y="271" class="mono" font-size="12.5" fill="#536b75">notagene</text>
+      <text x="814" y="253" font-size="15" font-weight="700" fill="#16262f">invalid</text>
+      <text x="814" y="271" class="mono" font-size="12.5" fill="#64756d">notagene</text>
       <!-- missing -->
-      <circle cx="786" cy="319" r="15" fill="#b9cdd6"/>
-      <text x="786" y="325" text-anchor="middle" font-size="17" font-weight="700" fill="#173744">&#8211;</text>
-      <text x="814" y="315" font-size="15" font-weight="700" fill="#173744">missing</text>
-      <text x="814" y="333" class="mono" font-size="12.5" fill="#536b75">NA</text>
+      <circle cx="786" cy="319" r="15" fill="#c4d0c9"/>
+      <text x="786" y="325" text-anchor="middle" font-size="17" font-weight="700" fill="#16262f">&#8211;</text>
+      <text x="814" y="315" font-size="15" font-weight="700" fill="#16262f">missing</text>
+      <text x="814" y="333" class="mono" font-size="12.5" fill="#64756d">NA</text>
     </g>
 
     <!-- footer caption -->
-    <text x="580" y="470" text-anchor="middle" font-size="13" fill="#536b75">
-      One small API for R and Python. Offline shape check, offline snapshot, or a live lookup &#8212; the same verdict either way.
+    <text x="580" y="470" text-anchor="middle" font-size="13" fill="#64756d">
+      One small API for R and Python. Offline shape check, offline snapshot, or a live lookup. The same verdict either way.
     </text>
   </g>
 </svg>
