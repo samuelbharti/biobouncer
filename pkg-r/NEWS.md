@@ -1,3 +1,10 @@
+# biobouncer 0.1.1
+
+* No change to the R package. The R and Python packages share one version, and
+  0.1.1 is the first Python release published to PyPI.
+* `citation("biobouncer")` now reports the installed version instead of a
+  hard-coded `0.0.0.9000`.
+
 # biobouncer 0.1.0
 
 * Remote mode no longer writes an `NCBI_API_KEY` (or contact email) into the
