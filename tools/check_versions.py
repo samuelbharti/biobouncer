@@ -29,9 +29,12 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # Each entry is a file and the pattern whose first group is its version. The
 # patterns are anchored to the start of a line so a version named in prose or in
-# a dependency pin is never picked up by mistake.
+# a dependency pin is never picked up by mistake. uv.lock records the project's
+# own version too, and it is the one that drifts quietly, because bumping
+# pyproject.toml without re-running `uv lock` leaves it behind.
 SOURCES = (
     ("pkg-py/pyproject.toml", r'^version\s*=\s*"([^"]+)"'),
+    ("pkg-py/uv.lock", r'^name = "biobouncer"\nversion = "([^"]+)"'),
     ("pkg-r/DESCRIPTION", r"^Version:\s*(\S+)"),
     ("CITATION.cff", r"^version:\s*(\S+)"),
     ("pkg-py/CHANGELOG.md", r"^##\s+(\d\S*)"),
