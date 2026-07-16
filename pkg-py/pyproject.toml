@@ -1,5 +1,6 @@
 [build-system]
-requires = ["hatchling"]
+# 1.27 is the first release that understands the PEP 639 license fields below.
+requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [project]
@@ -64,6 +65,21 @@ docs = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/biobouncer"]
+
+# List the sdist contents rather than letting hatchling infer them. The build root
+# is pkg-py/, but the only .gitignore is at the repository root, and its
+# `pkg-py/site/` rule is path-anchored: read from pkg-py/ it means
+# `pkg-py/pkg-py/site/` and matches nothing, so the built docs site leaked into
+# the sdist. An explicit list does not depend on where a rule is anchored.
+[tool.hatch.build.targets.sdist]
+include = [
+    "src/biobouncer",
+    "tests",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "pyproject.toml",
+]
 
 [tool.ruff]
 line-length = 88
