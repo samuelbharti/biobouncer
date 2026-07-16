@@ -3,6 +3,6 @@ bibentry(
   title    = "biobouncer: Validate Biological Identifiers and Inputs",
   author   = person("Samuel", "Bharti"),
   year     = "2026",
-  note     = "R package version 0.0.0.9000",
+  note     = sprintf("R package version %s", meta$Version),
   url      = "https://github.com/samuelbharti/biobouncer"
 )

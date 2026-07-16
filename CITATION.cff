@@ -7,9 +7,9 @@ abstract: >-
   returns the same verdict in R and Python, enforced by a shared conformance
   corpus.
 type: software
-version: 0.1.0
+version: 0.1.1
 doi: 10.5281/zenodo.21346522
-date-released: "2026-07-13"
+date-released: "2026-07-15"
 identifiers:
   - type: doi
     value: 10.5281/zenodo.21346522
