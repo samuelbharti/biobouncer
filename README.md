@@ -9,12 +9,12 @@
        alt="biobouncer takes a messy column of biological identifiers, checks each through one gate with four modes (pattern, cache, remote, existence), and returns one labeled verdict (valid, repairable, invalid, or missing) that is the same in R and Python." />
 </p>
 
+[![PyPI version](https://img.shields.io/pypi/v/biobouncer)](https://pypi.org/project/biobouncer/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21346522.svg)](https://doi.org/10.5281/zenodo.21346522)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-<!-- Add once published to PyPI and CRAN:
+<!-- Add once published to CRAN:
 [![CRAN status](https://www.r-pkg.org/badges/version/biobouncer)](https://cran.r-project.org/package=biobouncer)
-[![PyPI version](https://img.shields.io/pypi/v/biobouncer)](https://pypi.org/project/biobouncer/)
 -->
 
 > **Status: pre-1.0.** The public API is in use and documented below. It may
@@ -65,22 +65,8 @@ reach those tools.
 ## Installation
 
 `biobouncer` lives in a monorepo: the R package in `pkg-r/`, the Python package in
-`pkg-py/`. This matters only for a development install from GitHub, where you
-point the installer at the subdirectory. The released packages install by name.
-
-**R**
-
-```r
-# R-universe (binary installs)
-install.packages("biobouncer", repos = "https://samuelbharti.r-universe.dev")
-
-# CRAN
-install.packages("biobouncer")
-
-# development version from GitHub (package is in the pkg-r/ subdirectory)
-pak::pak("samuelbharti/biobouncer/pkg-r")
-# or: remotes::install_github("samuelbharti/biobouncer", subdir = "pkg-r")
-```
+`pkg-py/`. This matters only when installing from GitHub, where you point the
+installer at the subdirectory.
 
 **Python**
 
@@ -89,6 +75,15 @@ pip install biobouncer
 
 # development version from GitHub (package is in the pkg-py/ subdirectory)
 pip install "git+https://github.com/samuelbharti/biobouncer.git#subdirectory=pkg-py"
+```
+
+**R**
+
+The R package is not on CRAN or R-universe yet. Install it from GitHub:
+
+```r
+pak::pak("samuelbharti/biobouncer/pkg-r")
+# or: remotes::install_github("samuelbharti/biobouncer", subdir = "pkg-r")
 ```
 
 ## Quickstart
