@@ -1,0 +1,79 @@
+name: release-py
+
+# Publish the Python package to PyPI when a release is published.
+#
+# Authentication is PyPI Trusted Publishing (OIDC), so there is no API token in
+# repository secrets. PyPI decides whether to trust a request by matching the
+# repository, this file's name, and the environment named below, so none of the
+# three can be renamed without updating the publisher on PyPI to match.
+#
+# workflow_dispatch is here because a release can only be published once. If the
+# build or the upload fails, the release still exists, and a manual run against
+# the tag is the way to retry without inventing a version.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+
+      # The R and Python packages share one version. Check it before building,
+      # while a mismatch is still free to fix: PyPI refuses to replace a version
+      # once uploaded, so a wrong number here can only be abandoned.
+      - name: Check the versions agree with the tag
+        run: python tools/check_versions.py ${{ github.event.release.tag_name }}
+
+      - name: Build the sdist and the wheel
+        run: uv build --out-dir dist
+        working-directory: pkg-py
+
+      # The package is useless without its vendored spec: a wheel missing _data/
+      # installs cleanly and then fails on import for every user. That is worth a
+      # check of its own, because it too cannot be undone after upload.
+      - name: Check the artifacts carry the vendored data
+        run: python tools/check_dist.py pkg-py/dist
+
+      - name: Check the metadata renders
+        run: uvx twine check --strict dist/*
+        working-directory: pkg-py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: pkg-py/dist
+          if-no-files-found: error
+
+  publish:
+    name: publish
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      # A job-level permissions block replaces the defaults rather than adding to
+      # them, so id-token is all this job gets. It needs nothing else: the
+      # artifact comes from the build job, not from a checkout.
+      id-token: write
+    environment:
+      name: pypi
+      url: https://pypi.org/p/biobouncer
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

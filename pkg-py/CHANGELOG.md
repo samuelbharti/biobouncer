@@ -3,6 +3,25 @@
 All notable changes to the Python package are recorded here. The R package keeps
 a matching changelog in `pkg-r/NEWS.md`; the two packages share one version.
 
+## 0.1.1
+
+First release published to PyPI. `pip install biobouncer` now works. There is no
+behavior change from 0.1.0 and the source list is unchanged.
+
+### Fixed
+
+- The source distribution no longer ships the built documentation site, the docs
+  sources, or the example and theme directories. The sdist had no explicit file
+  list, so those were picked up from the working tree; it drops from 1.6 MB to
+  517 KB. The wheel was never affected.
+
+### Notes
+
+- A release now publishes to PyPI automatically, authenticated with Trusted
+  Publishing rather than a stored API token. Before uploading, the release checks
+  that the R and Python versions agree with the tag and that both artifacts carry
+  the vendored spec under `_data/`.
+
 ## 0.1.0
 
 First release.
