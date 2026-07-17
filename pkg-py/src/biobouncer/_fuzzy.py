@@ -46,20 +46,32 @@ def fuzzy_index(ids) -> dict[int, list[str]]:
     return buckets
 
 
-def fuzzy_suggest(s: str, index: dict[int, list[str]], k: int) -> str | None:
+def fuzzy_suggest(
+    s: str, index: dict[int, list[str]], k: int, ignore_case: bool = False
+) -> str | None:
     """The nearest candidate within edit distance ``k``, or ``None``.
 
     Only candidates whose length is within ``k`` of ``s`` can be within distance
     ``k``, so the search visits just those length buckets. Among the candidates at
     the smallest distance, the code-point-smallest is chosen, so R and Python
     always agree.
+
+    With ``ignore_case``, distance is measured between lowercase forms, so a
+    difference in case costs nothing. A source whose ids have no single case
+    convention needs this: for HGNC, ``tp53`` is otherwise two edits from both
+    ``TP53`` and ``CD53``, and the tie-break picks the wrong gene, while ``brca1``
+    is four edits from ``BRCA1`` and out of reach entirely. The candidate is
+    always returned in the snapshot's own spelling, and comparison stays
+    code-point ordered on that spelling so the tie-break is unchanged.
     """
     best: str | None = None
     best_distance = k + 1
+    probe = s.lower() if ignore_case else s
     length = len(s)
     for candidate_length in range(length - k, length + k + 1):
         for candidate in index.get(candidate_length, ()):
-            distance = _bounded_levenshtein(s, candidate, k)
+            target = candidate.lower() if ignore_case else candidate
+            distance = _bounded_levenshtein(probe, target, k)
             if distance is None:
                 continue
             if distance < best_distance or (

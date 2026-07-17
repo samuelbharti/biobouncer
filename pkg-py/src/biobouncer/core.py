@@ -153,7 +153,11 @@ def check_id(
     if ids is not None and source.suggest:
         fuzzy_cfg = source.suggest.get("fuzzy")
         if fuzzy_cfg:
-            fuzzy = (fuzzy_index(ids), int(fuzzy_cfg["max_distance"]))
+            fuzzy = (
+                fuzzy_index(ids),
+                int(fuzzy_cfg["max_distance"]),
+                bool(source.suggest.get("case_insensitive")),
+            )
 
     results = []
     for idx, s in enumerate(items):

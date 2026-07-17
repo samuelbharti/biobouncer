@@ -1,3 +1,17 @@
+# biobouncer (development version)
+
+* A lowercase gene symbol now suggests the right gene. `hgnc` suggestions in
+  `cache` and `existence` mode ignore case, so `tp53` suggests `TP53` and `brca1`
+  suggests `BRCA1`. Case previously spent the edit budget, which left a symbol
+  either with no suggestion (`brca1` is four edits from `BRCA1`) or with the wrong
+  one (`tp53` is two edits from both `TP53` and `CD53`, and the tie-break chose
+  `CD53`). A lowercase typo resolves too: `tp52` suggests `TP53` rather than
+  `CD52`.
+* A case-wrong symbol stays invalid and carries the approved spelling as a
+  suggestion, so `report_id()` and `repair_id()` clean it while an adapter still
+  flags the cell. Suggestions use the snapshot's own spelling, so `C9ORF72` and
+  `c9orf72` both suggest `C9orf72` rather than an uppercased form.
+
 # biobouncer 0.1.1
 
 * No change to the R package. The R and Python packages share one version, and

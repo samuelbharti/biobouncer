@@ -37,8 +37,10 @@ SOURCES = (
     ("pkg-py/uv.lock", r'^name = "biobouncer"\nversion = "([^"]+)"'),
     ("pkg-r/DESCRIPTION", r"^Version:\s*(\S+)"),
     ("CITATION.cff", r"^version:\s*(\S+)"),
+    # Both changelogs carry an unreleased section at the top between releases, so
+    # these match the first heading that starts with a digit and skip it.
     ("pkg-py/CHANGELOG.md", r"^##\s+(\d\S*)"),
-    ("pkg-r/NEWS.md", r"^#\s+biobouncer\s+(\S+)"),
+    ("pkg-r/NEWS.md", r"^#\s+biobouncer\s+(\d\S*)"),
 )
 
 

@@ -180,12 +180,12 @@ def snapshot_set(source_db: str, version: str) -> set[str]:
 
 
 def _fuzzy_fallback(
-    s: str, fuzzy: tuple[dict[int, list[str]], int] | None
+    s: str, fuzzy: tuple[dict[int, list[str]], int, bool] | None
 ) -> str | None:
     if fuzzy is None:
         return None
-    index, max_distance = fuzzy
-    return fuzzy_suggest(s, index, max_distance)
+    index, max_distance, ignore_case = fuzzy
+    return fuzzy_suggest(s, index, max_distance, ignore_case)
 
 
 def cache_check(
@@ -193,15 +193,20 @@ def cache_check(
     s: str,
     ids: set[str],
     retired: dict[str, str] | None = None,
-    fuzzy: tuple[dict[int, list[str]], int] | None = None,
+    fuzzy: tuple[dict[int, list[str]], int, bool] | None = None,
 ) -> tuple[bool, str | None, str | None]:
     """Return ``(valid, normalized, suggestion)`` for a single input.
 
     A well-formed id absent from ``ids`` but present in ``retired`` with a
     non-empty successor is invalid and suggests that successor. ``fuzzy`` is an
-    optional ``(length index, max distance)`` pair; when set, an id with no exact,
-    retired, or normalized match falls back to the nearest id within that edit
-    distance.
+    optional ``(length index, max distance, ignore case)`` triple; when set, an id
+    with no exact, retired, or normalized match falls back to the nearest id
+    within that edit distance.
+
+    An id that differs from an approved one only by case stays invalid and merely
+    suggests the approved spelling. It is not the id in the snapshot, so calling
+    it valid would accept input the source does not define, and would stop an
+    adapter flagging the cell.
     """
     retired = retired or {}
     if matches(source.pattern, s):
