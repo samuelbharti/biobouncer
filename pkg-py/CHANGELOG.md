@@ -3,7 +3,7 @@
 All notable changes to the Python package are recorded here. The R package keeps
 a matching changelog in `pkg-r/NEWS.md`; the two packages share one version.
 
-## Unreleased
+## 0.1.2
 
 ### Fixed
 
