@@ -22,9 +22,24 @@ cache:
 remote:
   resolver: genenames
 # In cache mode, a well-formed symbol that is neither approved nor a known
+# In cache mode, a well-formed symbol that is neither approved nor a known
 # previous symbol falls back to the nearest approved symbol within this edit
 # distance, so a typo like TP52 suggests TP53.
+#
+# case_insensitive measures that distance between lowercase forms, so a
+# difference in case costs no edits and tp53 suggests TP53. A symbol has no
+# single case convention, so this cannot be a normalize rule: 263 of the 45019
+# approved symbols are not all-uppercase (C9orf72), and folding case would
+# corrupt them. The suggestion is always the snapshot's own spelling, so both
+# c9orf72 and C9ORF72 suggest C9orf72.
+#
+# Without it, case silently consumes the edit budget and the suggestion is wrong
+# rather than merely absent: tp53 lands 2 edits from both TP53 and CD53, and the
+# tie-break picks the wrong gene, while brca1 is 4 edits from BRCA1 and out of
+# reach entirely. Lowercase symbols are common in real data, so this is the
+# normal case, not an edge case.
 suggest:
+  case_insensitive: true
   fuzzy:
     max_distance: 2
 provenance:

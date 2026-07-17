@@ -7,6 +7,12 @@
 # candidate whose length is within the distance can match, so the search is
 # limited to those. adist() computes the same unit-cost Levenshtein as the Python
 # side, and radix order breaks ties by code point.
+#
+# When the source sets suggest.case_insensitive, distance is measured between
+# lowercase forms so a difference in case costs no edits, matching the
+# ignore_case branch of fuzzy_suggest(). The candidates keep their original
+# spelling throughout, so the returned suggestion and the code-point tie-break
+# are both on the snapshot's own spelling, exactly as in Python.
 .fuzzy_suggest <- function(source, s, ids) {
   cfg <- source[["suggest"]]$fuzzy
   if (is.null(cfg)) {
@@ -20,7 +26,10 @@
   if (!length(cand)) {
     return(NA_character_)
   }
-  d <- as.integer(adist(s, cand))
+  ignore_case <- isTRUE(source[["suggest"]]$case_insensitive)
+  probe <- if (ignore_case) tolower(s) else s
+  target <- if (ignore_case) tolower(cand) else cand
+  d <- as.integer(adist(probe, target))
   keep <- !is.na(d) & d <= k
   if (!any(keep)) {
     return(NA_character_)

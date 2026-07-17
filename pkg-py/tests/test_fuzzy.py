@@ -23,3 +23,30 @@ def test_fuzzy_suggest_breaks_ties_by_code_point():
     index = fuzzy_index({"KMT2A", "KMT2D"})
     # KMT2E is one edit from both; the code-point-smallest wins.
     assert fuzzy_suggest("KMT2E", index, 2) == "KMT2A"
+
+
+def test_fuzzy_suggest_ignore_case_resolves_a_case_only_difference():
+    index = fuzzy_index({"TP53", "CD53", "BRCA1", "C9orf72"})
+    # Case sensitive, tp53 is two edits from both TP53 and CD53 and the
+    # code-point tie-break picks the wrong gene, and brca1 is four edits from
+    # BRCA1 and out of reach entirely.
+    assert fuzzy_suggest("tp53", index, 2) == "CD53"
+    assert fuzzy_suggest("brca1", index, 2) is None
+    # Ignoring case, both resolve, and the snapshot's own spelling comes back.
+    assert fuzzy_suggest("tp53", index, 2, ignore_case=True) == "TP53"
+    assert fuzzy_suggest("brca1", index, 2, ignore_case=True) == "BRCA1"
+    assert fuzzy_suggest("C9ORF72", index, 2, ignore_case=True) == "C9orf72"
+
+
+def test_fuzzy_suggest_ignore_case_still_spends_the_budget_on_real_edits():
+    index = fuzzy_index({"TP53", "CD52"})
+    # A lowercase typo: case is free, so the one real edit resolves to TP53
+    # rather than to CD52, which is two real edits away.
+    assert fuzzy_suggest("tp52", index, 2, ignore_case=True) == "TP53"
+    # Case being free does not make everything match.
+    assert fuzzy_suggest("zzzzzz", index, 2, ignore_case=True) is None
+
+
+def test_fuzzy_suggest_ignore_case_ties_break_on_the_original_spelling():
+    index = fuzzy_index({"KMT2A", "KMT2D"})
+    assert fuzzy_suggest("kmt2e", index, 2, ignore_case=True) == "KMT2A"
