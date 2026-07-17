@@ -1,4 +1,4 @@
-# biobouncer (development version)
+# biobouncer 0.1.2
 
 * A lowercase gene symbol now suggests the right gene. `hgnc` suggestions in
   `cache` and `existence` mode ignore case, so `tp53` suggests `TP53` and `brca1`
