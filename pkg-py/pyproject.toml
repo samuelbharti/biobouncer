@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "biobouncer"
-version = "0.1.1"
+version = "0.1.2"
 description = "A gate for biological inputs: validate identifiers and inputs the same way in R and Python."
 readme = "README.md"
 requires-python = ">=3.9"
