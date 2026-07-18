@@ -79,12 +79,19 @@ pip install "git+https://github.com/samuelbharti/biobouncer.git#subdirectory=pkg
 
 **R**
 
-The R package is not on CRAN or R-universe yet. Install it from GitHub:
+Install from R-universe, which serves prebuilt binaries and updates on each
+release:
 
 ```r
+install.packages("biobouncer", repos = "https://samuelbharti.r-universe.dev")
+
+# development version from GitHub (package is in the pkg-r/ subdirectory)
 pak::pak("samuelbharti/biobouncer/pkg-r")
 # or: remotes::install_github("samuelbharti/biobouncer", subdir = "pkg-r")
 ```
+
+biobouncer is not on CRAN yet. Once it is, `install.packages("biobouncer")` will
+work with no `repos` argument.
 
 ## Quickstart
 
@@ -367,10 +374,11 @@ Delivered:
 - [x] A validate-and-repair report for data-frame columns (`report` / `report_id`)
 - [x] Per-id indeterminate state and concurrent large-column remote checks
 - [x] An Open Targets connector (GraphQL)
+- [x] First tagged releases on PyPI and R-universe
 
 Planned:
 
-- [ ] First tagged releases on PyPI and CRAN / R-universe
+- [ ] CRAN submission
 
 ## Contributing
 
