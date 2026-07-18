@@ -97,7 +97,8 @@
       a.door h3 { margin: .3rem 0 .3rem; font-size: 1.25rem; color: var(--ink); letter-spacing: -.01em; }
       a.door p { margin: 0 0 1rem; color: var(--muted); font-size: .97rem; }
       a.door .install { font-family: "JetBrains Mono", monospace; font-size: .82rem; color: var(--ink);
-        background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: .45rem .65rem; display: inline-block; }
+        background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: .45rem .65rem;
+        display: inline-block; max-width: 100%; overflow-wrap: anywhere; }
       a.door .go { margin-top: 1rem; color: var(--teal); font-weight: 600; font-size: .93rem; }
       a.door:hover .go { text-decoration: underline; }
 
@@ -163,7 +164,8 @@
             <span class="lang">R</span>
             <h3>The R package</h3>
             <p>Function reference, a getting-started vignette, and recipes, built with pkgdown.</p>
-            <span class="install mono">install.packages("biobouncer")</span>
+            <!-- Not on CRAN yet. Once it is: install.packages("biobouncer") -->
+            <span class="install mono">install.packages("biobouncer",<br>&nbsp;&nbsp;repos = "https://samuelbharti.r-universe.dev")</span>
             <div class="go">Enter the R door &rarr;</div>
           </a>
           <a class="door" href="py/">
