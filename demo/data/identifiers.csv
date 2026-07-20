@@ -1,0 +1,13 @@
+value,source_db,note
+P04637,uniprot,TP53 protein (SwissProt)
+Q9NOTREAL9,uniprot,malformed accession
+ENSG00000139618,ensembl,BRCA2 gene
+ENSG123,ensembl,too short
+NM_000546.6,refseq,TP53 mRNA
+NM_bad,refseq,malformed
+rs7412,dbsnp,APOE variant
+12345,dbsnp,missing rs prefix
+NM_004006.2:c.4375C>T,hgvs,DMD coding change
+c.bad,hgvs,malformed HGVS
+CHEBI:15377,chebi,water
+CHEBI:99999999,chebi,not in snapshot

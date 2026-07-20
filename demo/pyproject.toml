@@ -1,0 +1,16 @@
+[project]
+name = "biobouncer-demo"
+version = "0.1.0"
+description = "Runnable demo notebooks for biobouncer."
+# 3.10 rather than 3.12 so the demo runs on the same interpreters the package
+# supports, not just the newest one.
+requires-python = ">=3.10"
+# biobouncer comes from PyPI, so the demo exercises the same release a reader
+# installs. narwhals is what lets report() accept a pandas column.
+dependencies = [
+    "biobouncer",
+    "ipykernel>=6",
+    "jupyterlab>=4",
+    "narwhals>=2",
+    "pandas>=2",
+]
