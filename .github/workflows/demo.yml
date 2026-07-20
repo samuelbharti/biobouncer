@@ -46,8 +46,12 @@ jobs:
         with:
           python-version: "3.12"
 
+      # uv pip install needs an environment to install into, and the runner has
+      # none by default.
       - name: Install the package from this checkout
-        run: uv pip install ./pkg-py pandas narwhals nbclient nbformat ipykernel
+        run: |
+          uv venv
+          uv pip install ./pkg-py pandas narwhals nbclient nbformat ipykernel
 
       - name: Register the kernel
         run: uv run python -m ipykernel install --user --name biobouncer-demo
