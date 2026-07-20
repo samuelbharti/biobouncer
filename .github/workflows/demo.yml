@@ -1,0 +1,88 @@
+name: demo
+
+# Run the demo notebooks against the checkout, in both languages.
+#
+# A demo nobody executes rots quietly, and a rotted demo misleads exactly the
+# people deciding whether to adopt the package. These notebooks had already
+# drifted two releases behind before they were brought into the repository, so
+# they are treated as tests rather than as documentation.
+#
+# The install cell in each notebook is skipped: it installs from PyPI and
+# R-universe for a reader, but CI has to exercise the code in this checkout, or a
+# break would not surface until after it shipped.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "demo/**"
+      - "pkg-py/**"
+      - "pkg-r/**"
+      - "shared/**"
+      - "tools/run_demo.py"
+      - ".github/workflows/demo.yml"
+  pull_request:
+    paths:
+      - "demo/**"
+      - "pkg-py/**"
+      - "pkg-r/**"
+      - "shared/**"
+      - "tools/run_demo.py"
+      - ".github/workflows/demo.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  demo-python:
+    name: demo-python
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+
+      # uv pip install needs an environment to install into, and the runner has
+      # none by default.
+      - name: Install the package from this checkout
+        run: |
+          uv venv
+          uv pip install ./pkg-py pandas narwhals nbclient nbformat ipykernel
+
+      - name: Register the kernel
+        run: uv run python -m ipykernel install --user --name biobouncer-demo
+
+      - name: Run the Python notebook
+        run: uv run python tools/run_demo.py python --kernel biobouncer-demo
+
+  demo-r:
+    name: demo-r
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      # local::. installs the package from this checkout, so the notebook runs
+      # against the working tree rather than a published release.
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: local::.
+          working-directory: pkg-r
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      # Rscript rather than a Jupyter R kernel: the notebook's code runs the
+      # same either way, and this needs no IRkernel or kernel registration.
+      - name: Run the R notebook
+        run: python tools/run_demo.py r

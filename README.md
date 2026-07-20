@@ -93,6 +93,14 @@ pak::pak("samuelbharti/biobouncer/pkg-r")
 biobouncer is not on CRAN yet. Once it is, `install.packages("biobouncer")` will
 work with no `repos` argument.
 
+## Try it
+
+[`demo/`](demo/) has two notebooks, one in
+[Python](demo/biobouncer_python.ipynb) and one in [R](demo/biobouncer_r.ipynb),
+that run the same story over the same messy data so you can see both packages
+reach the same answers. They cover all four modes and end with the framework
+adapters. Both run offline.
+
 ## Quickstart
 
 **R**

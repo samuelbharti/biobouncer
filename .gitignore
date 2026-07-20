@@ -41,6 +41,17 @@ dist/
 pkg-r/docs/
 pkg-py/site/
 
+# Notebook scratch state.
+.ipynb_checkpoints/
+.virtual_documents/
+
+# Demo environments. The notebooks and their data are tracked; the environments
+# they run in are not, and they run to hundreds of megabytes. .venv/ is already
+# covered above. The demo resolves current versions rather than pinning a lock,
+# so it installs what a reader would get today.
+demo/renv/
+demo/uv.lock
+
 # Presentation and design materials. Slides, write-ups, and templates kept for
 # talks and design work, not part of either package or the docs sites.
 presentations/
