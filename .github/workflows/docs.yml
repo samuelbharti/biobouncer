@@ -115,12 +115,12 @@ jobs:
           cp -r docs-hub/assets _site/assets
           touch _site/.nojekyll
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: site-r
           path: _site/r
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: site-py
           path: _site/py
