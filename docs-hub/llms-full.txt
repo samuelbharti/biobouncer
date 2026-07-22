@@ -1,0 +1,927 @@
+# biobouncer
+
+> A gate for biological inputs. It validates gene symbols, ontology terms,
+> variant formats, and database identifiers, and returns the same verdict in
+> Python and R.
+
+Version 0.1.2. 46 sources.
+
+biobouncer answers one question, "is this a valid identifier?", for a value or a
+whole column. It is offline by default and has no required heavy dependencies.
+The Python and R packages return the same verdict for the same input, enforced by
+a shared conformance corpus, so the API below applies to both.
+
+## Install
+
+```bash
+# Python
+pip install biobouncer
+```
+
+```r
+# R (not on CRAN yet)
+install.packages("biobouncer", repos = "https://samuelbharti.r-universe.dev")
+```
+
+## The four modes
+
+`check_id(..., how=)` selects how strict and how online the check is.
+
+| mode | question | network |
+|------|----------|---------|
+| `pattern` | is the string well-formed? (default) | offline |
+| `cache` | does the id exist in a pinned local snapshot? | offline |
+| `remote` | does the id exist right now in the source? | live |
+| `existence` | snapshot if present, else remote, else pattern | live |
+
+Cache mode uses the newest snapshot already installed for the source, so no
+`version` argument is needed. `hgnc` and several ontologies ship one, so
+`how="cache"` works offline out of the box. `pull()` downloads a fresh snapshot
+for a source that has no bundled one, or to update an existing one.
+
+## The result
+
+Every check returns one record per input, in order, with these fields:
+`input`, `valid`, `normalized`, `suggestion`, `source_db`, `version`, `species`,
+`how`, `error`. A missing input keeps `valid` empty rather than turning into a
+silent `False`. `suggestion` holds the repaired form of a wrong but fixable id.
+
+## Python and R
+
+The core API is identical. A few names carry a package prefix in R:
+
+| Python | R |
+|--------|---|
+| `check_id`, `is_valid_id` | `check_id`, `is_valid_id` |
+| `sources`, `source_info` | `sources`, `source_info` |
+| `report`, `Report.repair` | `report_id`, `repair_id` |
+| `pull` | `biobouncer_pull` |
+| `snapshots` | `biobouncer_snapshots` |
+| `cache_dir` | `biobouncer_cache_dir` |
+
+The pages below are the Python documentation. Read a Python function name through
+the table above to get its R equivalent; the arguments and the verdict are the
+same.
+
+---
+
+<!-- source: pkg-py/docs/index.md (https://www.samuelbharti.com/biobouncer/py/) -->
+
+# biobouncer
+
+biobouncer validates biological identifiers and inputs. It answers one question,
+"is this a valid identifier?", with the same verdict in Python and R. The R
+package has its [own documentation site](https://www.samuelbharti.com/biobouncer/r/).
+
+## Install
+
+```bash
+pip install biobouncer
+
+# development version from the monorepo subdirectory
+pip install "git+https://github.com/samuelbharti/biobouncer.git#subdirectory=pkg-py"
+```
+
+The framework adapters (pandera, pydantic) are an optional extra, as are the
+Great Expectations and narwhals adapters:
+
+```bash
+pip install "biobouncer[adapters]"   # pandera, pydantic
+pip install "biobouncer[gx]"         # Great Expectations
+pip install "biobouncer[narwhals]"   # narwhals (pandas, polars, pyarrow)
+```
+
+## A first check
+
+`pattern` mode is offline and deterministic. It checks the shape of an
+identifier against the source's pattern. It does not check that the identifier
+exists.
+
+```python
+import biobouncer as bg
+
+bg.is_valid_id("MONDO:0005148", source_db="mondo")
+# True
+
+bg.is_valid_id(["P04637", "p04637"], source_db="uniprot")
+# [True, False]
+```
+
+`is_valid_id` returns a single `bool` for a scalar input and a `list[bool]` for
+a list. It preserves the order and length of the input.
+
+## Rich results
+
+`check_id` returns a list of `Result` records, one per input, in the same order.
+Each record carries enough context to be self-describing: the verdict, the
+canonical form of a valid input, and a best-effort correction for an invalid but
+mappable one.
+
+```python
+for r in bg.check_id(["MONDO:0005148", "mondo:5148", "GO:0006915"], source_db="mondo"):
+    print(r.input, r.valid, r.normalized, r.suggestion)
+# MONDO:0005148 True  MONDO:0005148 None
+# mondo:5148    False None          MONDO:0005148
+# GO:0006915    False None          None
+```
+
+`mondo:5148` fails the pattern because of its lowercase prefix and short number,
+but it is mappable, so `suggestion` holds the canonical form. `GO:0006915` is a
+well-formed identifier from a different source, so it is invalid here with no
+suggestion.
+
+## What can be checked
+
+`sources()` lists the source keys biobouncer knows about.
+
+```python
+bg.sources()
+# ['bto', 'chebi', 'chembl', 'cl', 'clinvar', 'complexportal', ...]
+```
+
+Read on in the [guide](https://www.samuelbharti.com/biobouncer/py/guide/) for the checking modes, species and version
+awareness, HGVS syntax, and the framework adapters, or jump to the
+[API reference](https://www.samuelbharti.com/biobouncer/py/reference/).
+
+---
+
+<!-- source: pkg-py/docs/guide.md (https://www.samuelbharti.com/biobouncer/py/guide/) -->
+
+# Guide
+
+This guide covers the checking modes, species and version awareness, HGVS
+syntax, and the validation framework adapters. Every example that does not call
+a network runs offline.
+
+## The checking modes
+
+`how` selects how strict and how online the check is.
+
+| Mode        | What it answers                                   | Network |
+| ----------- | ------------------------------------------------- | :-----: |
+| `pattern`   | Is the string well-formed for this source?        |   no    |
+| `cache`     | Does the id exist in a pinned local snapshot?     |   no    |
+| `remote`    | Does the id exist right now in the source?        |   yes   |
+| `existence` | Snapshot when available, otherwise remote.        | maybe   |
+
+### pattern
+
+The default. Offline shape check, no reference data.
+
+```python
+import biobouncer as bg
+
+bg.is_valid_id("MONDO:0005148", source_db="mondo", how="pattern")
+# True
+```
+
+### cache
+
+`cache` mode checks existence against a pinned, offline snapshot. A small
+`sample` snapshot ships with the package, so the example below needs no
+download. A real analysis pins a dated snapshot instead.
+
+```python
+for r in bg.check_id(
+    ["MONDO:0005148", "MONDO:9999999"],
+    source_db="mondo",
+    how="cache",
+    version="sample",
+):
+    print(r.input, r.valid)
+# MONDO:0005148 True
+# MONDO:9999999 False
+```
+
+`MONDO:9999999` is well-formed, so it passes `pattern`, but it is not in the
+snapshot, so it fails `cache`. Choosing the mode is choosing how strict the
+check is. Snapshots are managed with `pull`, `snapshots`, and `cache_dir`.
+
+### remote
+
+`remote` mode checks existence live against a source API. It needs a network, so
+it is not run here, but the call looks like this:
+
+```python
+bg.check_id("ENSG00000139618", source_db="ensembl", how="remote")
+```
+
+A network failure in `remote` mode raises `RemoteError`. It never returns a
+silent `False`, so a failed lookup cannot be mistaken for an absent identifier.
+Every extrinsic result records the snapshot version or the timestamp that
+produced it.
+
+Pass `on_error="indeterminate"` to keep going when one id is unreachable: that id
+comes back `valid=None` with the reason in its `error` field, and the rest of the
+column is still checked.
+
+```python
+bg.check_id(genes, source_db="hgnc", how="remote", on_error="indeterminate")
+```
+
+Checking a large column live is faster with several requests in flight. Set
+`BIOBOUNCER_REMOTE_WORKERS` to the number of concurrent lookups (the default is `1`,
+sequential). Concurrency never changes a verdict, only the order the network is
+touched, and per-host politeness still applies: NCBI E-utilities are held to
+three requests a second, or ten when `NCBI_API_KEY` is set.
+
+## Species and version awareness
+
+Some sources are species-aware. For Ensembl the species is encoded in the id, so
+`pattern` mode can reject a well-formed id that belongs to the wrong species.
+
+```python
+# ENSMUSG is a mouse gene id.
+bg.is_valid_id("ENSMUSG00000059552", source_db="ensembl", species="mus_musculus")
+# True
+bg.is_valid_id("ENSMUSG00000059552", source_db="ensembl", species="homo_sapiens")
+# False
+```
+
+`species` accepts a name such as `"homo_sapiens"` or an NCBI taxon id such as
+`9606`. A source that is not species-aware ignores the argument.
+
+## HGVS variant syntax
+
+The `hgvs` source checks the syntax of an HGVS sequence variant name. This is a
+grammar check in `pattern` mode. It confirms the shape of the variant. It does
+not check coordinates or that the variant exists.
+
+```python
+bg.is_valid_id(
+    [
+        "NM_004006.2:c.4375C>T",
+        "NP_003997.1:p.(Gly56Ala)",
+        "NM_004006.2:c.76insG",
+    ],
+    source_db="hgvs",
+)
+# [True, True, False]
+```
+
+The last one is invalid: an insertion must sit between two flanking positions,
+so it needs a range such as `c.76_77insG`. `remote` mode looks a variant up
+against the Mutalyzer normalizer, which goes beyond the offline syntax check.
+
+## Framework adapters
+
+The adapters wrap the core classifier so it plugs into common validation
+frameworks. They never reimplement any checks. Install them with
+`pip install "biobouncer[adapters]"`.
+
+### pandera
+
+`biobouncer.checks.is_id` returns a pandera `Check` for a column of identifiers.
+
+```python
+import pandas as pd
+import pandera.pandas as pa
+from biobouncer.checks import is_id
+
+schema = pa.DataFrameSchema(
+    {
+        "disease_id": pa.Column(str, is_id(source_db="mondo")),
+        "target_id": pa.Column(str, is_id(source_db="ensembl", species="homo_sapiens")),
+    }
+)
+
+df = pd.DataFrame(
+    {"disease_id": ["MONDO:0005148"], "target_id": ["ENSG00000141510"]}
+)
+schema.validate(df)
+```
+
+### pydantic
+
+`biobouncer.types.Id` returns a validating string type. Use it as a field
+annotation, most readably through an alias.
+
+```python
+from pydantic import BaseModel
+from biobouncer.types import Id
+
+MondoId = Id("mondo")
+
+
+class Association(BaseModel):
+    disease: MondoId
+
+
+Association(disease="MONDO:0005148")
+```
+
+A value that is not valid for the source raises a pydantic `ValidationError`.
+
+## Generating test data
+
+`synthesize` builds a labeled "messy column" for any source, so you can exercise a
+validation pipeline without hand-writing test ids:
+
+```python
+import biobouncer as bg
+
+rows = bg.synthesize("mondo")
+# each row has input, category (valid/repairable/invalid/missing), and the
+# pattern-mode valid/normalized/suggestion for that input
+column = [row["input"] for row in rows]
+bg.report(column, "mondo").summary
+```
+
+The column is deterministic and offline, and the R `synthesize_ids()` produces the
+same one. `ec`, `hgvs`, and `hgnc` have no repairable form, so they omit that
+category. Pass `how="cache"` for a snapshot-mode column, where a repairable value
+can be a retired id that maps to its successor.
+
+## Summary
+
+- `pattern` checks shape, `cache` and `remote` check existence, and `existence`
+  uses a snapshot first and remote as a fallback.
+- Results are vectorized and preserve input order and length. Errors are
+  explicit, never a silent `False`.
+- The same inputs give the same verdicts in the R package, which is enforced by
+  a shared conformance corpus.
+
+---
+
+<!-- source: pkg-py/docs/report.md (https://www.samuelbharti.com/biobouncer/py/report/) -->
+
+# Clean a column
+
+The most common job is not "is this one id valid" but "here is a column of ids,
+which ones are wrong, and can you fix the ones you can". `report` does that in one
+call. It runs [`check_id`](https://www.samuelbharti.com/biobouncer/py/reference/#checking-identifiers) over the whole
+column and hands back a `Report` you can turn into a data frame, count, or use to
+substitute the fixable values.
+
+`report` works with a plain list or with a pandas, polars, or pyarrow series. The
+frame and the repaired column come back on the same backend you passed in.
+
+## A quick pass over a column
+
+```python
+import biobouncer as bg
+
+genes = ["TP53", "MLL", "notagene", None]
+rep = bg.report(genes, "hgnc", how="cache")
+rep
+# <biobouncer report on 'hgnc' (cache mode): 1 valid, 1 repairable, 1 invalid, 1 missing of 4>
+```
+
+`MLL` is a withdrawn symbol, so it is invalid but repairable: its successor is
+`KMT2A`. `notagene` is invalid with no fix. `None` is missing, not a failure.
+
+## The verdict table
+
+```python
+rep.to_frame()
+#       input  valid normalized suggestion error
+# 0      TP53   True       TP53        NaN  None
+# 1       MLL  False        NaN      KMT2A  None
+# 2  notagene  False        NaN        NaN  None
+# 3       NaN   None        NaN        NaN  None
+```
+
+## Repair what you can
+
+`repair` substitutes only the invalid-but-suggestable values. Valid values,
+unmappable values, and missing values are left as they were, so the column keeps
+its length and order.
+
+```python
+rep.repair()
+# ['TP53', 'KMT2A', 'notagene', None]
+```
+
+With a dataframe, repair the column in place:
+
+```python
+import pandas as pd
+
+df = pd.DataFrame({"gene": ["TP53", "MLL", "notagene"]})
+df["gene"] = bg.report(df["gene"], "hgnc", how="cache").repair()
+```
+
+## Counts without a data frame
+
+`report` never requires a data-frame library for the verdicts themselves. Pass a
+list and read `.results` (a list of `Result`) or `.summary` (the counts):
+
+```python
+rep = bg.report(genes, "hgnc", how="cache")
+rep.summary
+# {'total': 4, 'valid': 1, 'invalid': 2, 'repairable': 1, 'missing': 1, 'indeterminate': 0}
+```
+
+`to_frame` and repairing a native series use narwhals; install it with
+`pip install "biobouncer[narwhals]"`.
+
+## Report or enforce?
+
+`report` is for inspecting and cleaning. To *enforce* validity inside a
+framework (pandera, Great Expectations, pydantic, shiny), use the
+[adapters](https://www.samuelbharti.com/biobouncer/py/guide/) instead: they raise or flag rather than hand you a table.
+
+---
+
+<!-- source: pkg-py/docs/examples.md (https://www.samuelbharti.com/biobouncer/py/examples/) -->
+
+# Examples
+
+Practical recipes. Each one is a short, real task. For the full list of sources
+and a valid example id for each, see the [sources cookbook](https://www.samuelbharti.com/biobouncer/py/sources/).
+
+## Clean a column of identifiers
+
+Split a list into the ones that pass and the ones that do not, keeping order.
+
+```python
+import biobouncer as bg
+
+ids = ["MONDO:0005148", "mondo:5148", "MONDO:0018076", "banana"]
+verdicts = bg.is_valid_id(ids, source_db="mondo")
+
+good = [i for i, ok in zip(ids, verdicts) if ok]
+bad = [i for i, ok in zip(ids, verdicts) if not ok]
+# good -> ['MONDO:0005148', 'MONDO:0018076']
+# bad  -> ['mondo:5148', 'banana']
+```
+
+## Repair what can be repaired
+
+`check_id` returns a `suggestion` for an input that is invalid but mappable, such
+as a lowercase prefix. Use it to fix a column instead of dropping it.
+
+```python
+fixed = []
+for r in bg.check_id(ids, source_db="mondo"):
+    if r.valid:
+        fixed.append(r.normalized)
+    elif r.suggestion is not None:
+        fixed.append(r.suggestion)  # 'mondo:5148' -> 'MONDO:0005148'
+    else:
+        fixed.append(None)          # 'banana' has no repair
+```
+
+## Existence, not just shape
+
+`pattern` mode only checks the shape. To check that an id actually exists, use a
+pinned snapshot (`cache`) or the live source (`remote`).
+
+```python
+# offline, against the sample snapshot that ships with the package
+bg.is_valid_id("MONDO:9999999", source_db="mondo", how="cache", version="sample")
+# False: well-formed, but not a real term
+
+# live, against the source API (needs a network)
+bg.is_valid_id("ENSG00000139618", source_db="ensembl", how="remote")
+```
+
+A failed `remote` lookup raises `bg.RemoteError`. It never returns a silent
+`False`, so a network problem cannot be mistaken for an absent id.
+
+## Species context
+
+For species-aware sources, pass `species`. For Ensembl the species is encoded in
+the id, so even `pattern` mode can reject a well-formed id from the wrong
+species.
+
+```python
+bg.is_valid_id("ENSMUSG00000059552", source_db="ensembl", species="mus_musculus")
+# True
+bg.is_valid_id("ENSMUSG00000059552", source_db="ensembl", species="homo_sapiens")
+# False
+```
+
+## Validate a DataFrame with pandera
+
+`biobouncer.checks.is_id` returns a pandera `Check`, so a whole column is validated
+against a source. Install the adapters with `pip install "biobouncer[adapters]"`.
+
+```python
+import pandas as pd
+import pandera.pandas as pa
+from biobouncer.checks import is_id
+
+schema = pa.DataFrameSchema(
+    {
+        "disease": pa.Column(str, is_id(source_db="mondo")),
+        "gene": pa.Column(str, is_id(source_db="ensembl", species="homo_sapiens")),
+    }
+)
+
+df = pd.DataFrame(
+    {"disease": ["MONDO:0005148"], "gene": ["ENSG00000139618"]}
+)
+schema.validate(df)  # raises pandera.errors.SchemaError on a bad value
+```
+
+## Validate a model with pydantic
+
+`biobouncer.types.Id` returns a validating string type for a field.
+
+```python
+from pydantic import BaseModel
+from biobouncer.types import Id
+
+MondoId = Id("mondo")
+EnsemblId = Id("ensembl", species="homo_sapiens")
+
+
+class Association(BaseModel):
+    disease: MondoId
+    gene: EnsemblId
+
+
+Association(disease="MONDO:0005148", gene="ENSG00000139618")
+# a bad value raises pydantic.ValidationError
+```
+
+## Validate a batch with Great Expectations
+
+`biobouncer.gx.ExpectColumnValuesToBeValidId` is a Great Expectations column-map
+expectation. Install it with `pip install "biobouncer[gx]"`.
+
+```python
+import pandas as pd
+import great_expectations as gx
+from biobouncer.gx import ExpectColumnValuesToBeValidId
+
+context = gx.get_context(mode="ephemeral")
+df = pd.DataFrame({"term": ["MONDO:0005148", "mondo:5148", "MONDO:0018076"]})
+batch = (
+    context.data_sources.add_pandas("p")
+    .add_dataframe_asset("a")
+    .add_batch_definition_whole_dataframe("b")
+    .get_batch(batch_parameters={"dataframe": df})
+)
+
+result = batch.validate(
+    ExpectColumnValuesToBeValidId(column="term", source_db="mondo")
+)
+result.success  # False: one of the three values is not valid
+```
+
+It takes `source_db`, `how`, `species`, and the usual `mostly` tolerance. To pin
+a snapshot `version`, validate with the core API first, since `version` collides
+with a reserved Great Expectations field.
+
+## Validate any dataframe with narwhals
+
+`biobouncer.narwhals.valid_id_mask` validates one column with a single call that
+works the same across pandas, polars, and pyarrow. Install it with
+`pip install "biobouncer[narwhals]"`. It returns a native boolean series: `False`
+marks an invalid identifier, while a missing cell stays `True`, since a missing
+value is not a failed id.
+
+```python
+import polars as pl
+from biobouncer.narwhals import valid_id_mask
+
+df = pl.DataFrame({"term": ["MONDO:0005148", "mondo:5148", None]})
+mask = valid_id_mask(df["term"], "mondo")
+df.filter(~mask)  # the failing rows: just "mondo:5148"
+```
+
+It takes the same `source_db`, `how`, `species`, and `version` as `is_valid_id`.
+
+## Discover sources in code
+
+You never need to hard-code a key or guess an example. `source_info` lists every
+source with a valid example and its supported modes.
+
+```python
+for row in bg.source_info():
+    print(f"{row['key']:15} {row['example']:22} {row['modes']}")
+```
+
+---
+
+<!-- source: pkg-py/docs/cli.md (https://www.samuelbharti.com/biobouncer/py/cli/) -->
+
+# Command line
+
+Installing the Python package puts a `biobouncer` command on your path. It
+validates identifiers from arguments, files, or standard input, and exits
+non-zero when any input is invalid, so it drops straight into shell pipelines
+and CI checks.
+
+```bash
+pip install biobouncer
+biobouncer --version
+```
+
+## Check identifiers
+
+```console
+$ biobouncer check --source mondo MONDO:0005148 mondo:5148 GO:0006915
+ok    MONDO:0005148
+FAIL  mondo:5148  did you mean MONDO:0005148?
+FAIL  GO:0006915
+```
+
+The exit code is `0` when every input is valid, `1` when any input is invalid,
+`2` on a usage error such as an unknown source, and `3` when a remote check
+cannot reach the source API. A remote id that cannot be checked does not sink the
+whole run: it prints as `ERR` with the reason, the ids that could be checked
+still print their verdicts, and the run exits `3`. That makes it usable as a gate:
+
+```bash
+biobouncer check --source mondo --file ids.txt || echo "some ids are invalid"
+```
+
+Read from a file (one id per line, blank lines ignored) or from a pipe:
+
+```bash
+biobouncer check --source mondo --file ids.txt
+cat ids.txt | biobouncer check --source mondo
+```
+
+Pick the checking mode and, where it applies, a species or version:
+
+```bash
+biobouncer check --source ensembl --how remote --species homo_sapiens ENSG00000139618
+```
+
+Remote checks cache each answer. Add `--refresh` to skip the cache and look the
+id up live again.
+
+## Output formats
+
+`--format text` (the default) is human-readable. `--format tsv` and
+`--format json` are for scripts. Add `--quiet` to drop the summary line, and
+`--invalid-only` to print only the failures.
+
+```console
+$ biobouncer check --source uniprot --format tsv -q P04637 p04637
+input   valid   normalized      suggestion      error
+P04637  true    P04637
+p04637  false           P04637
+```
+
+The `error` column and, in the JSON output, an `indeterminate` count carry the
+ids a remote check could not reach.
+
+The JSON output is a versioned envelope: a `schema_version`, a `summary` with the
+counts over the whole batch, and a `results` list with one object per id carrying
+every field, including `version` and `species`.
+
+```bash
+biobouncer check --source mondo --format json mondo:5148 | jq '.results[0].suggestion'
+# "MONDO:0005148"
+```
+
+## Discover sources
+
+`biobouncer sources` lists the keys, and `biobouncer info` shows a valid example and
+the supported modes for each, so you never have to guess.
+
+```console
+$ biobouncer info --source mondo
+key     name                    example         modes                   species_aware
+mondo   MONDO Disease Ontology  MONDO:0005148   pattern,cache,remote    false
+```
+
+See the [sources cookbook](https://www.samuelbharti.com/biobouncer/py/sources/) for the full list.
+
+## Cache snapshots
+
+Cache mode checks an id against a pinned local snapshot. `biobouncer snapshots`
+lists the snapshots you have, both the small bundled samples and any you have
+downloaded, and prints the cache directory they live in.
+
+```console
+$ biobouncer snapshots
+cache dir: /home/you/.cache/biobouncer
+source  version  n_ids  location
+mondo   sample   6      bundled
+```
+
+`biobouncer pull --source mondo` downloads a full snapshot for a source that has a
+builder (the OBO ontologies, or `hgnc` via its complete-set TSV) and writes it to
+the cache directory. A source with no builder, such as `ensembl`, exits `2`.
+
+---
+
+<!-- source: pkg-py/docs/sources.md (https://www.samuelbharti.com/biobouncer/py/sources/) -->
+
+# Sources cookbook
+
+biobouncer checks 46 sources. Each row below gives a valid example id, the
+[checking modes](https://www.samuelbharti.com/biobouncer/py/guide/#the-checking-modes) it supports, and whether it is
+species-aware. To check an id, pass the source key as `source_db`. The call is
+the same for every source:
+
+```python
+import biobouncer as bg
+
+bg.is_valid_id("MONDO:0005148", source_db="mondo")
+# True
+```
+
+The full table is also available in code, so you never have to guess a key or an
+example:
+
+```python
+for row in bg.source_info():
+    print(row["key"], row["example"], row["modes"])
+```
+
+Modes: `pattern` checks the shape offline, `cache` checks existence against a
+pinned snapshot, and `remote` checks existence against the live source. See the
+[guide](https://www.samuelbharti.com/biobouncer/py/guide/) for details.
+
+## Diseases
+
+| Source | `source_db` | Example | Modes | Species-aware |
+|---|---|---|---|---|
+| MONDO Disease Ontology. Cross-referenced disease terms from the Monarch Initiative. | `mondo` | `MONDO:0005148` | pattern, cache, remote | no |
+| Human Disease Ontology. Human diseases, mapped to other disease vocabularies. | `doid` | `DOID:9352` | pattern, cache, remote | no |
+| Experimental Factor Ontology. Diseases, traits, and measurements from the GWAS Catalog and Open Targets. | `efo` | `EFO:0000400` | pattern, cache, remote | no |
+| Orphanet. Rare diseases. | `orphanet` | `ORPHA:558` | pattern, remote | no |
+| NCI Thesaurus. Cancer and biomedical concepts. | `ncit` | `NCIT:C3224` | pattern, remote | no |
+
+Check any id in the group the same way:
+
+```python
+bg.is_valid_id("MONDO:0005148", source_db="mondo")
+```
+
+## Phenotypes and traits
+
+| Source | `source_db` | Example | Modes | Species-aware |
+|---|---|---|---|---|
+| Human Phenotype Ontology. Human phenotypic abnormalities used in clinical genetics. | `hp` | `HP:0001250` | pattern, cache, remote | no |
+| Mammalian Phenotype Ontology. Mammalian phenotypes, common in mouse studies. | `mp` | `MP:0001262` | pattern, cache, remote | no |
+| Phenotype And Trait Ontology. Qualities and traits, often composed with other ontologies. | `pato` | `PATO:0000001` | pattern, cache, remote | no |
+
+Check any id in the group the same way:
+
+```python
+bg.is_valid_id("HP:0001250", source_db="hp")
+```
+
+## Anatomy, cells, and tissues
+
+| Source | `source_db` | Example | Modes | Species-aware |
+|---|---|---|---|---|
+| Uberon. Cross-species anatomy. | `uberon` | `UBERON:0002107` | pattern, cache, remote | no |
+| Cell Ontology. Cell types. | `cl` | `CL:0000236` | pattern, cache, remote | no |
+| BRENDA Tissue Ontology. Tissues and cell lines from BRENDA. | `bto` | `BTO:0000759` | pattern, cache, remote | no |
+
+Check any id in the group the same way:
+
+```python
+bg.is_valid_id("UBERON:0002107", source_db="uberon")
+```
+
+## Organisms and taxa
+
+| Source | `source_db` | Example | Modes | Species-aware |
+|---|---|---|---|---|
+| NCBI Taxonomy. Organisms and other taxa. | `ncbitaxon` | `NCBITaxon:9606` | pattern, remote | no |
+
+Check any id in the group the same way:
+
+```python
+bg.is_valid_id("NCBITaxon:9606", source_db="ncbitaxon")
+```
+
+## Genes
+
+| Source | `source_db` | Example | Modes | Species-aware |
+|---|---|---|---|---|
+| HGNC gene symbols. Approved symbols. A withdrawn symbol maps to its successor. | `hgnc` | `TP53` | pattern, cache, remote | no |
+| Ensembl. Ensembl gene, transcript, and protein ids. Species-aware. | `ensembl` | `ENSG00000139618` | pattern, remote | yes |
+| Open Targets. A human Ensembl gene id checked against the Open Targets Platform for target coverage. | `opentargets` | `ENSG00000139618` | pattern, remote | no |
+| RefSeq. NCBI RefSeq accessions, with an optional version. | `refseq` | `NM_000546.6` | pattern, remote | no |
+
+Check any id in the group the same way:
+
+```python
+bg.is_valid_id("TP53", source_db="hgnc")
+```
+
+## Variants
+
+| Source | `source_db` | Example | Modes | Species-aware |
+|---|---|---|---|---|
+| dbSNP. dbSNP reference SNP ids. | `dbsnp` | `rs7412` | pattern, remote | no |
+| HGVS. HGVS sequence variant syntax, such as a coding substitution. | `hgvs` | `NM_004006.2:c.4375C>T` | pattern, remote | no |
+| ClinVar. ClinVar variation, record, and submission accessions. | `clinvar` | `VCV000012345` | pattern, remote | no |
+| COSMIC. COSMIC somatic mutation ids. | `cosmic` | `COSM476` | pattern | no |
+
+Check any id in the group the same way:
+
+```python
+bg.is_valid_id("rs7412", source_db="dbsnp")
+```
+
+## Proteins and structures
+
+| Source | `source_db` | Example | Modes | Species-aware |
+|---|---|---|---|---|
+| UniProt. UniProt protein accessions. Species-aware. | `uniprot` | `P04637` | pattern, remote | yes |
+| UniParc. UniParc unique sequence identifiers. | `uniparc` | `UPI0000000001` | pattern, remote | no |
+| PDB. Protein Data Bank structures. | `pdb` | `4HHB` | pattern, remote | no |
+| Complex Portal. Macromolecular complexes. | `complexportal` | `CPX-2158` | pattern, remote | no |
+
+Check any id in the group the same way:
+
+```python
+bg.is_valid_id("P04637", source_db="uniprot")
+```
+
+## Protein families and domains
+
+| Source | `source_db` | Example | Modes | Species-aware |
+|---|---|---|---|---|
+| Pfam. Protein families and domains. | `pfam` | `PF00001` | pattern, remote | no |
+| InterPro. Integrated protein families, domains, and sites. | `interpro` | `IPR000001` | pattern, remote | no |
+| PROSITE. Protein patterns and profiles. | `prosite` | `PS00001` | pattern, remote | no |
+| SMART. Protein domain accessions. | `smart` | `SM00248` | pattern, remote | no |
+| PANTHER. Protein family accessions. | `panther` | `PTHR11003` | pattern, remote | no |
+| CDD. Conserved Domain Database models. | `cdd` | `cd00029` | pattern, remote | no |
+| PRINTS. Protein fingerprint accessions. | `prints` | `PR00001` | pattern, remote | no |
+| NCBIfam. NCBIfam and TIGRFAM models. | `ncbifam` | `TIGR00001` | pattern, remote | no |
+
+Check any id in the group the same way:
+
+```python
+bg.is_valid_id("PF00001", source_db="pfam")
+```
+
+## Function, sequence, and enzymes
+
+| Source | `source_db` | Example | Modes | Species-aware |
+|---|---|---|---|---|
+| Gene Ontology. Gene Ontology terms for function, process, and component. | `go` | `GO:0006915` | pattern, cache, remote | no |
+| Sequence Ontology. Sequence Ontology features. | `so` | `SO:0000704` | pattern, cache, remote | no |
+| EC number. Enzyme Commission numbers. | `ec` | `1.1.1.1` | pattern | no |
+| Evidence and Conclusion Ontology. Evidence types for annotations. | `eco` | `ECO:0000269` | pattern, remote | no |
+
+Check any id in the group the same way:
+
+```python
+bg.is_valid_id("GO:0006915", source_db="go")
+```
+
+## Chemicals and drugs
+
+| Source | `source_db` | Example | Modes | Species-aware |
+|---|---|---|---|---|
+| ChEBI. Chemical entities of biological interest. | `chebi` | `CHEBI:15377` | pattern, cache, remote | no |
+| ChEMBL. Bioactive molecules. | `chembl` | `CHEMBL25` | pattern, remote | no |
+| DrugBank. Drug accessions. | `drugbank` | `DB00001` | pattern | no |
+| PharmGKB. Pharmacogenomics accessions. | `pharmgkb` | `PA267` | pattern | no |
+| InChIKey. Hashed chemical structure keys. | `inchikey` | `BSYNRYMUTXBXSQ-UHFFFAOYSA-N` | pattern | no |
+
+Check any id in the group the same way:
+
+```python
+bg.is_valid_id("CHEBI:15377", source_db="chebi")
+```
+
+## Pathways
+
+| Source | `source_db` | Example | Modes | Species-aware |
+|---|---|---|---|---|
+| Reactome. Reactome pathways, reactions, and entities. | `reactome` | `R-HSA-68886` | pattern, remote | no |
+| WikiPathways. Community-curated pathways. | `wikipathways` | `WP554` | pattern, remote | no |
+
+Check any id in the group the same way:
+
+```python
+bg.is_valid_id("R-HSA-68886", source_db="reactome")
+```
+
+## RNA families
+
+| Source | `source_db` | Example | Modes | Species-aware |
+|---|---|---|---|---|
+| Rfam. RNA families. | `rfam` | `RF00001` | pattern, remote | no |
+| miRBase. Mature microRNAs. | `mirbase` | `MIMAT0000001` | pattern, remote | no |
+| miRBase hairpins. MicroRNA hairpin precursors. | `mirbase_hairpin` | `MI0000001` | pattern, remote | no |
+
+Check any id in the group the same way:
+
+```python
+bg.is_valid_id("RF00001", source_db="rfam")
+```
+
+---
+
+## Using biobouncer from an AI agent
+
+Point your agent at this file so it knows the API, then ask it to validate or
+clean a data file. The agent can install biobouncer with the commands above.
+
+Example prompt:
+
+> Read https://www.samuelbharti.com/biobouncer/llms-full.txt. Then use biobouncer in Python to validate and repair
+> the `gene` column of `data.csv` against `hgnc` in cache mode, write the cleaned
+> table to `data_clean.csv`, and preserve the row order.
+
+The everyday job is one call. `report(column, source_db, how="cache")` returns a
+report whose `.repair()` substitutes the fixable values and leaves valid, missing,
+and unmappable ones untouched, preserving order and length. In R the same call is
+`repair_id(column, source_db, how = "cache")`.
