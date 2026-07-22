@@ -101,6 +101,25 @@ that run the same story over the same messy data so you can see both packages
 reach the same answers. They cover all four modes and end with the framework
 adapters. Both run offline.
 
+## Use it with an AI agent
+
+biobouncer publishes its docs in the [llms.txt](https://llmstxt.org) format, so a
+coding agent can read the whole API in one pass:
+
+- [llms.txt](https://www.samuelbharti.com/biobouncer/llms.txt): a short index of
+  links.
+- [llms-full.txt](https://www.samuelbharti.com/biobouncer/llms-full.txt): the full
+  API and usage in one file.
+
+Point your agent (Claude Code, Cursor, and similar) at `llms-full.txt`, then ask
+it to validate or clean a data file. It can install biobouncer with the same `pip`
+or R-universe commands above. For example:
+
+> Read https://www.samuelbharti.com/biobouncer/llms-full.txt. Then use biobouncer
+> in Python to validate and repair the `gene` column of `data.csv` against `hgnc`
+> in cache mode, write the cleaned table to `data_clean.csv`, and preserve the row
+> order.
+
 ## Quickstart
 
 **R**
