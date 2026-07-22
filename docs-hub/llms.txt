@@ -1,0 +1,22 @@
+# biobouncer
+
+> A gate for biological inputs. It validates gene symbols, ontology terms,
+> variant formats, and database identifiers across 46 sources, and returns
+> the same verdict in Python and R. Version 0.1.2.
+
+## Documentation
+
+- [Full context for LLMs](https://www.samuelbharti.com/biobouncer/llms-full.txt): the whole API and usage in one file.
+- [Overview](https://www.samuelbharti.com/biobouncer/): what biobouncer is, with install and a first example.
+- [Python documentation](https://www.samuelbharti.com/biobouncer/py/): guide, column cleaning, examples, CLI, and API reference.
+- [R documentation](https://www.samuelbharti.com/biobouncer/r/): reference and vignettes.
+
+## Use it
+
+- [Install for Python](https://pypi.org/project/biobouncer/): `pip install biobouncer`.
+- [Install for R](https://samuelbharti.r-universe.dev): `install.packages("biobouncer", repos = "https://samuelbharti.r-universe.dev")`.
+- [Demo notebooks](https://github.com/samuelbharti/biobouncer/tree/main/demo): the same story in Python and R over messy data.
+
+## Source
+
+- [Repository](https://github.com/samuelbharti/biobouncer): source code, issues, and the shared cross-language spec.

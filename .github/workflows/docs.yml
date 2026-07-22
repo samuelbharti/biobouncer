@@ -71,6 +71,13 @@ jobs:
         with:
           python-version: "3.12"
 
+      # llms-full.txt is generated from these docs pages, so a page edited
+      # without regenerating would ship a stale copy. The generator is stdlib
+      # only, so it runs with no project sync.
+      - name: Check llms.txt and llms-full.txt are current
+        working-directory: ${{ github.workspace }}
+        run: uv run --no-project python tools/gen_llms.py --check
+
       - name: Build mkdocs site
         run: uv run --group docs mkdocs build --strict --site-dir site
 
@@ -103,6 +110,8 @@ jobs:
         run: |
           mkdir -p _site
           cp docs-hub/index.html _site/index.html
+          cp docs-hub/llms.txt _site/llms.txt
+          cp docs-hub/llms-full.txt _site/llms-full.txt
           cp -r docs-hub/assets _site/assets
           touch _site/.nojekyll
 
