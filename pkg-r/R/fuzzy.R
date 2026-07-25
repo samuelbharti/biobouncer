@@ -5,8 +5,8 @@
 
 # The nearest id to s within the source's fuzzy edit distance, or NA. Only a
 # candidate whose length is within the distance can match, so the search is
-# limited to those. adist() computes the same unit-cost Levenshtein as the Python
-# side, and radix order breaks ties by code point.
+# limited to those. utils::adist() computes the same unit-cost Levenshtein as the
+# Python side, and radix order breaks ties by code point.
 #
 # When the source sets suggest.case_insensitive, distance is measured between
 # lowercase forms so a difference in case costs no edits, matching the
@@ -29,7 +29,7 @@
   ignore_case <- isTRUE(source[["suggest"]]$case_insensitive)
   probe <- if (ignore_case) tolower(s) else s
   target <- if (ignore_case) tolower(cand) else cand
-  d <- as.integer(adist(probe, target))
+  d <- as.integer(utils::adist(probe, target))
   keep <- !is.na(d) & d <= k
   if (!any(keep)) {
     return(NA_character_)
