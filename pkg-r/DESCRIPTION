@@ -2,11 +2,13 @@ Package: biobouncer
 Title: Validate Biological Identifiers and Inputs
 Version: 0.1.2
 Authors@R:
-    person("Samuel", "Bharti", , "samuelbharti.io@gmail.com", role = c("aut", "cre"))
+    person("Samuel", "Bharti", , "samuelbharti.io@gmail.com",
+           role = c("aut", "cre", "cph"),
+           comment = c(ORCID = "0000-0003-4190-7058"))
 Description: A gate for biological inputs. Validate gene symbols, ontology
     terms, variant formats, and database identifiers through one small API,
     using offline pattern and cache checks or live remote checks. Results are
-    designed to match the companion Python package for the same inputs.
+    designed to match the companion 'Python' package for the same inputs.
 License: MIT + file LICENSE
 URL: https://github.com/samuelbharti/biobouncer, https://www.samuelbharti.com/biobouncer/r/
 BugReports: https://github.com/samuelbharti/biobouncer/issues
