@@ -427,6 +427,11 @@ biobouncer_snapshots <- function() {
 #' @param quiet Suppress progress messages.
 #' @return The path to the written snapshot, invisibly.
 #' @seealso [biobouncer_snapshots()], [check_id()].
+#' @examples
+#' \dontrun{
+#' # Downloads a full snapshot into the cache directory (needs a network).
+#' biobouncer_pull("mondo")
+#' }
 #' @export
 biobouncer_pull <- function(source_db, version = NULL, quiet = FALSE) {
   source <- .get_source(source_db)

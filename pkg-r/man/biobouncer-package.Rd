@@ -6,7 +6,9 @@
 \alias{biobouncer-package}
 \title{biobouncer: Validate Biological Identifiers and Inputs}
 \description{
-A gate for biological inputs. Validate gene symbols, ontology terms, variant formats, and database identifiers through one small API, using offline pattern and cache checks or live remote checks. Results are designed to match the companion Python package for the same inputs.
+\if{html}{\figure{logo.svg}{options: style='float: right' alt='logo' width='120'}}
+
+Gene symbols, ontology terms, variant formats, and database accessions are validated through one small application programming interface (API), either offline against identifier patterns and bundled snapshots or live against a source web service. Results are designed to match those of the companion 'Python' package for the same inputs. Input order and length are preserved, and errors are reported explicitly rather than as a silent failure.
 }
 \seealso{
 Useful links:
@@ -18,7 +20,12 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: Samuel Bharti \email{samuelbharti.io@gmail.com}
+\strong{Maintainer}: Samuel Bharti \email{samuelbharti.io@gmail.com} (\href{https://orcid.org/0000-0003-4190-7058}{ORCID}) [copyright holder]
+
+Authors:
+\itemize{
+  \item Samuel Bharti \email{samuelbharti.io@gmail.com} (\href{https://orcid.org/0000-0003-4190-7058}{ORCID}) [copyright holder]
+}
 
 }
 \keyword{internal}

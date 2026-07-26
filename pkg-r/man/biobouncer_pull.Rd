@@ -24,6 +24,12 @@ retired-id map, when the builder produces one, to the matching
 \verb{<version>.retired.tsv} sidecar. An OBO version defaults to the ontology's own
 data-version; an HGNC version defaults to the source's \code{default_version}.
 }
+\examples{
+\dontrun{
+# Downloads a full snapshot into the cache directory (needs a network).
+biobouncer_pull("mondo")
+}
+}
 \seealso{
 \code{\link[=biobouncer_snapshots]{biobouncer_snapshots()}}, \code{\link[=check_id]{check_id()}}.
 }
