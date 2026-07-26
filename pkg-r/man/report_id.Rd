@@ -21,7 +21,8 @@ report_id(
 \method{print}{biobouncer_report}(x, ...)
 }
 \arguments{
-\item{x}{A \code{biobouncer_report}, as returned by \code{\link[=report_id]{report_id()}}.}
+\item{x}{A column of identifiers for \code{report_id()}, or a \code{biobouncer_report}
+for the \code{print()} method.}
 
 \item{source_db}{Source key, for example \code{"mondo"}. See \code{\link[=sources]{sources()}}.}
 

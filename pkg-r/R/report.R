@@ -13,6 +13,8 @@
 #' validity inside a framework, reach for the adapters such as [id_predicate()].
 #'
 #' @inheritParams check_id
+#' @param x A column of identifiers for `report_id()`, or a `biobouncer_report`
+#'   for the `print()` method.
 #' @return A [tibble][tibble::tibble], as returned by [check_id()], with the extra
 #'   class `biobouncer_report`. Calling `summary()` on it returns a one-row tibble of
 #'   counts.
@@ -112,7 +114,6 @@ summary.biobouncer_report <- function(object, ...) {
   )
 }
 
-#' @param x A `biobouncer_report`, as returned by [report_id()].
 #' @rdname report_id
 #' @export
 print.biobouncer_report <- function(x, ...) {
