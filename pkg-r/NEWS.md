@@ -1,3 +1,9 @@
+# biobouncer 0.1.3
+
+* First CRAN submission. The maintainer ORCID and the copyright holder are now
+  recorded in the package metadata. An internal helper calls `utils::adist()`
+  through its namespace. There is no change to behavior.
+
 # biobouncer 0.1.2
 
 * A lowercase gene symbol now suggests the right gene. `hgnc` suggestions in

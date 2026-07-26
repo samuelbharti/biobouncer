@@ -1,20 +1,22 @@
 Package: biobouncer
 Title: Validate Biological Identifiers and Inputs
-Version: 0.1.2
+Version: 0.1.3
 Authors@R:
     person("Samuel", "Bharti", , "samuelbharti.io@gmail.com",
            role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0003-4190-7058"))
-Description: A gate for biological inputs. Validate gene symbols, ontology
-    terms, variant formats, and database identifiers through one small API,
-    using offline pattern and cache checks or live remote checks. Results are
-    designed to match the companion 'Python' package for the same inputs.
+Description: Gene symbols, ontology terms, variant formats, and database
+    accessions are validated through one small application programming
+    interface (API), either offline against identifier patterns and bundled
+    snapshots or live against a source web service. Results are designed to
+    match those of the companion 'Python' package for the same inputs. Input
+    order and length are preserved, and errors are reported explicitly rather
+    than as a silent failure.
 License: MIT + file LICENSE
 URL: https://github.com/samuelbharti/biobouncer, https://www.samuelbharti.com/biobouncer/r/
 BugReports: https://github.com/samuelbharti/biobouncer/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Depends:
     R (>= 4.0)
 Imports:
@@ -33,3 +35,4 @@ Suggests:
     withr
 Config/testthat/edition: 3
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0
