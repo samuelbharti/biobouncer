@@ -1,0 +1,19 @@
+key: gnomad
+name: gnomAD variant
+description: gnomAD-style genomic variant coordinates (chrom-pos-ref-alt).
+# A dash-delimited coordinate, chromosome-position-reference-alternate, for
+# example 1-55516888-G-A. This is the key most pipelines use once a variant's
+# identity is resolved, and the form a VCF row reduces to. An optional lowercase
+# chr prefix is accepted. Both alleles are required, so an empty reference or
+# alternate is rejected. Pattern mode checks the coordinate shape only, not that
+# the variant exists or which genome build it refers to. Alleles are matched
+# uppercase; a lowercase allele is suggested in uppercase.
+pattern: '(?:chr)?(?:[1-9]|1[0-9]|2[0-2]|X|Y|MT?)-[0-9]+-[ACGTN]+-[ACGTN]+'
+example: '1-55516888-G-A'
+species_aware: false
+version_aware: false
+normalize:
+  case: upper
+provenance:
+  pattern_source: gnomad
+  homepage: https://gnomad.broadinstitute.org

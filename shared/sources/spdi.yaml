@@ -1,0 +1,17 @@
+key: spdi
+name: SPDI
+description: NCBI SPDI variant notation (sequence:position:deletion:insertion).
+# A colon-delimited variant, sequence-position-deletion-insertion, for example
+# NC_000001.11:55516887:G:A. The sequence is a RefSeq accession and the position
+# is 0-based. The deleted field is a nucleotide sequence or a length, and either
+# the deleted or the inserted field may be empty. This validator checks syntax
+# only, not that the variant exists. A lowercase input is suggested in uppercase.
+pattern: '[A-Z]{2}_[0-9]+(?:\.[0-9]+)?:[0-9]+:(?:[ACGTN]*|[0-9]+):[ACGTN]*'
+example: 'NC_000001.11:55516887:G:A'
+species_aware: false
+version_aware: false
+normalize:
+  case: upper
+provenance:
+  pattern_source: ncbi-spdi
+  homepage: https://www.ncbi.nlm.nih.gov/variation/notation/
