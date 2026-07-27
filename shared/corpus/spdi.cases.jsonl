@@ -1,0 +1,9 @@
+{"input": "NC_000001.11:55516887:G:A", "source_db": "spdi", "how": "pattern", "expect": {"valid": true, "normalized": "NC_000001.11:55516887:G:A"}, "note": "a substitution in SPDI notation"}
+{"input": "NC_000001.11:55516887:1:", "source_db": "spdi", "how": "pattern", "expect": {"valid": true, "normalized": "NC_000001.11:55516887:1:"}, "note": "a deletion given as a length, empty insertion"}
+{"input": "NC_000001.11:55516887::A", "source_db": "spdi", "how": "pattern", "expect": {"valid": true, "normalized": "NC_000001.11:55516887::A"}, "note": "a pure insertion, empty deletion"}
+{"input": "NM_004006:100:C:T", "source_db": "spdi", "how": "pattern", "expect": {"valid": true, "normalized": "NM_004006:100:C:T"}, "note": "a RefSeq accession without a version"}
+{"input": "nc_000001.11:55516887:g:a", "source_db": "spdi", "how": "pattern", "expect": {"valid": false, "suggestion": "NC_000001.11:55516887:G:A"}, "note": "a lowercase input is suggestible to uppercase"}
+{"input": "NC_000001.11:abc:G:A", "source_db": "spdi", "how": "pattern", "expect": {"valid": false}, "note": "the position must be numeric"}
+{"input": "NC_000001.11:55516887:G", "source_db": "spdi", "how": "pattern", "expect": {"valid": false}, "note": "a missing field, only three parts"}
+{"input": "55516887:G:A", "source_db": "spdi", "how": "pattern", "expect": {"valid": false}, "note": "the sequence accession is required"}
+{"input": "NC_000001.11:55516887:G:Z", "source_db": "spdi", "how": "pattern", "expect": {"valid": false}, "note": "an inserted base outside ACGTN is rejected"}

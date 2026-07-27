@@ -1,0 +1,13 @@
+{"input": "1-55516888-G-A", "source_db": "gnomad", "how": "pattern", "expect": {"valid": true, "normalized": "1-55516888-G-A"}, "note": "a single-base substitution"}
+{"input": "X-149481232-TG-T", "source_db": "gnomad", "how": "pattern", "expect": {"valid": true, "normalized": "X-149481232-TG-T"}, "note": "an indel on the X chromosome"}
+{"input": "MT-750-G-A", "source_db": "gnomad", "how": "pattern", "expect": {"valid": true, "normalized": "MT-750-G-A"}, "note": "a mitochondrial variant, MT accepted"}
+{"input": "chr1-55516888-G-A", "source_db": "gnomad", "how": "pattern", "expect": {"valid": true, "normalized": "chr1-55516888-G-A"}, "note": "an optional chr prefix is accepted"}
+{"input": "1-55516888-N-A", "source_db": "gnomad", "how": "pattern", "expect": {"valid": true, "normalized": "1-55516888-N-A"}, "note": "N is allowed in an allele"}
+{"input": "1-55516888-g-a", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false, "suggestion": "1-55516888-G-A"}, "note": "lowercase alleles are suggestible to uppercase"}
+{"input": "7-117559594-CTT-", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false}, "note": "an empty alternate allele is rejected"}
+{"input": "1-55516888--A", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false}, "note": "an empty reference allele is rejected"}
+{"input": "1-ABC-G-A", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false}, "note": "the position must be numeric"}
+{"input": "1-55516888-G-Z", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false}, "note": "an allele outside ACGTN is rejected"}
+{"input": "1-55516888-G", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false}, "note": "a missing field, only three parts"}
+{"input": "23-100-G-A", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false}, "note": "chromosome 23 is out of range"}
+{"input": "0-100-G-A", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false}, "note": "chromosome 0 does not exist"}

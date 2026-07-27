@@ -1,0 +1,5 @@
+{"input": "1-55516888-G-A", "source_db": "gnomad", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "1-55516888-G-A", "suggestion": null}}
+{"input": "1-55516888-g-a", "source_db": "gnomad", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "1-55516888-G-A"}}
+{"input": "1-55516888-G-A!", "source_db": "gnomad", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "gnomad", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "1-55516889-G-A", "source_db": "gnomad", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "1-55516889-G-A", "suggestion": null}}

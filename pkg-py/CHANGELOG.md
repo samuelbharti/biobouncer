@@ -3,6 +3,17 @@
 All notable changes to the Python package are recorded here. The R package keeps
 a matching changelog in `pkg-r/NEWS.md`; the two packages share one version.
 
+## Unreleased
+
+### Added
+
+- Two pattern sources for genomic variant coordinates. `gnomad` validates a
+  gnomAD-style `chrom-pos-ref-alt` string, such as `1-55516888-G-A`, with an
+  optional `chr` prefix. `spdi` validates NCBI SPDI notation, such as
+  `NC_000001.11:55516887:G:A`. Both check the coordinate shape offline in
+  `pattern` mode, so an empty allele or a malformed field is rejected rather than
+  passed through as valid.
+
 ## 0.1.3
 
 No functional change to the Python package. Released to keep the version aligned
