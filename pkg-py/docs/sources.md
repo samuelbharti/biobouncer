@@ -1,6 +1,6 @@
 # Sources cookbook
 
-biobouncer checks 46 sources. Each row below gives a valid example id, the
+biobouncer checks 48 sources. Each row below gives a valid example id, the
 [checking modes](guide.md#the-checking-modes) it supports, and whether it is
 species-aware. To check an id, pass the source key as `source_db`. The call is
 the same for every source:
@@ -103,6 +103,8 @@ bg.is_valid_id("TP53", source_db="hgnc")
 | HGVS. HGVS sequence variant syntax, such as a coding substitution. | `hgvs` | `NM_004006.2:c.4375C>T` | pattern, remote | no |
 | ClinVar. ClinVar variation, record, and submission accessions. | `clinvar` | `VCV000012345` | pattern, remote | no |
 | COSMIC. COSMIC somatic mutation ids. | `cosmic` | `COSM476` | pattern | no |
+| gnomAD variant. gnomAD-style coordinates, chrom-pos-ref-alt. | `gnomad` | `1-55516888-G-A` | pattern | no |
+| SPDI. NCBI SPDI notation, sequence:position:deletion:insertion. | `spdi` | `NC_000001.11:55516887:G:A` | pattern | no |
 
 Check any id in the group the same way:
 

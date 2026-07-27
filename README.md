@@ -43,7 +43,7 @@ reach those tools.
 ## Key features
 
 - **One entry point, many sources.** `check_id()` / `is_valid_id()` work across
-  46 databases and ontologies (MONDO, EFO, HGNC, Ensembl, RefSeq, dbSNP, UniProt,
+  48 databases and ontologies (MONDO, EFO, HGNC, Ensembl, RefSeq, dbSNP, UniProt,
   ChEBI, GO, HGVS, and more) selected with a single `source_db` argument.
 - **Checking modes.** Choose how strict and how online you want to be:
   `pattern` (offline regex/grammar), `cache` (offline existence against a pinned
@@ -280,7 +280,7 @@ Every `check_id()` row carries enough context to be self-describing:
 
 ## Supported sources (growing)
 
-biobouncer checks 46 sources. A selection is shown below; run `source_info()` or see
+biobouncer checks 48 sources. A selection is shown below; run `source_info()` or see
 the [sources cookbook](https://www.samuelbharti.com/biobouncer/py/sources/) for the
 full list with the modes each source supports.
 
@@ -297,6 +297,7 @@ full list with the modes each source supports.
 | `uniprot`      | UniProt accessions         | `P04637`                   |   ✓     |   -   |   ✓    |      ✓        |
 | `dbsnp`        | dbSNP variants             | `rs7412`                   |   ✓     |   -   |   ✓    |      -        |
 | `hgvs`         | HGVS variant syntax        | `NM_004006.2:c.4375C>T`    |   ✓†    |   -   |   ✓    |      -        |
+| `gnomad`       | gnomAD variant coordinate  | `1-55516888-G-A`           |   ✓     |   -   |   -    |      -        |
 
 `✓` supported · `~` shape check only, a loose token match · `-` not available ·
 `†` syntax only, a single regex (not coordinate-level validation). The Open
