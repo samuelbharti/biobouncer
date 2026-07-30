@@ -1,5 +1,11 @@
 # biobouncer (development version)
 
+* Two new pattern sources for model-organism identifiers. `mgi` validates an
+  MGI accession, such as `MGI:97306`, and `rgd` validates an RGD identifier,
+  such as `RGD:3059`. Both require the prefix, since the bare number the
+  registries record would accept any digits, and both repair a bare id or a
+  lowercase prefix to the canonical form.
+
 * Two new pattern sources for genomic variant coordinates. `gnomad` validates a
   gnomAD-style `chrom-pos-ref-alt` string, such as `1-55516888-G-A`, with an
   optional `chr` prefix. `spdi` validates NCBI SPDI notation, such as
