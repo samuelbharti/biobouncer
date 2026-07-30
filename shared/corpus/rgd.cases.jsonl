@@ -1,0 +1,9 @@
+{"input": "RGD:3059", "source_db": "rgd", "how": "pattern", "expect": {"valid": true, "normalized": "RGD:3059"}, "note": "canonical identifier (Nf1)"}
+{"input": "RGD:1359127", "source_db": "rgd", "how": "pattern", "expect": {"valid": true, "normalized": "RGD:1359127"}, "note": "a seven-digit identifier; ids are not fixed width"}
+{"input": "3059", "source_db": "rgd", "how": "pattern", "expect": {"valid": false, "suggestion": "RGD:3059"}, "note": "a bare local id, as exported tables often carry it"}
+{"input": "rgd:3059", "source_db": "rgd", "how": "pattern", "expect": {"valid": false, "suggestion": "RGD:3059"}, "note": "lowercase prefix"}
+{"input": "RGD:305", "source_db": "rgd", "how": "pattern", "expect": {"valid": false}, "note": "fewer than four digits"}
+{"input": "RGD: 3059", "source_db": "rgd", "how": "pattern", "expect": {"valid": false}, "note": "a space after the colon is not part of an identifier"}
+{"input": "RGD:", "source_db": "rgd", "how": "pattern", "expect": {"valid": false}, "note": "a prefix with no local id"}
+{"input": "MGI:97306", "source_db": "rgd", "how": "pattern", "expect": {"valid": false}, "note": "wrong prefix for this source"}
+{"input": "Nf1", "source_db": "rgd", "how": "pattern", "expect": {"valid": false}, "note": "a gene symbol is not an RGD identifier"}
