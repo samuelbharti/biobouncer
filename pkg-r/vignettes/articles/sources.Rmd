@@ -7,7 +7,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(biobouncer)
 ```
 
-biobouncer checks 48 sources. Each table below gives a valid example id, the
+biobouncer checks 50 sources. Each table below gives a valid example id, the
 checking modes a source supports, and whether it is species-aware. To check an
 id, pass the source key as `source_db`. The call is the same for every source:
 
@@ -90,6 +90,8 @@ is_valid_id("NCBITaxon:9606", source_db = "ncbitaxon")
 | Ensembl. Ensembl gene, transcript, and protein ids. Species-aware. | `ensembl` | `ENSG00000139618` | pattern, remote | yes |
 | Open Targets. A human Ensembl gene id checked against the Open Targets Platform for target coverage. | `opentargets` | `ENSG00000139618` | pattern, remote | no |
 | RefSeq. NCBI RefSeq accessions, with an optional version. | `refseq` | `NM_000546.6` | pattern, remote | no |
+| Mouse Genome Informatics. MGI accessions for mouse genes and other features. | `mgi` | `MGI:97306` | pattern | no |
+| Rat Genome Database. RGD identifiers for rat genes and other objects. | `rgd` | `RGD:3059` | pattern | no |
 
 Check any id in the group the same way:
 

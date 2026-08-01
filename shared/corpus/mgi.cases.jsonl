@@ -1,0 +1,10 @@
+{"input": "MGI:97306", "source_db": "mgi", "how": "pattern", "expect": {"valid": true, "normalized": "MGI:97306"}, "note": "canonical accession (Nf1)"}
+{"input": "MGI:6017782", "source_db": "mgi", "how": "pattern", "expect": {"valid": true, "normalized": "MGI:6017782"}, "note": "a seven-digit accession; ids are not fixed width"}
+{"input": "MGI:87853", "source_db": "mgi", "how": "pattern", "expect": {"valid": true, "normalized": "MGI:87853"}, "note": "a five-digit accession from the early numbering"}
+{"input": "97306", "source_db": "mgi", "how": "pattern", "expect": {"valid": false, "suggestion": "MGI:97306"}, "note": "a bare local id, as exported tables often carry it"}
+{"input": "mgi:97306", "source_db": "mgi", "how": "pattern", "expect": {"valid": false, "suggestion": "MGI:97306"}, "note": "lowercase prefix"}
+{"input": "MGI: 97306", "source_db": "mgi", "how": "pattern", "expect": {"valid": false}, "note": "a space after the colon is not part of an accession"}
+{"input": "MGI:", "source_db": "mgi", "how": "pattern", "expect": {"valid": false}, "note": "a prefix with no local id"}
+{"input": "MGI:97306.1", "source_db": "mgi", "how": "pattern", "expect": {"valid": false}, "note": "MGI accessions carry no version suffix"}
+{"input": "RGD:3059", "source_db": "mgi", "how": "pattern", "expect": {"valid": false}, "note": "wrong prefix for this source"}
+{"input": "Nf1", "source_db": "mgi", "how": "pattern", "expect": {"valid": false}, "note": "a marker symbol is not an accession"}

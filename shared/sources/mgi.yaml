@@ -1,0 +1,19 @@
+key: mgi
+name: Mouse Genome Informatics
+description: MGI accession identifiers for mouse genes and other features.
+# Bioregistry records the local id as digits alone with MGI as a banana, but
+# an MGI accession is always written with its prefix in practice (MGI:97306),
+# so the prefix is part of the pattern here. The digit count is unbounded
+# because MGI ids are not zero-padded and have grown from five digits to
+# seven; pattern mode is a shape check, not an existence check.
+pattern: 'MGI:[0-9]+'
+example: 'MGI:97306'
+species_aware: false
+version_aware: false
+# A bare local id is common in exported tables, and a lowercase prefix is
+# common in hand-written input. Both are repairable to the canonical form.
+curie:
+  prefix: MGI
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.informatics.jax.org

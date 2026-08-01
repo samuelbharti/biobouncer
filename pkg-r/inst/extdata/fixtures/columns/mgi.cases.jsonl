@@ -1,0 +1,5 @@
+{"input": "MGI:97306", "source_db": "mgi", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "MGI:97306", "suggestion": null}}
+{"input": "mgi:97306", "source_db": "mgi", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "MGI:97306"}}
+{"input": "MGI:97306!", "source_db": "mgi", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "mgi", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "MGI:97307", "source_db": "mgi", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "MGI:97307", "suggestion": null}}

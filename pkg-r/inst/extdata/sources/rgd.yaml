@@ -1,0 +1,17 @@
+key: rgd
+name: Rat Genome Database
+description: RGD identifiers for rat genes and other objects.
+# Bioregistry gives the local id as four or more digits. That alone would
+# accept any number, so the prefix is required here (RGD:3059) and the digit
+# bound is kept. A bare id is still repairable through the curie block.
+pattern: 'RGD:[0-9]{4,}'
+example: 'RGD:3059'
+species_aware: false
+version_aware: false
+# A bare local id is common in exported tables, and a lowercase prefix is
+# common in hand-written input. Both are repairable to the canonical form.
+curie:
+  prefix: RGD
+provenance:
+  pattern_source: bioregistry
+  homepage: https://rgd.mcw.edu
