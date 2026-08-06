@@ -6,7 +6,7 @@ the same messy data, so you can see the two packages return the same answers.
 
 Both notebooks follow the same seven steps:
 
-1. **Discover**: `sources()` (46 databases) and `source_info()`
+1. **Discover**: `sources()` (50 databases) and `source_info()`
 2. **Snapshots**: the bundled offline data (`snapshots()`, `cache_dir()`)
 3. **`pattern` mode**: is the string well-formed? (offline)
 4. **`cache` mode**: does the id exist? repair renamed and obsolete ids (offline)

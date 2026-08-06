@@ -8,7 +8,7 @@
 \description{
 \if{html}{\figure{logo.svg}{options: style='float: right' alt='logo' width='120'}}
 
-Gene symbols, ontology terms, variant formats, and database accessions are validated through one small application programming interface (API), either offline against identifier patterns and bundled snapshots or live against a source web service. Results are designed to match those of the companion 'Python' package for the same inputs. Input order and length are preserved, and errors are reported explicitly rather than as a silent failure.
+Gene symbols, ontology terms, variant formats, and database accessions are validated through one small application programming interface (API), either offline against identifier patterns and bundled snapshots or live against a source web service. Results are designed to match those of the companion 'Python' package for the same inputs. Input order and length are preserved, and errors are reported explicitly rather than as a silent failure. Identifier patterns follow the registry and nomenclature described in Hoyt et al. (2022) \doi{10.1038/s41597-022-01807-3} and den Dunnen et al. (2016) \doi{10.1002/humu.22981}.
 }
 \seealso{
 Useful links:
