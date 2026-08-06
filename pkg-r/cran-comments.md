@@ -27,11 +27,12 @@ addressed as follows.
 
 * This is a new submission.
 
-`R CMD check --as-cran` is otherwise clean. The word "biobouncer" flagged as
-possibly misspelled in the title and description is the package name.
+`R CMD check --as-cran` is otherwise clean, with incoming and remote checks
+enabled. The two DOIs added to the Description field resolve.
 
 ## Test environments
 
+* Local: macOS 26.5, R 4.6.0
 * Local: Windows 11, R 4.6.1
 * GitHub Actions: ubuntu-latest (R-devel, R-release, R-oldrel-1),
   windows-latest (R-release), macos-latest (R-release)
