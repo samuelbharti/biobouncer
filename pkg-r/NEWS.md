@@ -1,4 +1,11 @@
-# biobouncer (development version)
+# biobouncer 0.1.4
+
+* Documentation changes requested by CRAN on the first submission. The
+  `Description` field now cites the Bioregistry and HGVS nomenclature references
+  the identifier patterns follow, and the `id_predicate()` examples no longer
+  carry commented-out code. The assertr, validate and pointblank integrations
+  are still shown in the "Examples" article. There is no change to behavior.
+
 
 * Two new pattern sources for model-organism identifiers. `mgi` validates an
   MGI accession, such as `MGI:97306`, and `rgd` validates an RGD identifier,

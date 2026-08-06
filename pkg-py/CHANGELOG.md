@@ -3,7 +3,7 @@
 All notable changes to the Python package are recorded here. The R package keeps
 a matching changelog in `pkg-r/NEWS.md`; the two packages share one version.
 
-## Unreleased
+## 0.1.4
 
 ### Added
 
@@ -19,6 +19,12 @@ a matching changelog in `pkg-r/NEWS.md`; the two packages share one version.
   `NC_000001.11:55516887:G:A`. Both check the coordinate shape offline in
   `pattern` mode, so an empty allele or a malformed field is rejected rather than
   passed through as valid.
+
+### Notes
+
+- The release is timed by the R package, which is answering CRAN feedback on its
+  first submission with documentation-only changes. The two packages share one
+  version.
 
 ## 0.1.3
 
