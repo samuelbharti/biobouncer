@@ -1,4 +1,4 @@
-# biobouncer (development version)
+# biobouncer 0.1.4
 
 * Two new pattern sources for model-organism identifiers. `mgi` validates an
   MGI accession, such as `MGI:97306`, and `rgd` validates an RGD identifier,
@@ -12,6 +12,12 @@
   `NC_000001.11:55516887:G:A`. Both check the coordinate shape offline in
   `pattern` mode, so an empty allele or a malformed field is rejected rather than
   passed through as valid.
+
+* Documentation changes requested by CRAN on the first submission. The
+  `Description` field now cites the Bioregistry and HGVS nomenclature references
+  the identifier patterns follow, and the `id_predicate()` examples no longer
+  carry commented-out code. The assertr, validate and pointblank integrations
+  are still shown in the "Examples" article. There is no change to behavior.
 
 # biobouncer 0.1.3
 

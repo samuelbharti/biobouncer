@@ -179,19 +179,10 @@ sv_biobouncer <- function(
 #' is_mondo(ids)
 #' ids[is_mondo(ids)]
 #'
-#' # With assertr, if it is installed:
-#' # library(assertr)
-#' # df |> assert(id_predicate("mondo"), term)
-#'
-#' # With validate, if it is installed:
-#' # rules <- validate::validator(is_mondo := id_predicate("mondo")(term))
-#' # validate::confront(df, rules)
-#'
-#' # With pointblank, if it is installed:
-#' # library(pointblank)
-#' # create_agent(df) |>
-#' #   col_vals_expr(~ is_valid_id(term, "mondo")) |>
-#' #   interrogate()
+#' # The predicate takes the shape a data-frame validator expects, so it also
+#' # applies to a column directly.
+#' df <- data.frame(term = ids)
+#' df[is_mondo(df$term), , drop = FALSE]
 #' @export
 id_predicate <- function(
   source_db,
