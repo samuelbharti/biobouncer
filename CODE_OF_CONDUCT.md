@@ -26,7 +26,8 @@ Examples of unacceptable behavior:
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the maintainer. All complaints will be reviewed and investigated
-promptly and fairly.
+reported to the maintainer at <samuelbharti.io@gmail.com>. All complaints will
+be reviewed and investigated promptly and fairly, and the reporter's identity
+will be kept confidential.
 
 This Code of Conduct is adapted from the Contributor Covenant, version 2.1.
