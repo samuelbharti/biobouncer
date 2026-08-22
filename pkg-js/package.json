@@ -45,6 +45,7 @@
     "build": "tsup",
     "pretest": "npm run bundle",
     "test": "vitest run",
+    "pretypecheck": "npm run bundle",
     "typecheck": "tsc --noEmit",
     "lint": "biome ci .",
     "format": "biome format --write ."
