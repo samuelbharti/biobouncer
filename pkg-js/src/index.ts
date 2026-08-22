@@ -5,10 +5,14 @@
 // memory; serialized output uses the shared snake_case schema so result data is
 // identical across languages. This file grows as each phase lands.
 
-import pkg from "../package.json";
+// A named import so the bundler pulls in only the version, not all of package.json.
+import { version as pkgVersion } from "../package.json";
 
 /** The installed package version. */
-export const version: string = pkg.version;
+export const version: string = pkgVersion;
 
-/** The result-schema version shared across the R, Python, and JS packages. */
-export const SCHEMA_VERSION = "2" as const;
+export * from "./errors";
+export type { SourceInfo, SourceSpec, SpeciesEntry } from "./registry";
+export { sourceInfo, sources } from "./registry";
+export type { Mode, Result } from "./schema";
+export { SCHEMA_VERSION } from "./schema";
