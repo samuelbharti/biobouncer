@@ -11,6 +11,8 @@ import { version as pkgVersion } from "../package.json";
 /** The installed package version. */
 export const version: string = pkgVersion;
 
+export type { CheckOptions } from "./core";
+export { checkId, isValidId } from "./core";
 export * from "./errors";
 export type { SourceInfo, SourceSpec, SpeciesEntry } from "./registry";
 export { sourceInfo, sources } from "./registry";
