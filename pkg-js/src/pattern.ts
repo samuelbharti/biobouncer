@@ -83,7 +83,7 @@ function ensemblSpeciesPrefix(
   return null;
 }
 
-function speciesOk(
+export function speciesOk(
   spec: SourceSpec,
   ident: string,
   species: string | number | null,
