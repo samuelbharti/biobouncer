@@ -3,12 +3,17 @@
 // normalized, and suggestion for every case. Pattern-mode cases run here; cache
 // and remote cases join as those modes land.
 
-import { readdirSync, readFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { checkId } from "../src/core";
 import type { Mode, Result } from "../src/schema";
+
+// Point the cache at an empty temp dir so cache cases resolve to the bundled
+// sample snapshots, matching the Python and R conformance suites.
+process.env.BIOBOUNCER_CACHE_DIR = mkdtempSync(join(tmpdir(), "biobouncer-conf-"));
 
 const here = dirname(fileURLToPath(import.meta.url));
 const corpusDir = join(here, "..", "src", "_data", "corpus");
@@ -43,14 +48,14 @@ function only(results: Result[]): Result {
 }
 
 const CASES = loadCases();
-const PATTERN_CASES = CASES.filter((c) => c.how === "pattern");
+const OFFLINE_CASES = CASES.filter((c) => c.how === "pattern" || c.how === "cache");
 
-describe("conformance (pattern)", () => {
+describe("conformance (offline)", () => {
   it("the corpus is not empty", () => {
-    expect(PATTERN_CASES.length).toBeGreaterThan(0);
+    expect(OFFLINE_CASES.length).toBeGreaterThan(0);
   });
 
-  it.each(PATTERN_CASES)("$source_db $how $input", (c) => {
+  it.each(OFFLINE_CASES)("$source_db $how $input", (c) => {
     const r = only(
       checkId(c.input, c.source_db, {
         how: c.how as Mode,
