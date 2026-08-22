@@ -1,0 +1,58 @@
+name: js
+
+# Build and test the JavaScript/TypeScript package against the shared spec.
+# Mirrors python.yml: it runs on changes to the package or to shared/, so the
+# conformance corpus is enforced on every spec edit.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "pkg-js/**"
+      - "shared/**"
+      - ".github/workflows/js.yml"
+  pull_request:
+    paths:
+      - "pkg-js/**"
+      - "shared/**"
+      - ".github/workflows/js.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: pkg-js
+
+jobs:
+  js:
+    runs-on: ${{ matrix.os }}
+    name: js (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: pkg-js/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint and format check
+        run: npx @biomejs/biome ci .
+
+      - name: Type-check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Test (conformance corpus)
+        run: npm test
