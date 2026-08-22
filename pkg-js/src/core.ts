@@ -1,11 +1,12 @@
-// Dispatch: checkId and isValidId. Ported from pkg-py/src/biobouncer/core.py.
-// Pattern, cache, and existence (offline) modes are wired here; remote lands in a
-// later phase.
+// Dispatch: checkId (sync, offline) and checkIdAsync (all modes). Ported from
+// pkg-py/src/biobouncer/core.py. Network I/O is async in JS, so remote mode is
+// only available through the async entry points.
 
 import {
   buildFuzzy,
   cacheCheck,
   defaultCacheVersion,
+  type FuzzyConfig,
   hasSnapshot,
   snapshotRetired,
   snapshotSet,
@@ -17,7 +18,8 @@ import {
   MissingVersionError,
 } from "./errors";
 import { checkOne } from "./pattern";
-import { getSource } from "./registry";
+import { getSource, type SourceSpec } from "./registry";
+import { remoteVerdicts } from "./remote";
 import type { Mode, Result } from "./schema";
 
 const KNOWN_MODES = new Set<string>(["pattern", "cache", "remote", "existence"]);
@@ -30,6 +32,27 @@ export interface CheckOptions {
   refresh?: boolean;
   onError?: "raise" | "indeterminate";
 }
+
+type OnError = "raise" | "indeterminate";
+
+interface Prepared {
+  how: Mode;
+  onError: OnError;
+  species: string | number | null;
+  spec: SourceSpec;
+}
+
+type OfflinePlan =
+  | { mode: "pattern" }
+  | {
+      mode: "cache";
+      ids: Set<string>;
+      retired: Map<string, string>;
+      fuzzy: FuzzyConfig | null;
+      version: string;
+    };
+
+type Plan = OfflinePlan | { mode: "remote"; version: string };
 
 function isMissing(v: unknown): boolean {
   return v === null || v === undefined || (typeof v === "number" && Number.isNaN(v));
@@ -58,14 +81,7 @@ function toItems(x: unknown): Array<string | null> {
   return [isMissing(x) ? null : String(x)];
 }
 
-const NOT_IMPLEMENTED = "remote mode is not yet implemented in pkg-js";
-
-/** Validate a scalar or batch of inputs against a source, returning one Result each. */
-export function checkId(
-  x: string | Iterable<string | null | undefined>,
-  sourceDb: string,
-  opts: CheckOptions = {},
-): Result[] {
+function prepare(sourceDb: string, opts: CheckOptions): Prepared {
   if (typeof sourceDb !== "string") {
     throw new TypeError("sourceDb must be a string");
   }
@@ -77,18 +93,16 @@ export function checkId(
   if (!ON_ERROR.has(onError)) {
     throw new InvalidOnError(`invalid onError: ${onError}`);
   }
+  return { how, onError, species: opts.species ?? null, spec: getSource(sourceDb) };
+}
 
-  const species = opts.species ?? null;
-  const spec = getSource(sourceDb);
-
-  if (how === "remote") {
-    throw new BiobouncerError(NOT_IMPLEMENTED, "not_implemented");
-  }
-
-  // Resolve a snapshot for cache, or for existence when one is available.
-  let ids: Set<string> | null = null;
-  let retired = new Map<string, string>();
-  let resultVersion: string | null = null;
+function planDispatch(
+  how: Mode,
+  sourceDb: string,
+  spec: SourceSpec,
+  opts: CheckOptions,
+): Plan {
+  if (how === "pattern") return { mode: "pattern" };
 
   if (how === "cache") {
     const version =
@@ -96,55 +110,131 @@ export function checkId(
     if (version === null) {
       throw new MissingVersionError(`no snapshot version available for ${sourceDb}`);
     }
-    ids = snapshotSet(sourceDb, version);
-    retired = snapshotRetired(sourceDb, version);
-    resultVersion = version;
-  } else if (how === "existence") {
+    const ids = snapshotSet(sourceDb, version);
+    return {
+      mode: "cache",
+      ids,
+      retired: snapshotRetired(sourceDb, version),
+      fuzzy: buildFuzzy(spec, ids),
+      version,
+    };
+  }
+
+  if (how === "existence") {
     const version =
       opts.version != null ? String(opts.version) : defaultCacheVersion(sourceDb, spec);
     if (version !== null && hasSnapshot(sourceDb, version)) {
-      ids = snapshotSet(sourceDb, version);
-      retired = snapshotRetired(sourceDb, version);
-      resultVersion = version;
-    } else if (spec.remote) {
-      throw new BiobouncerError(NOT_IMPLEMENTED, "not_implemented");
+      const ids = snapshotSet(sourceDb, version);
+      return {
+        mode: "cache",
+        ids,
+        retired: snapshotRetired(sourceDb, version),
+        fuzzy: buildFuzzy(spec, ids),
+        version,
+      };
     }
-    // else: no snapshot and no resolver, so degrade to pattern (ids stays null).
+    if (spec.remote) return { mode: "remote", version: new Date().toISOString() };
+    return { mode: "pattern" };
   }
 
-  const fuzzy = ids !== null ? buildFuzzy(spec, ids) : null;
+  return { mode: "remote", version: new Date().toISOString() };
+}
 
-  return toItems(x).map((s): Result => {
+function assembleOffline(
+  items: Array<string | null>,
+  plan: OfflinePlan,
+  spec: SourceSpec,
+  species: string | number | null,
+  how: Mode,
+  sourceDb: string,
+): Result[] {
+  const version = plan.mode === "cache" ? plan.version : null;
+  return items.map((s): Result => {
     let valid: boolean | null = null;
     let normalized: string | null = null;
     let suggestion: string | null = null;
-
-    if (s === null) {
-      // missing input: null verdict, echoed below.
-    } else if (ids !== null) {
-      const v = cacheCheck(spec, s, ids, retired, fuzzy);
-      valid = v.valid;
-      normalized = v.normalized;
-      suggestion = v.suggestion;
-    } else {
-      const v = checkOne(spec, s, species);
+    if (s !== null) {
+      const v =
+        plan.mode === "cache"
+          ? cacheCheck(spec, s, plan.ids, plan.retired, plan.fuzzy)
+          : checkOne(spec, s, species);
       valid = v.valid;
       normalized = v.normalized;
       suggestion = v.suggestion;
     }
-
     return {
       input: s,
       valid,
       normalized,
       suggestion,
       sourceDb,
-      version: resultVersion,
+      version,
       species,
       how,
       error: null,
     };
   });
+}
+
+/** Validate a scalar or batch offline (pattern, cache, or existence-with-snapshot). */
+export function checkId(
+  x: string | Iterable<string | null | undefined>,
+  sourceDb: string,
+  opts: CheckOptions = {},
+): Result[] {
+  const { how, species, spec } = prepare(sourceDb, opts);
+  const plan = planDispatch(how, sourceDb, spec, opts);
+  if (plan.mode === "remote") {
+    throw new BiobouncerError(
+      `${how} mode needs the network; use checkIdAsync`,
+      "needs_async",
+    );
+  }
+  return assembleOffline(toItems(x), plan, spec, species, how, sourceDb);
+}
+
+/** Validate a scalar or batch in any mode, including remote. */
+export async function checkIdAsync(
+  x: string | Iterable<string | null | undefined>,
+  sourceDb: string,
+  opts: CheckOptions = {},
+): Promise<Result[]> {
+  const { how, onError, species, spec } = prepare(sourceDb, opts);
+  const plan = planDispatch(how, sourceDb, spec, opts);
+  const items = toItems(x);
+  if (plan.mode !== "remote") {
+    return assembleOffline(items, plan, spec, species, how, sourceDb);
+  }
+
+  const verdicts = await remoteVerdicts(spec, items, species, onError);
+  const out: Result[] = [];
+  for (let i = 0; i < items.length; i++) {
+    const v = verdicts[i];
+    if (v === undefined) throw new Error("verdict length mismatch");
+    out.push({
+      input: items[i] ?? null,
+      valid: v.valid,
+      normalized: v.normalized,
+      suggestion: v.suggestion,
+      sourceDb,
+      version: plan.version,
+      species,
+      how,
+      error: v.error,
+    });
+  }
+  return out;
+}
+
+function scalarize(
+  x: unknown,
+  results: Result[],
+): boolean | null | Array<boolean | null> {
+  if (isScalarInput(x)) {
+    const first = results[0];
+    return first ? first.valid : null;
+  }
+  return results.map((r) => r.valid);
 }
 
 /** Convenience over checkId: a bare verdict for a scalar, a list for a batch. */
@@ -153,10 +243,14 @@ export function isValidId(
   sourceDb: string,
   opts: Omit<CheckOptions, "onError"> = {},
 ): boolean | null | Array<boolean | null> {
-  const results = checkId(x, sourceDb, opts);
-  if (isScalarInput(x)) {
-    const first = results[0];
-    return first ? first.valid : null;
-  }
-  return results.map((r) => r.valid);
+  return scalarize(x, checkId(x, sourceDb, opts));
+}
+
+/** Async isValidId supporting every mode, including remote. */
+export async function isValidIdAsync(
+  x: string | Iterable<string | null | undefined>,
+  sourceDb: string,
+  opts: Omit<CheckOptions, "onError"> = {},
+): Promise<boolean | null | Array<boolean | null>> {
+  return scalarize(x, await checkIdAsync(x, sourceDb, opts));
 }

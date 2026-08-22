@@ -1,7 +1,7 @@
 // Validate and report on a whole column, ported from pkg-py/src/biobouncer/report.py.
 // report() classifies the column; Report.repair() substitutes the fixable values.
 
-import { type CheckOptions, checkId } from "./core";
+import { type CheckOptions, checkId, checkIdAsync } from "./core";
 import { type Result, type Summary, summarize } from "./schema";
 
 export type ReportSummary = Summary;
@@ -61,12 +61,22 @@ export class Report {
   }
 }
 
-/** Validate a column and return a Report. */
+/** Validate a column and return a Report (offline modes). */
 export function report(
   column: Iterable<string | null | undefined>,
   sourceDb: string,
   opts: CheckOptions = {},
 ): Report {
   const results = checkId(column, sourceDb, opts);
+  return new Report(results, sourceDb, opts.how ?? "pattern");
+}
+
+/** Validate a column and return a Report, in any mode including remote. */
+export async function reportAsync(
+  column: Iterable<string | null | undefined>,
+  sourceDb: string,
+  opts: CheckOptions = {},
+): Promise<Report> {
+  const results = await checkIdAsync(column, sourceDb, opts);
   return new Report(results, sourceDb, opts.how ?? "pattern");
 }
