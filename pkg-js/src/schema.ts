@@ -46,3 +46,35 @@ export interface Result {
   how: Mode;
   error: string | null;
 }
+
+/** Counts over a set of results. invalid includes repairables; repairable is a subset. */
+export interface Summary {
+  total: number;
+  valid: number;
+  invalid: number;
+  repairable: number;
+  missing: number;
+  indeterminate: number;
+}
+
+/** Summarize results with the same semantics as the R and Python packages. */
+export function summarize(results: Result[]): Summary {
+  let valid = 0;
+  let invalid = 0;
+  let repairable = 0;
+  let missing = 0;
+  let indeterminate = 0;
+  for (const r of results) {
+    if (r.valid === true) {
+      valid++;
+    } else if (r.valid === false) {
+      invalid++;
+      if (r.suggestion !== null) repairable++;
+    } else if (r.error !== null) {
+      indeterminate++;
+    } else {
+      missing++;
+    }
+  }
+  return { total: results.length, valid, invalid, repairable, missing, indeterminate };
+}
