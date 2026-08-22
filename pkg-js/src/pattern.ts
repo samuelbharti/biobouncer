@@ -21,7 +21,8 @@ export function matches(pattern: string, s: string): boolean {
 
 const DIGITS = /^[0-9]+$/;
 
-function partitionFirst(s: string, sep: string): [string, boolean, string] {
+/** Split on the first occurrence of `sep`: [head, found, tail]. */
+export function partitionFirst(s: string, sep: string): [string, boolean, string] {
   const i = s.indexOf(sep);
   if (i < 0) return [s, false, ""];
   return [s.slice(0, i), true, s.slice(i + sep.length)];
