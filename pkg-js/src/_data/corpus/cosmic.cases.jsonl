@@ -1,0 +1,4 @@
+{"input": "COSM476", "source_db": "cosmic", "how": "pattern", "expect": {"valid": true, "normalized": "COSM476"}, "note": "a legacy mutation identifier"}
+{"input": "COSV57014428", "source_db": "cosmic", "how": "pattern", "expect": {"valid": true, "normalized": "COSV57014428"}, "note": "a current genomic mutation identifier"}
+{"input": "cosm476", "source_db": "cosmic", "how": "pattern", "expect": {"valid": false, "suggestion": "COSM476"}, "note": "lowercase is suggestible to uppercase"}
+{"input": "COSX1", "source_db": "cosmic", "how": "pattern", "expect": {"valid": false}, "note": "the fourth letter must be M or V"}

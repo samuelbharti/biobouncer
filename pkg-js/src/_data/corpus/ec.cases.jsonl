@@ -1,0 +1,6 @@
+{"input": "1.1.1.1", "source_db": "ec", "how": "pattern", "expect": {"valid": true, "normalized": "1.1.1.1"}, "note": "alcohol dehydrogenase"}
+{"input": "2.7.11.1", "source_db": "ec", "how": "pattern", "expect": {"valid": true, "normalized": "2.7.11.1"}, "note": "a protein-serine kinase"}
+{"input": "1.1.1.-", "source_db": "ec", "how": "pattern", "expect": {"valid": true, "normalized": "1.1.1.-"}, "note": "an incomplete classification"}
+{"input": "1.1.1", "source_db": "ec", "how": "pattern", "expect": {"valid": false}, "note": "three fields, one short"}
+{"input": "1.1.1.1.1", "source_db": "ec", "how": "pattern", "expect": {"valid": false}, "note": "five fields, one too many"}
+{"input": "EC1.1.1.1", "source_db": "ec", "how": "pattern", "expect": {"valid": false}, "note": "the EC prefix is not part of the number"}

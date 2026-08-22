@@ -1,0 +1,7 @@
+{"input": "R-HSA-68886", "source_db": "reactome", "how": "pattern", "expect": {"valid": true, "normalized": "R-HSA-68886"}, "note": "human pathway stable id"}
+{"input": "R-MMU-983695", "source_db": "reactome", "how": "pattern", "expect": {"valid": true, "normalized": "R-MMU-983695"}, "note": "mouse stable id"}
+{"input": "R-HSA-68886.2", "source_db": "reactome", "how": "pattern", "expect": {"valid": true, "normalized": "R-HSA-68886.2"}, "note": "stable id with a version"}
+{"input": "r-hsa-68886", "source_db": "reactome", "how": "pattern", "expect": {"valid": false, "suggestion": "R-HSA-68886"}, "note": "lowercase is suggestible to the canonical uppercase"}
+{"input": "R-HSA-", "source_db": "reactome", "how": "pattern", "expect": {"valid": false}, "note": "species code without a number"}
+{"input": "RHSA68886", "source_db": "reactome", "how": "pattern", "expect": {"valid": false}, "note": "missing the hyphen separators"}
+{"input": "R-HS-68886", "source_db": "reactome", "how": "pattern", "expect": {"valid": false}, "note": "species code must be three letters"}

@@ -1,0 +1,5 @@
+{"input": "NC_000001.11:55516887:G:A", "source_db": "spdi", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "NC_000001.11:55516887:G:A", "suggestion": null}}
+{"input": "nc_000001.11:55516887:g:a", "source_db": "spdi", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "NC_000001.11:55516887:G:A"}}
+{"input": "NC_000001.11:55516887:G:A!", "source_db": "spdi", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "spdi", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "NC_000001.11:55516888:G:A", "source_db": "spdi", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "NC_000001.11:55516888:G:A", "suggestion": null}}

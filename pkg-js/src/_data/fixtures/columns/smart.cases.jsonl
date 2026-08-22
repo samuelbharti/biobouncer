@@ -1,0 +1,5 @@
+{"input": "SM00248", "source_db": "smart", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "SM00248", "suggestion": null}}
+{"input": "sm00248", "source_db": "smart", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "SM00248"}}
+{"input": "SM00248!", "source_db": "smart", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "smart", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "SM00249", "source_db": "smart", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "SM00249", "suggestion": null}}

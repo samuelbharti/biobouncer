@@ -1,0 +1,19 @@
+key: chebi
+name: ChEBI
+description: Chemical Entities of Biological Interest identifiers.
+# Local id has no fixed width, so there is no zero-pad rule.
+pattern: "CHEBI:[0-9]+"
+example: 'CHEBI:15377'
+species_aware: false
+version_aware: true
+curie:
+  prefix: CHEBI
+cache:
+  builder: obo
+  obo_url: http://purl.obolibrary.org/obo/chebi/chebi_lite.obo
+remote:
+  resolver: ols
+  ols_ontology: chebi
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.ebi.ac.uk/chebi/

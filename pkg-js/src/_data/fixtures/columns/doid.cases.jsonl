@@ -1,0 +1,5 @@
+{"input": "DOID:9352", "source_db": "doid", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "DOID:9352", "suggestion": null}}
+{"input": "doid:9352", "source_db": "doid", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "DOID:9352"}}
+{"input": "DOID:9352!", "source_db": "doid", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "doid", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "DOID:9353", "source_db": "doid", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "DOID:9353", "suggestion": null}}

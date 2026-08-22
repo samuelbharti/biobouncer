@@ -1,0 +1,18 @@
+key: pfam
+name: Pfam
+description: Pfam identifiers for protein families and domains.
+# PF and exactly five digits. Ids are uppercase; a lowercase input is
+# suggested in its canonical case.
+pattern: 'PF[0-9]{5}'
+example: 'PF00001'
+normalize:
+  case: upper
+# remote mode checks existence against the EBI InterPro API, which hosts Pfam.
+# This is an existence check only; a deleted accession is reported as absent,
+# not with a successor.
+remote:
+  resolver: interpro
+  interpro_db: pfam
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.ebi.ac.uk/interpro/entry/pfam

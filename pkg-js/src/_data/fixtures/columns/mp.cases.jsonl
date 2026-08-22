@@ -1,0 +1,5 @@
+{"input": "MP:0001262", "source_db": "mp", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "MP:0001262", "suggestion": null}}
+{"input": "mp:0001262", "source_db": "mp", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "MP:0001262"}}
+{"input": "MP:0001262!", "source_db": "mp", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "mp", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "MP:0001263", "source_db": "mp", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "MP:0001263", "suggestion": null}}

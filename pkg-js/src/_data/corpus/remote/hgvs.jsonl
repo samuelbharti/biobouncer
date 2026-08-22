@@ -1,0 +1,7 @@
+{"input": "NM_004006.2:c.4375C>T", "source_db": "hgvs", "how": "remote", "expect": {"valid": true, "normalized": "NM_004006.2:c.4375C>T"}, "note": "well-formed and consistent with the reference (DMD)"}
+{"input": "NM_000546.6:c.215C>G", "source_db": "hgvs", "how": "remote", "expect": {"valid": true, "normalized": "NM_000546.6:c.215C>G"}, "note": "valid TP53 coding substitution"}
+{"input": "NM_004006.2:c.76_78del", "source_db": "hgvs", "how": "remote", "expect": {"valid": true, "normalized": "NM_004006.2:c.76_78del"}, "note": "valid in-frame deletion"}
+{"input": "NM_004006.2:c.4375A>T", "source_db": "hgvs", "how": "remote", "expect": {"valid": false}, "note": "syntactically valid but the stated reference base is wrong"}
+{"input": "NM_004006.2:c.99999999A>T", "source_db": "hgvs", "how": "remote", "expect": {"valid": false}, "note": "position is out of range for the transcript"}
+{"input": "NM_004006.2:c.76_78delAAA", "source_db": "hgvs", "how": "remote", "expect": {"valid": false}, "note": "the deleted sequence does not match the reference"}
+{"input": "NM_004006.2:c.76insG", "source_db": "hgvs", "how": "remote", "expect": {"valid": false}, "note": "insertion needs a flanking range; rejected by syntax before any lookup"}

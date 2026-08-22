@@ -1,0 +1,17 @@
+key: clinvar
+name: ClinVar
+description: ClinVar VCV, RCV, and SCV accessions.
+# A VCV, RCV, or SCV prefix and nine digits, with an optional version.
+# Ids are uppercase; a lowercase input is suggested in its canonical case.
+pattern: '(?:VCV|RCV|SCV)[0-9]{9}(?:\.[0-9]+)?'
+example: 'VCV000012345'
+normalize:
+  case: upper
+# remote mode checks existence against NCBI E-utilities, searching ClinVar for
+# the accession. One search covers all three accession types. This is an
+# existence check only.
+remote:
+  resolver: clinvar
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.ncbi.nlm.nih.gov/clinvar

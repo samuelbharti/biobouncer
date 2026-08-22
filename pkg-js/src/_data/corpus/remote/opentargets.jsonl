@@ -1,0 +1,3 @@
+{"input": "ENSG00000139618", "source_db": "opentargets", "how": "remote", "expect": {"valid": true, "normalized": "ENSG00000139618"}, "note": "BRCA2, a target the Open Targets platform covers"}
+{"input": "ENSG00000000000", "source_db": "opentargets", "how": "remote", "expect": {"valid": false}, "note": "well-formed human gene id the platform does not cover"}
+{"input": "ensg00000139618", "source_db": "opentargets", "how": "remote", "expect": {"valid": false, "suggestion": "ENSG00000139618"}, "note": "malformed case; the uppercased form is a covered target"}

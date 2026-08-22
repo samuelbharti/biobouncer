@@ -1,0 +1,5 @@
+{"input": "CPX-2158", "source_db": "complexportal", "how": "pattern", "expect": {"valid": true, "normalized": "CPX-2158"}, "note": "a macromolecular complex"}
+{"input": "CPX-1", "source_db": "complexportal", "how": "pattern", "expect": {"valid": true, "normalized": "CPX-1"}, "note": "a low-numbered complex"}
+{"input": "cpx-2158", "source_db": "complexportal", "how": "pattern", "expect": {"valid": false, "suggestion": "CPX-2158"}, "note": "lowercase is suggestible to uppercase"}
+{"input": "CPX2158", "source_db": "complexportal", "how": "pattern", "expect": {"valid": false}, "note": "missing the hyphen"}
+{"input": "CPX-", "source_db": "complexportal", "how": "pattern", "expect": {"valid": false}, "note": "no digits"}

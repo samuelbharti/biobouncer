@@ -1,0 +1,5 @@
+{"input": "ENSG00000139618", "source_db": "ensembl", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "ENSG00000139618", "suggestion": null}}
+{"input": "ensg00000139618", "source_db": "ensembl", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "ENSG00000139618"}}
+{"input": "ENSG00000139618!", "source_db": "ensembl", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "ensembl", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "ENSG00000139619", "source_db": "ensembl", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "ENSG00000139619", "suggestion": null}}

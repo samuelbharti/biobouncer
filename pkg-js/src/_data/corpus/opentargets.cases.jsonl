@@ -1,0 +1,4 @@
+{"input": "ENSG00000139618", "source_db": "opentargets", "how": "pattern", "expect": {"valid": true, "normalized": "ENSG00000139618"}, "note": "BRCA2, a human Ensembl gene id"}
+{"input": "ENSG00000141510", "source_db": "opentargets", "how": "pattern", "expect": {"valid": true, "normalized": "ENSG00000141510"}, "note": "TP53, a human Ensembl gene id"}
+{"input": "ensg00000139618", "source_db": "opentargets", "how": "pattern", "expect": {"valid": false, "suggestion": "ENSG00000139618"}, "note": "lowercase is suggestible to uppercase"}
+{"input": "ENSG0001", "source_db": "opentargets", "how": "pattern", "expect": {"valid": false}, "note": "too few digits; a gene id has eleven"}

@@ -1,0 +1,7 @@
+{
+  "resolver": "uniprot",
+  "url": "https://rest.uniprot.org/uniprotkb/P01308.json",
+  "recorded": "2026-07-09",
+  "status": 200,
+  "body": {"entryType": "UniProtKB reviewed (Swiss-Prot)", "organism": {"taxonId": 9606}}
+}

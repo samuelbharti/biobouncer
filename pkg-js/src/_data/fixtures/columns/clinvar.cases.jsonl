@@ -1,0 +1,5 @@
+{"input": "VCV000012345", "source_db": "clinvar", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "VCV000012345", "suggestion": null}}
+{"input": "vcv000012345", "source_db": "clinvar", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "VCV000012345"}}
+{"input": "VCV000012345!", "source_db": "clinvar", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "clinvar", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "VCV000012346", "source_db": "clinvar", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "VCV000012346", "suggestion": null}}

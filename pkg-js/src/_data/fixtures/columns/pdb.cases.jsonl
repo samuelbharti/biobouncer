@@ -1,0 +1,5 @@
+{"input": "4HHB", "source_db": "pdb", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "4HHB", "suggestion": null}}
+{"input": "4hhb", "source_db": "pdb", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "4HHB"}}
+{"input": "4HHB!", "source_db": "pdb", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "pdb", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "5HHB", "source_db": "pdb", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "5HHB", "suggestion": null}}

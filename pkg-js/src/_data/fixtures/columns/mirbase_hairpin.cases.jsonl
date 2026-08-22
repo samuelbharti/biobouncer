@@ -1,0 +1,5 @@
+{"input": "MI0000001", "source_db": "mirbase_hairpin", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "MI0000001", "suggestion": null}}
+{"input": "mi0000001", "source_db": "mirbase_hairpin", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "MI0000001"}}
+{"input": "MI0000001!", "source_db": "mirbase_hairpin", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "mirbase_hairpin", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "MI0000002", "source_db": "mirbase_hairpin", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "MI0000002", "suggestion": null}}

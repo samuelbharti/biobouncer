@@ -1,0 +1,5 @@
+{"input": "DB00001", "source_db": "drugbank", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "DB00001", "suggestion": null}}
+{"input": "db00001", "source_db": "drugbank", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "DB00001"}}
+{"input": "DB00001!", "source_db": "drugbank", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "drugbank", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "DB00002", "source_db": "drugbank", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "DB00002", "suggestion": null}}

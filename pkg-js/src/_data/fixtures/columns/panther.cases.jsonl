@@ -1,0 +1,5 @@
+{"input": "PTHR11003", "source_db": "panther", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "PTHR11003", "suggestion": null}}
+{"input": "pthr11003", "source_db": "panther", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "PTHR11003"}}
+{"input": "PTHR11003!", "source_db": "panther", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "panther", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "PTHR11004", "source_db": "panther", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "PTHR11004", "suggestion": null}}
