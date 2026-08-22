@@ -11,6 +11,8 @@ import { version as pkgVersion } from "../package.json";
 /** The installed package version. */
 export const version: string = pkgVersion;
 
+export type { SnapshotRow } from "./cache";
+export { cacheDir, snapshots } from "./cache";
 export type { CheckOptions } from "./core";
 export { checkId, isValidId } from "./core";
 export * from "./errors";

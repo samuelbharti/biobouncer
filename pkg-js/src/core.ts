@@ -1,7 +1,21 @@
 // Dispatch: checkId and isValidId. Ported from pkg-py/src/biobouncer/core.py.
-// Pattern mode is wired here; cache, remote, and existence land in later phases.
+// Pattern, cache, and existence (offline) modes are wired here; remote lands in a
+// later phase.
 
-import { BiobouncerError, InvalidModeError, InvalidOnError } from "./errors";
+import {
+  buildFuzzy,
+  cacheCheck,
+  defaultCacheVersion,
+  hasSnapshot,
+  snapshotRetired,
+  snapshotSet,
+} from "./cache";
+import {
+  BiobouncerError,
+  InvalidModeError,
+  InvalidOnError,
+  MissingVersionError,
+} from "./errors";
 import { checkOne } from "./pattern";
 import { getSource } from "./registry";
 import type { Mode, Result } from "./schema";
@@ -44,6 +58,8 @@ function toItems(x: unknown): Array<string | null> {
   return [isMissing(x) ? null : String(x)];
 }
 
+const NOT_IMPLEMENTED = "remote mode is not yet implemented in pkg-js";
+
 /** Validate a scalar or batch of inputs against a source, returning one Result each. */
 export function checkId(
   x: string | Iterable<string | null | undefined>,
@@ -65,49 +81,70 @@ export function checkId(
   const species = opts.species ?? null;
   const spec = getSource(sourceDb);
 
-  if (how !== "pattern") {
-    throw new BiobouncerError(
-      `${how} mode is not yet implemented in pkg-js`,
-      "not_implemented",
-    );
+  if (how === "remote") {
+    throw new BiobouncerError(NOT_IMPLEMENTED, "not_implemented");
   }
 
-  return toItems(x).map((s): Result => {
-    if (s === null) {
-      return blankResult(null, sourceDb, species, how);
+  // Resolve a snapshot for cache, or for existence when one is available.
+  let ids: Set<string> | null = null;
+  let retired = new Map<string, string>();
+  let resultVersion: string | null = null;
+
+  if (how === "cache") {
+    const version =
+      opts.version != null ? String(opts.version) : defaultCacheVersion(sourceDb, spec);
+    if (version === null) {
+      throw new MissingVersionError(`no snapshot version available for ${sourceDb}`);
     }
-    const v = checkOne(spec, s, species);
+    ids = snapshotSet(sourceDb, version);
+    retired = snapshotRetired(sourceDb, version);
+    resultVersion = version;
+  } else if (how === "existence") {
+    const version =
+      opts.version != null ? String(opts.version) : defaultCacheVersion(sourceDb, spec);
+    if (version !== null && hasSnapshot(sourceDb, version)) {
+      ids = snapshotSet(sourceDb, version);
+      retired = snapshotRetired(sourceDb, version);
+      resultVersion = version;
+    } else if (spec.remote) {
+      throw new BiobouncerError(NOT_IMPLEMENTED, "not_implemented");
+    }
+    // else: no snapshot and no resolver, so degrade to pattern (ids stays null).
+  }
+
+  const fuzzy = ids !== null ? buildFuzzy(spec, ids) : null;
+
+  return toItems(x).map((s): Result => {
+    let valid: boolean | null = null;
+    let normalized: string | null = null;
+    let suggestion: string | null = null;
+
+    if (s === null) {
+      // missing input: null verdict, echoed below.
+    } else if (ids !== null) {
+      const v = cacheCheck(spec, s, ids, retired, fuzzy);
+      valid = v.valid;
+      normalized = v.normalized;
+      suggestion = v.suggestion;
+    } else {
+      const v = checkOne(spec, s, species);
+      valid = v.valid;
+      normalized = v.normalized;
+      suggestion = v.suggestion;
+    }
+
     return {
       input: s,
-      valid: v.valid,
-      normalized: v.normalized,
-      suggestion: v.suggestion,
+      valid,
+      normalized,
+      suggestion,
       sourceDb,
-      version: null,
+      version: resultVersion,
       species,
       how,
       error: null,
     };
   });
-}
-
-function blankResult(
-  input: string | null,
-  sourceDb: string,
-  species: string | number | null,
-  how: Mode,
-): Result {
-  return {
-    input,
-    valid: null,
-    normalized: null,
-    suggestion: null,
-    sourceDb,
-    version: null,
-    species,
-    how,
-    error: null,
-  };
 }
 
 /** Convenience over checkId: a bare verdict for a scalar, a list for a batch. */
