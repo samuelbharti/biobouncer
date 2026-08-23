@@ -11,6 +11,9 @@ import { version as pkgVersion } from "../package.json";
 /** The installed package version. */
 export const version: string = pkgVersion;
 
+export type { IdSchemaOptions, StandardSchemaV1 } from "./adapters/standard-schema";
+export { idSchema } from "./adapters/standard-schema";
+
 export type { SnapshotRow } from "./cache";
 export { cacheDir, snapshots } from "./cache";
 export type { CheckOptions } from "./core";
