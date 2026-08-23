@@ -6,6 +6,9 @@
 // suite injects a fixture-backed transport. Only inputs that pass the offline
 // grammar (or a grammar-valid suggestion candidate) are ever looked up.
 
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { cacheDir } from "./cache";
 import { NoResolverError, RemoteError } from "./errors";
 import { matches, speciesOk, suggest } from "./pattern";
 import type { SourceSpec } from "./registry";
@@ -395,28 +398,114 @@ interface Lookup {
   error: string | null;
 }
 
+// --- On-disk response cache (Node-only) ------------------------------------
+// A remote response is cached under the cache dir so a repeat check of the same
+// id does not hit the network. The cache is local and per-language; it never
+// changes a verdict, which is always recomputed from the cached status and body,
+// with species compared at read time. An indeterminate response is never cached.
+
+function safeIdent(id: string): string {
+  return id.replace(/[^A-Za-z0-9._-]/g, "_");
+}
+
+function redactUrl(url: string): string {
+  return url.replace(/([?&](?:api_key|email)=)[^&]*/g, "$1REDACTED");
+}
+
+function remoteTtlSeconds(): number {
+  const v = Number(process.env.BIOBOUNCER_REMOTE_TTL);
+  return Number.isFinite(v) ? v : 0;
+}
+
+function isStale(fetchedAt: unknown): boolean {
+  const ttl = remoteTtlSeconds();
+  if (ttl <= 0) return false;
+  if (typeof fetchedAt !== "string") return true;
+  const t = Date.parse(fetchedAt);
+  if (Number.isNaN(t)) return true;
+  return (Date.now() - t) / 1000 > ttl;
+}
+
+function cachePathFor(resolver: Resolver, id: string): string {
+  return join(cacheDir(), "remote", resolver.name, `${safeIdent(id)}.json`);
+}
+
+function readRemoteCache(path: string): { status: number; body: unknown } | null {
+  try {
+    if (!existsSync(path)) return null;
+    const rec = JSON.parse(readFileSync(path, "utf8")) as {
+      status: number;
+      body: unknown;
+      fetched_at?: string;
+    };
+    if (isStale(rec.fetched_at)) return null;
+    return { status: rec.status, body: rec.body };
+  } catch {
+    return null;
+  }
+}
+
+function writeRemoteCache(path: string, url: string, res: RemoteResponse): void {
+  try {
+    mkdirSync(dirname(path), { recursive: true });
+    const record = {
+      status: res.status,
+      body: res.body,
+      url: redactUrl(url),
+      fetched_at: new Date().toISOString(),
+    };
+    writeFileSync(path, JSON.stringify(record));
+  } catch {
+    // Best effort: a cache-write failure must not fail a valid lookup.
+  }
+}
+
+/** Turn a (status, body) into a verdict. exists() may throw on an unexpected status. */
+function verdictFrom(
+  resolver: Resolver,
+  spec: SourceSpec,
+  id: string,
+  species: string | number | null,
+  status: number,
+  body: unknown,
+): Lookup {
+  if (!resolver.exists(status, body))
+    return { valid: false, successor: null, error: null };
+  if (resolver.speciesOk && !resolver.speciesOk(spec, id, body, species)) {
+    return { valid: false, successor: null, error: null };
+  }
+  if (resolver.retired) {
+    const [isRetired, successor] = resolver.retired(spec, body);
+    if (isRetired) return { valid: false, successor, error: null };
+  }
+  return { valid: true, successor: null, error: null };
+}
+
 async function remoteLookup(
   resolver: Resolver,
   spec: SourceSpec,
   id: string,
   species: string | number | null,
   onError: "raise" | "indeterminate",
+  refresh: boolean,
 ): Promise<Lookup> {
   const url = resolver.url(spec, id);
+  const cachePath = cachePathFor(resolver, id);
+
+  if (!refresh) {
+    const hit = readRemoteCache(cachePath);
+    if (hit !== null)
+      return verdictFrom(resolver, spec, id, species, hit.status, hit.body);
+  }
+
   try {
     const res = resolver.body
       ? await activeTransport.post(url, resolver.body(spec, id))
       : await activeTransport.get(url);
-    if (!resolver.exists(res.status, res.body))
-      return { valid: false, successor: null, error: null };
-    if (resolver.speciesOk && !resolver.speciesOk(spec, id, res.body, species)) {
-      return { valid: false, successor: null, error: null };
-    }
-    if (resolver.retired) {
-      const [isRetired, successor] = resolver.retired(spec, res.body);
-      if (isRetired) return { valid: false, successor, error: null };
-    }
-    return { valid: true, successor: null, error: null };
+    // exists() runs before the write, so an unexpected status is never cached.
+    const lookup = verdictFrom(resolver, spec, id, species, res.status, res.body);
+    writeRemoteCache(cachePath, url, res);
+    return lookup;
   } catch (e) {
     if (e instanceof RemoteError && onError === "indeterminate") {
       return { valid: false, successor: null, error: e.message };
@@ -444,6 +533,7 @@ export async function remoteVerdicts(
   items: Array<string | null>,
   species: string | number | null,
   onError: "raise" | "indeterminate",
+  refresh = false,
 ): Promise<RemoteVerdict[]> {
   const resolver = getResolver(spec);
 
@@ -464,7 +554,7 @@ export async function remoteVerdicts(
 
   const resolved = new Map<string, Lookup>();
   for (const id of [...need].sort()) {
-    resolved.set(id, await remoteLookup(resolver, spec, id, species, onError));
+    resolved.set(id, await remoteLookup(resolver, spec, id, species, onError, refresh));
   }
 
   return plans.map((plan): RemoteVerdict => {

@@ -206,7 +206,13 @@ export async function checkIdAsync(
     return assembleOffline(items, plan, spec, species, how, sourceDb);
   }
 
-  const verdicts = await remoteVerdicts(spec, items, species, onError);
+  const verdicts = await remoteVerdicts(
+    spec,
+    items,
+    species,
+    onError,
+    opts.refresh ?? false,
+  );
   const out: Result[] = [];
   for (let i = 0; i < items.length; i++) {
     const v = verdicts[i];
