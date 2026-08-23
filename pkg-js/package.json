@@ -25,6 +25,10 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "browser": {
+        "import": "./dist/browser/index.js",
+        "require": "./dist/browser/index.cjs"
+      },
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
@@ -32,6 +36,7 @@
   },
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
+  "browser": "./dist/browser/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
@@ -42,13 +47,14 @@
   "scripts": {
     "bundle": "node scripts/bundle-shared.mjs",
     "prebuild": "npm run bundle",
-    "build": "tsup",
+    "build": "tsup && tsup --config tsup.browser.config.ts",
     "postbuild": "node scripts/copy-data.mjs",
     "pretest": "npm run bundle",
     "test": "vitest run",
     "pretypecheck": "npm run bundle",
     "typecheck": "tsc --noEmit",
     "check:pack": "node scripts/check-pack.mjs",
+    "check:browser": "node scripts/check-browser.mjs",
     "lint": "biome ci .",
     "format": "biome format --write ."
   },

@@ -13,6 +13,10 @@ if (!files.includes("dist/index.js")) problems.push("missing dist/index.js (ESM)
 if (!files.includes("dist/index.cjs")) problems.push("missing dist/index.cjs (CJS)");
 if (!files.includes("dist/index.d.ts"))
   problems.push("missing dist/index.d.ts (types)");
+if (!files.includes("dist/browser/index.js"))
+  problems.push("missing dist/browser/index.js (browser ESM)");
+if (!files.includes("dist/browser/index.cjs"))
+  problems.push("missing dist/browser/index.cjs (browser CJS)");
 if (!files.some((f) => f.startsWith("dist/_data/snapshots/"))) {
   problems.push("missing dist/_data/snapshots");
 }

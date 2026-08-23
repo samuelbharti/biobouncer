@@ -54,5 +54,8 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Browser bundle check
+        run: npm run check:browser
+
       - name: Test (conformance corpus)
         run: npm test
