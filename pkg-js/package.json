@@ -43,10 +43,12 @@
     "bundle": "node scripts/bundle-shared.mjs",
     "prebuild": "npm run bundle",
     "build": "tsup",
+    "postbuild": "node scripts/copy-data.mjs",
     "pretest": "npm run bundle",
     "test": "vitest run",
     "pretypecheck": "npm run bundle",
     "typecheck": "tsc --noEmit",
+    "check:pack": "node scripts/check-pack.mjs",
     "lint": "biome ci .",
     "format": "biome format --write ."
   },

@@ -11,4 +11,7 @@ export default defineConfig({
   clean: true,
   sourcemap: true,
   target: "node20",
+  // Provide import.meta.url in the CJS output (and __dirname in ESM), so the
+  // runtime resolves the sibling _data/snapshots directory in both formats.
+  shims: true,
 });
