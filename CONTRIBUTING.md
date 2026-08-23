@@ -6,7 +6,8 @@ Thanks for helping. This guide covers the workflow and the local tooling.
 
 - `shared/` is the single source of truth: source definitions and the
   conformance corpus.
-- `pkg-r/` is the R package. `pkg-py/` is the Python package.
+- `pkg-r/` is the R package. `pkg-py/` is the Python package. `pkg-js/` is the
+  JavaScript/TypeScript package.
 - `tools/sync_shared.py` vendors `shared/` into each package.
 - `PLAN.md` has the architecture and the phased plan. `CLAUDE.md` is the short
   conventions digest.
