@@ -1,19 +1,29 @@
 // Cache mode: offline existence against a bundled or user-cache snapshot. Ported
-// from pkg-py/src/biobouncer/_cache.py. Node-only (filesystem and gzip).
+// from pkg-py/src/biobouncer/_cache.py. Filesystem access goes through the io seam,
+// which the browser build replaces with a no-op stub, so cache mode is Node-only
+// and degrades cleanly (no snapshots found) in the browser.
 
-import { existsSync, readdirSync, readFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
-import { fileURLToPath } from "node:url";
-import { gunzipSync } from "node:zlib";
-import { InvalidVersionError, MissingSnapshotError } from "./errors";
+import {
+  InvalidVersionError,
+  MissingDependencyError,
+  MissingSnapshotError,
+} from "./errors";
 import { type FuzzyIndex, fuzzyIndex, fuzzySuggest } from "./fuzzy";
+import {
+  bundledSnapshotsDir,
+  cacheBaseDir,
+  existsSync,
+  HAS_FS,
+  join,
+  readdir,
+  readText,
+} from "./io";
 import { matches, suggest } from "./pattern";
 import type { SourceSpec } from "./registry";
 
 // Snapshots ship beside this module: src/_data/snapshots in dev, dist/_data/snapshots
-// in the published build.
-const BUNDLED = fileURLToPath(new URL("./_data/snapshots", import.meta.url));
+// in the published build. Empty in the browser, where no snapshots are bundled.
+const BUNDLED = bundledSnapshotsDir();
 
 /** Fuzzy configuration resolved once per batch. */
 export interface FuzzyConfig {
@@ -22,22 +32,9 @@ export interface FuzzyConfig {
   ignoreCase: boolean;
 }
 
-function userCacheDir(app: string): string {
-  const home = homedir();
-  if (process.platform === "win32") {
-    const base = process.env.LOCALAPPDATA ?? join(home, "AppData", "Local");
-    return join(base, app, "Cache");
-  }
-  if (process.platform === "darwin") {
-    return join(home, "Library", "Caches", app);
-  }
-  const base = process.env.XDG_CACHE_HOME ?? join(home, ".cache");
-  return join(base, app);
-}
-
 /** The snapshot cache directory: BIOBOUNCER_CACHE_DIR, else the platform default. */
 export function cacheDir(): string {
-  return process.env.BIOBOUNCER_CACHE_DIR || userCacheDir("biobouncer");
+  return cacheBaseDir();
 }
 
 function validateVersion(version: string): void {
@@ -73,8 +70,7 @@ function findSnapshot(
 }
 
 function readSnapshot(hit: SnapshotHit): string {
-  const buf = readFileSync(hit.path);
-  return (hit.gz ? gunzipSync(buf) : buf).toString("utf8");
+  return readText(hit.path, hit.gz);
 }
 
 function idsFromText(text: string): Set<string> {
@@ -93,6 +89,11 @@ export function hasSnapshot(source: string, version: string): boolean {
 
 /** The set of canonical ids in a snapshot, or throw MissingSnapshotError. */
 export function snapshotSet(source: string, version: string): Set<string> {
+  if (!HAS_FS) {
+    throw new MissingDependencyError(
+      "cache mode needs a filesystem and is not available in the browser; use pattern or remote mode",
+    );
+  }
   const hit = findSnapshot(source, version, ".txt");
   if (hit === null) {
     throw new MissingSnapshotError(`no ${source} snapshot for version ${version}`);
@@ -116,10 +117,8 @@ export function snapshotRetired(source: string, version: string): Map<string, st
 }
 
 function versionsIn(dir: string, source: string): string[] {
-  const base = join(dir, source);
-  if (!existsSync(base)) return [];
   const versions = new Set<string>();
-  for (const name of readdirSync(base)) {
+  for (const name of readdir(join(dir, source))) {
     if (name.includes(".retired.")) continue;
     const m = /^(.+?)\.txt(?:\.gz)?$/.exec(name);
     if (m?.[1]) versions.add(m[1]);
@@ -199,8 +198,7 @@ export interface SnapshotRow {
 export function snapshots(): SnapshotRow[] {
   const rows: SnapshotRow[] = [];
   const scan = (dir: string, location: "cache" | "bundled"): void => {
-    if (!existsSync(dir)) return;
-    for (const source of readdirSync(dir)) {
+    for (const source of readdir(dir)) {
       for (const version of versionsIn(dir, source)) {
         const hit = findSnapshot(source, version, ".txt");
         if (hit === null) continue;

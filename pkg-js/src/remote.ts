@@ -6,10 +6,9 @@
 // suite injects a fixture-backed transport. Only inputs that pass the offline
 // grammar (or a grammar-valid suggestion candidate) are ever looked up.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
 import { cacheDir } from "./cache";
 import { NoResolverError, RemoteError } from "./errors";
+import { env, join, readTextIfExists, writeTextEnsuringDir } from "./io";
 import { matches, speciesOk, suggest } from "./pattern";
 import type { SourceSpec } from "./registry";
 
@@ -413,7 +412,7 @@ function redactUrl(url: string): string {
 }
 
 function remoteTtlSeconds(): number {
-  const v = Number(process.env.BIOBOUNCER_REMOTE_TTL);
+  const v = Number(env("BIOBOUNCER_REMOTE_TTL"));
   return Number.isFinite(v) ? v : 0;
 }
 
@@ -432,8 +431,9 @@ function cachePathFor(resolver: Resolver, id: string): string {
 
 function readRemoteCache(path: string): { status: number; body: unknown } | null {
   try {
-    if (!existsSync(path)) return null;
-    const rec = JSON.parse(readFileSync(path, "utf8")) as {
+    const text = readTextIfExists(path);
+    if (text === null) return null;
+    const rec = JSON.parse(text) as {
       status: number;
       body: unknown;
       fetched_at?: string;
@@ -447,14 +447,13 @@ function readRemoteCache(path: string): { status: number; body: unknown } | null
 
 function writeRemoteCache(path: string, url: string, res: RemoteResponse): void {
   try {
-    mkdirSync(dirname(path), { recursive: true });
     const record = {
       status: res.status,
       body: res.body,
       url: redactUrl(url),
       fetched_at: new Date().toISOString(),
     };
-    writeFileSync(path, JSON.stringify(record));
+    writeTextEnsuringDir(path, JSON.stringify(record));
   } catch {
     // Best effort: a cache-write failure must not fail a valid lookup.
   }
