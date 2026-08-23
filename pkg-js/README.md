@@ -71,6 +71,26 @@ import { setRemoteTransport } from "biobouncer";
 setRemoteTransport({ get: async (url) => ({ status: 200, body: await myGet(url) }), post: async () => ({ status: 200, body: null }) });
 ```
 
+## Runtime targets (Node and the browser)
+
+The package ships two builds and modern bundlers pick the right one automatically
+through the `browser` export condition, so the same `import "biobouncer"` works on
+the server and in the client.
+
+- **Node and server runtimes** (Node, Bun, Deno, Next.js server components and API
+  routes, Electron main): all four modes, including `cache` and `pull`, which read
+  bundled snapshots from disk.
+- **The browser** (React, Vite, Next.js client components, any bundler targeting
+  the web): `pattern` (pure logic) and `remote` (via `fetch`) work. `cache` and
+  `pull` need a filesystem, so they are not available client-side: `cache` throws a
+  clear error and `snapshots()` returns an empty list rather than breaking the
+  build. Put existence checks that need a snapshot on the server, or use `remote`.
+
+It is authored in TypeScript and ships type declarations, so a `.ts`/`.tsx`
+project gets full types and autocomplete. There is no browser-only setup: the
+browser build has no Node builtins, so a client bundle never fails to resolve
+`node:fs` and friends.
+
 ## Framework integration (Standard Schema)
 
 `idSchema()` returns a [Standard Schema](https://standardschema.dev) validator, so
