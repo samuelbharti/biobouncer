@@ -15,11 +15,13 @@ generated from the TypeScript types. The
 [R](https://www.samuelbharti.com/biobouncer/r/) and
 [Python](https://www.samuelbharti.com/biobouncer/py/) docs cover the same API.
 
-> **Status:** in development, not yet published to npm.
-
 ## Install
 
-Not on npm yet. From the checkout:
+```sh
+npm install biobouncer
+```
+
+Development version from the checkout:
 
 ```sh
 npm --prefix pkg-js run build
