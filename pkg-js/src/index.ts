@@ -31,5 +31,5 @@ export type { ReportRow, ReportSummary } from "./report";
 export { Report, report, reportAsync } from "./report";
 export type { Mode, Result, Summary } from "./schema";
 export { SCHEMA_VERSION } from "./schema";
-export type { SynthOptions, SynthRow } from "./synthesize";
+export type { SynthCategory, SynthOptions, SynthRow } from "./synthesize";
 export { synthesize } from "./synthesize";

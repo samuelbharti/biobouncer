@@ -11,13 +11,12 @@ import { isValidId } from "../src/core";
 import { sourceInfo, sources } from "../src/registry";
 import { report } from "../src/report";
 import type { Mode } from "../src/schema";
+import type { SynthCategory as Category } from "../src/synthesize";
 
 process.env.BIOBOUNCER_CACHE_DIR = mkdtempSync(join(tmpdir(), "biobouncer-cols-"));
 
 const here = dirname(fileURLToPath(import.meta.url));
 const colDir = join(here, "..", "src", "_data", "fixtures", "columns");
-
-type Category = "valid" | "repairable" | "invalid" | "missing";
 
 interface ColRow {
   input: string | null;
