@@ -149,6 +149,9 @@
   suggestion <- rep(NA_character_, n)
   wellformed <- rep(NA, n)
   wellformed[!is_na] <- .matches(source$pattern, x[!is_na])
+  probe <- x
+  probe[is_na | (wellformed %in% TRUE)] <- NA_character_
+  sugg_all <- .suggest_many(source, probe)
   for (i in seq_len(n)) {
     if (is_na[i]) {
       next
@@ -168,7 +171,7 @@
       }
     } else {
       valid[i] <- FALSE
-      sugg <- .suggest_one(source, x[i])
+      sugg <- sugg_all[i]
       if (!is.na(sugg) && sugg %in% ids) {
         suggestion[i] <- sugg
       }
