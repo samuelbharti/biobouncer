@@ -1,0 +1,72 @@
+{
+  "name": "biobouncer",
+  "version": "0.2.0",
+  "description": "Validate biological identifiers and inputs, the same way and with the same verdict as the R and Python packages.",
+  "keywords": [
+    "bioinformatics",
+    "validation",
+    "identifiers",
+    "ontology",
+    "gene",
+    "variant"
+  ],
+  "license": "MIT",
+  "author": "Samuel Bharti",
+  "homepage": "https://www.samuelbharti.com/biobouncer/js/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/samuelbharti/biobouncer.git",
+    "directory": "pkg-js"
+  },
+  "bugs": {
+    "url": "https://github.com/samuelbharti/biobouncer/issues"
+  },
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "browser": {
+        "import": "./dist/browser/index.js",
+        "require": "./dist/browser/index.cjs"
+      },
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "browser": "./dist/browser/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "bundle": "node scripts/bundle-shared.mjs",
+    "prebuild": "npm run bundle",
+    "build": "tsup && tsup --config tsup.browser.config.ts",
+    "postbuild": "node scripts/copy-data.mjs",
+    "pretest": "npm run bundle",
+    "test": "vitest run",
+    "pretypecheck": "npm run bundle",
+    "typecheck": "tsc --noEmit",
+    "check:pack": "node scripts/check-pack.mjs",
+    "check:browser": "node scripts/check-browser.mjs",
+    "predocs": "npm run bundle",
+    "docs": "typedoc",
+    "lint": "biome ci .",
+    "format": "biome format --write ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.2.0",
+    "@types/node": "^22.10.0",
+    "tsup": "^8.3.5",
+    "typedoc": "^0.28.20",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "yaml": "^2.6.1"
+  }
+}

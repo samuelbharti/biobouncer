@@ -1,0 +1,3 @@
+{"input": "TP53", "source_db": "hgnc", "how": "remote", "expect": {"valid": true, "normalized": "TP53"}, "note": "approved gene symbol exists"}
+{"input": "NOTAGENE", "source_db": "hgnc", "how": "remote", "expect": {"valid": false}, "note": "not an approved symbol"}
+{"input": "MLL", "source_db": "hgnc", "how": "remote", "expect": {"valid": false}, "note": "a previous symbol is not an approved symbol remotely; cache mode carries the successor"}

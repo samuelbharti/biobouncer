@@ -1,0 +1,7 @@
+{
+  "resolver": "refseq",
+  "url": "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=nuccore&id=NM_999999999&retmode=json",
+  "recorded": "2026-07-10",
+  "status": 200,
+  "body": {"result": {"uids": []}}
+}

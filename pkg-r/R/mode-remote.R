@@ -1209,10 +1209,8 @@
   wellformed <- rep(NA, n)
   wellformed[!is_na] <- .matches(source$pattern, x[!is_na])
 
-  candidate <- rep(NA_character_, n)
-  for (i in which(!is_na & !wellformed)) {
-    candidate[i] <- .suggest_one(source, x[i])
-  }
+  probe <- ifelse(wellformed %in% FALSE, x, NA_character_)
+  candidate <- .suggest_many(source, probe)
 
   need <- unique(c(
     x[which(!is_na & wellformed)],

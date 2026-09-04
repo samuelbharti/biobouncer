@@ -8,7 +8,7 @@
 \description{
 \if{html}{\figure{logo.svg}{options: style='float: right' alt='logo' width='120'}}
 
-Gene symbols, ontology terms, variant formats, and database accessions are validated through one small application programming interface (API), either offline against identifier patterns and bundled snapshots or live against a source web service. Results are designed to match those of the companion 'Python' package for the same inputs. Input order and length are preserved, and errors are reported explicitly rather than as a silent failure. Identifier patterns follow the registry and nomenclature described in Hoyt et al. (2022) \doi{10.1038/s41597-022-01807-3} and den Dunnen et al. (2016) \doi{10.1002/humu.22981}.
+Gene symbols, ontology terms, variant formats, and database accessions are validated through one small application programming interface (API), either offline against identifier patterns and bundled snapshots or live against a source web service. Results are designed to match those of the companion 'Python' and 'JavaScript' packages for the same inputs. Input order and length are preserved, and errors are reported explicitly rather than as a silent failure. Identifier patterns follow the registry and nomenclature described in Hoyt et al. (2022) \doi{10.1038/s41597-022-01807-3} and den Dunnen et al. (2016) \doi{10.1002/humu.22981}.
 }
 \seealso{
 Useful links:
@@ -25,6 +25,13 @@ Useful links:
 Authors:
 \itemize{
   \item Samuel Bharti \email{samuelbharti.io@gmail.com} (\href{https://orcid.org/0000-0003-4190-7058}{ORCID}) [copyright holder]
+}
+
+Other contributors:
+\itemize{
+  \item Barret Schloerke \email{barret@posit.co} (\href{https://orcid.org/0000-0001-9986-114X}{ORCID}) [thesis advisor]
+  \item Carson Sievert \email{carson@posit.co} (\href{https://orcid.org/0000-0002-4958-2844}{ORCID}) [thesis advisor]
+  \item Posit Software, PBC (\href{https://ror.org/03wc8by49}{ROR}) [copyright holder, funder]
 }
 
 }

@@ -7,6 +7,7 @@ change that breaks them fails the pull request instead of being found later.
 
     python tools/run_demo.py python     # execute the Python notebook
     python tools/run_demo.py r          # run the R notebook's code through Rscript
+    python tools/run_demo.py js         # run the JS demo through node (build pkg-js first)
     python tools/run_demo.py python --save   # execute and write outputs back
 
 The notebook names the stock "python3" kernel so it opens anywhere. Pass
@@ -34,6 +35,7 @@ DEMO = ROOT / "demo"
 
 PYTHON_NB = DEMO / "biobouncer_python.ipynb"
 R_NB = DEMO / "biobouncer_r.ipynb"
+JS_DEMO = DEMO / "biobouncer_js.mjs"
 
 
 def code_cells(path: Path) -> list[str]:
@@ -136,14 +138,31 @@ def run_r() -> int:
     return 0
 
 
+def run_js() -> int:
+    """Run the JS demo through Node. pkg-js must be built first (npm run build)."""
+    print(f"  running {JS_DEMO.name} through node")
+    proc = subprocess.run(
+        ["node", str(JS_DEMO)], cwd=ROOT, text=True, capture_output=True
+    )
+    if proc.stdout.strip():
+        print(proc.stdout.rstrip())
+    if proc.returncode != 0:
+        print(proc.stderr.rstrip(), file=sys.stderr)
+        sys.exit(f"JS demo failed with exit code {proc.returncode}")
+    print("  JS demo ran clean")
+    return 0
+
+
 def main(argv: list[str]) -> int:
-    if not argv or argv[0] not in {"python", "r"}:
-        sys.exit(f"usage: {Path(__file__).name} (python|r) [--save] [--kernel NAME]")
+    if not argv or argv[0] not in {"python", "r", "js"}:
+        sys.exit(f"usage: {Path(__file__).name} (python|r|js) [--save] [--kernel NAME]")
     if argv[0] == "python":
         kernel = "python3"
         if "--kernel" in argv:
             kernel = argv[argv.index("--kernel") + 1]
         return run_python(save="--save" in argv, kernel=kernel)
+    if argv[0] == "js":
+        return run_js()
     return run_r()
 
 

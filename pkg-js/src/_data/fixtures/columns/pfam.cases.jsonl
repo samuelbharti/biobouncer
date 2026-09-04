@@ -1,0 +1,5 @@
+{"input": "PF00001", "source_db": "pfam", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "PF00001", "suggestion": null}}
+{"input": "pf00001", "source_db": "pfam", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "PF00001"}}
+{"input": "PF00001!", "source_db": "pfam", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "pfam", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "PF00002", "source_db": "pfam", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "PF00002", "suggestion": null}}

@@ -1,0 +1,17 @@
+key: ncit
+name: NCI Thesaurus
+description: NCI Thesaurus concept codes for cancer and biomedical terms.
+# NCIT, a colon, C, and a concept number. A different-case prefix is suggested in
+# canonical CURIE form.
+pattern: 'NCIT:C[0-9]+'
+example: 'NCIT:C3224'
+curie:
+  prefix: NCIT
+# remote mode checks existence against the NCI Thesaurus in the EBI Ontology
+# Lookup Service, reusing the OLS resolver. This is an existence check only.
+remote:
+  resolver: ols
+  ols_ontology: ncit
+provenance:
+  pattern_source: bioregistry
+  homepage: https://ncithesaurus.nci.nih.gov

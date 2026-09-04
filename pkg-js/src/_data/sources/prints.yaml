@@ -1,0 +1,18 @@
+key: prints
+name: PRINTS
+description: PRINTS fingerprint accessions, a member database of InterPro.
+# PR and exactly five digits. Ids are uppercase; a lowercase input is suggested
+# in its canonical case.
+pattern: 'PR[0-9]{5}'
+example: 'PR00001'
+normalize:
+  case: upper
+# remote mode checks existence against the EBI InterPro API, which hosts PRINTS,
+# reusing the interpro resolver. The entry endpoint answers 204 for a well-formed
+# accession that is not a current entry. This is an existence check only.
+remote:
+  resolver: interpro
+  interpro_db: prints
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.bioinf.manchester.ac.uk/dbbrowser/PRINTS

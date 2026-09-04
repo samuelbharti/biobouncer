@@ -1,0 +1,5 @@
+{"input": "CHEMBL25", "source_db": "chembl", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "CHEMBL25", "suggestion": null}}
+{"input": "chembl25", "source_db": "chembl", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "CHEMBL25"}}
+{"input": "CHEMBL25!", "source_db": "chembl", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "chembl", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "CHEMBL26", "source_db": "chembl", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "CHEMBL26", "suggestion": null}}

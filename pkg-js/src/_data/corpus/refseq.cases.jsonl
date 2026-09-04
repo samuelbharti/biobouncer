@@ -1,0 +1,10 @@
+{"input": "NM_000546", "source_db": "refseq", "how": "pattern", "expect": {"valid": true, "normalized": "NM_000546"}, "note": "mRNA accession without a version"}
+{"input": "NM_000546.6", "source_db": "refseq", "how": "pattern", "expect": {"valid": true, "normalized": "NM_000546.6"}, "note": "mRNA accession with a version (TP53)"}
+{"input": "NP_000537.3", "source_db": "refseq", "how": "pattern", "expect": {"valid": true, "normalized": "NP_000537.3"}, "note": "protein accession"}
+{"input": "NC_000001.11", "source_db": "refseq", "how": "pattern", "expect": {"valid": true, "normalized": "NC_000001.11"}, "note": "genomic (chromosome) accession"}
+{"input": "XR_001737835.1", "source_db": "refseq", "how": "pattern", "expect": {"valid": true, "normalized": "XR_001737835.1"}, "note": "predicted non-coding RNA accession"}
+{"input": "NZ_ABCD01000001", "source_db": "refseq", "how": "pattern", "expect": {"valid": true, "normalized": "NZ_ABCD01000001"}, "note": "whole-genome shotgun accession with a letter block"}
+{"input": "nm_000546", "source_db": "refseq", "how": "pattern", "expect": {"valid": false, "suggestion": "NM_000546"}, "note": "lowercase is suggestible to the canonical uppercase"}
+{"input": "NM000546", "source_db": "refseq", "how": "pattern", "expect": {"valid": false}, "note": "missing the underscore separator"}
+{"input": "ENSG00000141510", "source_db": "refseq", "how": "pattern", "expect": {"valid": false}, "note": "an Ensembl id is not a RefSeq accession"}
+{"input": "NM_", "source_db": "refseq", "how": "pattern", "expect": {"valid": false}, "note": "prefix without digits"}

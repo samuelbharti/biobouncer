@@ -6,7 +6,8 @@ Thanks for helping. This guide covers the workflow and the local tooling.
 
 - `shared/` is the single source of truth: source definitions and the
   conformance corpus.
-- `pkg-r/` is the R package. `pkg-py/` is the Python package.
+- `pkg-r/` is the R package. `pkg-py/` is the Python package. `pkg-js/` is the
+  JavaScript/TypeScript package.
 - `tools/sync_shared.py` vendors `shared/` into each package.
 - `PLAN.md` has the architecture and the phased plan. `CLAUDE.md` is the short
   conventions digest.
@@ -56,15 +57,22 @@ Adding a source is declarative. A pattern-only source needs no code in either
 package, only data:
 
 1. Create `shared/sources/<key>.yaml` with `key`, `name`, `description`, and a
-   `pattern` (an ASCII regex, so R PCRE and Python `re` agree). Add optional
-   `normalize`, `curie`, `species`, `cache`, or `remote` blocks only if the
-   source needs them.
+   `pattern` (an ASCII regex, so R PCRE, Python `re`, and JavaScript `RegExp`
+   agree). Add optional `normalize`, `curie`, `species`, `cache`, or `remote`
+   blocks only if the source needs them. A `normalize` block builds a repair
+   candidate for an input that fails the pattern: `case: upper` or
+   `case: lower` folds the whole string. `keep_prefix` names a literal prefix
+   that keeps the spelling given here when the input starts with it in any
+   case; only the rest folds. A source with a `curie` block repairs through
+   that block instead, so `normalize` has no effect there.
 2. Add cases to `shared/corpus/<key>.cases.jsonl`, one JSON object per line with
    `input`, `source_db`, `how`, and the expected `valid` (and `normalized` or
-   `suggestion`). Both the R and Python suites run these same cases, so they are
-   the cross-language parity contract. Cover valid shapes and the ways an input
-   can be wrong.
-3. Run `python tools/sync_shared.py`, then the R and Python test suites.
+   `suggestion`). The R, Python, and JavaScript suites all run these same cases,
+   so they are the cross-language parity contract. Cover valid shapes and the
+   ways an input can be wrong.
+3. Run `python tools/check_sources.py` to validate the spec, then
+   `python tools/sync_shared.py`, then the R, Python, and JavaScript test
+   suites.
 
 Many sources start life this way, as pattern-only data, before any builder or
 resolver exists. A source that also needs a cache builder or a remote resolver

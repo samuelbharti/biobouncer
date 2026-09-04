@@ -47,7 +47,12 @@ def _suggest(source: Source, s: str) -> str | None:
 
     norm = source.normalize
     if norm and norm.get("case") in ("upper", "lower"):
-        candidate = s.upper() if norm["case"] == "upper" else s.lower()
+        fold = str.upper if norm["case"] == "upper" else str.lower
+        candidate = fold(s)
+        # A literal prefix keeps the spelling the spec gives it; only the rest folds.
+        prefix = norm.get("keep_prefix")
+        if prefix and s.lower().startswith(prefix.lower()):
+            candidate = prefix + fold(s[len(prefix) :])
         if candidate != s and matches(source.pattern, candidate):
             return candidate
     return None

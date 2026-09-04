@@ -1,3 +1,20 @@
+# biobouncer 0.2.0
+
+* A gnomAD id with a `chr` prefix now gets a suggestion when an allele or the
+  chromosome is lowercase, so `chr1-55516888-g-a` suggests `chr1-55516888-G-A`.
+  An uppercase `CHR` prefix is suggested as `chr`. No verdict changes (#89).
+
+* Repair suggestions are computed for a whole column in one pass instead of
+  one call per element, in every mode. A column with many malformed ids is
+  checked faster. Results are unchanged.
+
+* Barret Schloerke and Carson Sievert are recorded as thesis advisors, and
+  Posit Software, PBC as a copyright holder and funder. The LICENSE file lists
+  both copyright holders.
+
+* A JavaScript package now joins the R and Python packages in the same
+  repository, with the same verdicts for the same input.
+
 # biobouncer 0.1.4
 
 * Two new pattern sources for model-organism identifiers. `mgi` validates an

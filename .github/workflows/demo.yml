@@ -18,6 +18,7 @@ on:
       - "demo/**"
       - "pkg-py/**"
       - "pkg-r/**"
+      - "pkg-js/**"
       - "shared/**"
       - "tools/run_demo.py"
       - ".github/workflows/demo.yml"
@@ -26,6 +27,7 @@ on:
       - "demo/**"
       - "pkg-py/**"
       - "pkg-r/**"
+      - "pkg-js/**"
       - "shared/**"
       - "tools/run_demo.py"
       - ".github/workflows/demo.yml"
@@ -86,3 +88,24 @@ jobs:
       # same either way, and this needs no IRkernel or kernel registration.
       - name: Run the R notebook
         run: python tools/run_demo.py r
+
+  demo-js:
+    name: demo-js
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: pkg-js/package-lock.json
+
+      # Build the package from this checkout so the demo runs against the working
+      # tree rather than a published release.
+      - name: Install and build the package
+        run: npm ci && npm run build
+        working-directory: pkg-js
+
+      - name: Run the JS demo
+        run: node demo/biobouncer_js.mjs

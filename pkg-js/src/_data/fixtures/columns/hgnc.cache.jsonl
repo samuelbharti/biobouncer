@@ -1,0 +1,5 @@
+{"input": "BRCA2", "source_db": "hgnc", "how": "cache", "version": "sample", "category": "valid", "expect": {"valid": true, "normalized": "BRCA2", "suggestion": null}}
+{"input": "CARS", "source_db": "hgnc", "how": "cache", "version": "sample", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "CARS1"}}
+{"input": "TP9000053", "source_db": "hgnc", "how": "cache", "version": "sample", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "hgnc", "how": "cache", "version": "sample", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "C9orf72", "source_db": "hgnc", "how": "cache", "version": "sample", "category": "valid", "expect": {"valid": true, "normalized": "C9orf72", "suggestion": null}}

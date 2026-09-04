@@ -1,0 +1,14 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["src/index.ts"],
+  "out": "site",
+  "name": "biobouncer (JavaScript)",
+  "includeVersion": true,
+  "hideGenerator": true,
+  "treatWarningsAsErrors": true,
+  "navigationLinks": {
+    "R docs": "https://www.samuelbharti.com/biobouncer/r/",
+    "Python docs": "https://www.samuelbharti.com/biobouncer/py/",
+    "GitHub": "https://github.com/samuelbharti/biobouncer"
+  }
+}

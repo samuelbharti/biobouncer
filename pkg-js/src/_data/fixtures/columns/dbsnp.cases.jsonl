@@ -1,0 +1,5 @@
+{"input": "rs7412", "source_db": "dbsnp", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "rs7412", "suggestion": null}}
+{"input": "RS7412", "source_db": "dbsnp", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "rs7412"}}
+{"input": "rs7412!", "source_db": "dbsnp", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "dbsnp", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "rs7413", "source_db": "dbsnp", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "rs7413", "suggestion": null}}

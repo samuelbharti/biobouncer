@@ -1,0 +1,5 @@
+{"input": "ECO:0000269", "source_db": "eco", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "ECO:0000269", "suggestion": null}}
+{"input": "eco:0000269", "source_db": "eco", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "ECO:0000269"}}
+{"input": "ECO:0000269!", "source_db": "eco", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "eco", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "ECO:0000270", "source_db": "eco", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "ECO:0000270", "suggestion": null}}

@@ -1,0 +1,13 @@
+{
+  "resolver": "dbsnp",
+  "url": "https://api.ncbi.nlm.nih.gov/variation/v0/refsnp/3200542",
+  "recorded": "2026-07-09",
+  "status": 200,
+  "body": {
+    "merged_snapshot_data": {
+      "merged_into": [
+        "7412"
+      ]
+    }
+  }
+}

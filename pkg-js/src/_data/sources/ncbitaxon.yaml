@@ -1,0 +1,18 @@
+key: ncbitaxon
+name: NCBI Taxonomy
+description: NCBI Taxonomy identifiers for organisms and other taxa.
+# NCBITaxon and a taxon number (not zero-padded). A different-case prefix or a
+# bare number is suggested in canonical CURIE form.
+pattern: 'NCBITaxon:[0-9]+'
+example: 'NCBITaxon:9606'
+curie:
+  prefix: NCBITaxon
+# remote mode checks existence against NCBI Taxonomy in the EBI Ontology Lookup
+# Service, reusing the OLS resolver. This is an existence check only. No cache
+# builder is offered: the NCBI Taxonomy OBO release is far too large to snapshot.
+remote:
+  resolver: ols
+  ols_ontology: ncbitaxon
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.ncbi.nlm.nih.gov/taxonomy

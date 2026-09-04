@@ -1,0 +1,5 @@
+{"input": "MI0000001", "source_db": "mirbase_hairpin", "how": "pattern", "expect": {"valid": true, "normalized": "MI0000001"}, "note": "cel-let-7 hairpin precursor"}
+{"input": "MI0000060", "source_db": "mirbase_hairpin", "how": "pattern", "expect": {"valid": true, "normalized": "MI0000060"}, "note": "another hairpin precursor"}
+{"input": "mi0000001", "source_db": "mirbase_hairpin", "how": "pattern", "expect": {"valid": false, "suggestion": "MI0000001"}, "note": "lowercase is suggestible to uppercase"}
+{"input": "MIMAT0000001", "source_db": "mirbase_hairpin", "how": "pattern", "expect": {"valid": false}, "note": "a mature MIMAT accession is not a hairpin id"}
+{"input": "MI001", "source_db": "mirbase_hairpin", "how": "pattern", "expect": {"valid": false}, "note": "not seven digits"}

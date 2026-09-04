@@ -1,0 +1,5 @@
+{"input": "PA267", "source_db": "pharmgkb", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "PA267", "suggestion": null}}
+{"input": "pa267", "source_db": "pharmgkb", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "PA267"}}
+{"input": "PA267!", "source_db": "pharmgkb", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "pharmgkb", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "PA268", "source_db": "pharmgkb", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "PA268", "suggestion": null}}

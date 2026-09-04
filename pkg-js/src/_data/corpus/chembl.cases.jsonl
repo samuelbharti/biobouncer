@@ -1,0 +1,6 @@
+{"input": "CHEMBL25", "source_db": "chembl", "how": "pattern", "expect": {"valid": true, "normalized": "CHEMBL25"}, "note": "canonical id (aspirin)"}
+{"input": "CHEMBL1201580", "source_db": "chembl", "how": "pattern", "expect": {"valid": true, "normalized": "CHEMBL1201580"}, "note": "longer numeric id"}
+{"input": "chembl25", "source_db": "chembl", "how": "pattern", "expect": {"valid": false, "suggestion": "CHEMBL25"}, "note": "lowercase is suggestible to the canonical uppercase"}
+{"input": "CHEMBL", "source_db": "chembl", "how": "pattern", "expect": {"valid": false}, "note": "prefix without digits"}
+{"input": "CHEMB25", "source_db": "chembl", "how": "pattern", "expect": {"valid": false}, "note": "misspelled prefix"}
+{"input": "CHEMBL25.1", "source_db": "chembl", "how": "pattern", "expect": {"valid": false}, "note": "no suffix is allowed after the digits"}

@@ -1,0 +1,5 @@
+{"input": "CHEMBL25", "source_db": "chembl", "how": "remote", "expect": {"valid": true, "normalized": "CHEMBL25"}, "note": "a real compound (aspirin)"}
+{"input": "CHEMBL192", "source_db": "chembl", "how": "remote", "expect": {"valid": true, "normalized": "CHEMBL192"}, "note": "a real compound (sildenafil)"}
+{"input": "CHEMBL99999999", "source_db": "chembl", "how": "remote", "expect": {"valid": false}, "note": "well-formed but no such entity"}
+{"input": "chembl25", "source_db": "chembl", "how": "remote", "expect": {"valid": false, "suggestion": "CHEMBL25"}, "note": "lowercase; the canonical uppercase form exists remotely"}
+{"input": "CHEMBL", "source_db": "chembl", "how": "remote", "expect": {"valid": false}, "note": "the bare prefix has no number; fails the grammar before any lookup"}

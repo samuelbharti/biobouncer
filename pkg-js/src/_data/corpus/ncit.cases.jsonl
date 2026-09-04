@@ -1,0 +1,5 @@
+{"input": "NCIT:C3224", "source_db": "ncit", "how": "pattern", "expect": {"valid": true, "normalized": "NCIT:C3224"}, "note": "melanoma"}
+{"input": "NCIT:C2985", "source_db": "ncit", "how": "pattern", "expect": {"valid": true, "normalized": "NCIT:C2985"}, "note": "diabetes mellitus"}
+{"input": "ncit:C3224", "source_db": "ncit", "how": "pattern", "expect": {"valid": false, "suggestion": "NCIT:C3224"}, "note": "different-case prefix is suggestible to the canonical form"}
+{"input": "NCIT:3224", "source_db": "ncit", "how": "pattern", "expect": {"valid": false}, "note": "missing the C concept marker"}
+{"input": "NCITC3224", "source_db": "ncit", "how": "pattern", "expect": {"valid": false}, "note": "missing the colon"}

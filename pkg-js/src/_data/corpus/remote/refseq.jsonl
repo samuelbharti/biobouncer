@@ -1,0 +1,5 @@
+{"input": "NM_000546.6", "source_db": "refseq", "how": "remote", "expect": {"valid": true, "normalized": "NM_000546.6"}, "note": "a real mRNA accession (TP53), routed to nuccore"}
+{"input": "NP_003997.1", "source_db": "refseq", "how": "remote", "expect": {"valid": true, "normalized": "NP_003997.1"}, "note": "a real protein accession, routed to protein by its prefix"}
+{"input": "NM_999999999", "source_db": "refseq", "how": "remote", "expect": {"valid": false}, "note": "well-formed but no such accession; esummary returns an empty uid list"}
+{"input": "nm_000546.6", "source_db": "refseq", "how": "remote", "expect": {"valid": false, "suggestion": "NM_000546.6"}, "note": "lowercase; the canonical uppercase form exists remotely"}
+{"input": "QQ_000546", "source_db": "refseq", "how": "remote", "expect": {"valid": false}, "note": "not a RefSeq molecule prefix; fails the grammar before any lookup"}

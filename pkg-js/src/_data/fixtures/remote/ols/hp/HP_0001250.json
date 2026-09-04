@@ -1,0 +1,11 @@
+{
+  "resolver": "ols",
+  "url": "https://www.ebi.ac.uk/ols4/api/ontologies/hp/terms?obo_id=HP:0001250",
+  "recorded": "2026-07-09",
+  "status": 200,
+  "body": {
+    "page": {
+      "totalElements": 1
+    }
+  }
+}

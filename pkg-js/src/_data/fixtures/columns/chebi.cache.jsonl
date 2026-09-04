@@ -1,0 +1,5 @@
+{"input": "CHEBI:15377", "source_db": "chebi", "how": "cache", "version": "sample", "category": "valid", "expect": {"valid": true, "normalized": "CHEBI:15377", "suggestion": null}}
+{"input": "chebi:15377", "source_db": "chebi", "how": "cache", "version": "sample", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "CHEBI:15377"}}
+{"input": "CHEBI:9015377", "source_db": "chebi", "how": "cache", "version": "sample", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "chebi", "how": "cache", "version": "sample", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "CHEBI:15422", "source_db": "chebi", "how": "cache", "version": "sample", "category": "valid", "expect": {"valid": true, "normalized": "CHEBI:15422", "suggestion": null}}

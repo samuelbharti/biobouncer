@@ -1,0 +1,5 @@
+{"input": "MONDO:0005148", "source_db": "mondo", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "MONDO:0005148", "suggestion": null}}
+{"input": "mondo:0005148", "source_db": "mondo", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "MONDO:0005148"}}
+{"input": "MONDO:0005148!", "source_db": "mondo", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "mondo", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "MONDO:0005149", "source_db": "mondo", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "MONDO:0005149", "suggestion": null}}

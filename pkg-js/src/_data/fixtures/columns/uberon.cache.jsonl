@@ -1,0 +1,5 @@
+{"input": "UBERON:0002107", "source_db": "uberon", "how": "cache", "version": "sample", "category": "valid", "expect": {"valid": true, "normalized": "UBERON:0002107", "suggestion": null}}
+{"input": "uberon:0002107", "source_db": "uberon", "how": "cache", "version": "sample", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "UBERON:0002107"}}
+{"input": "UBERON:9002107", "source_db": "uberon", "how": "cache", "version": "sample", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "uberon", "how": "cache", "version": "sample", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "UBERON:0002483", "source_db": "uberon", "how": "cache", "version": "sample", "category": "valid", "expect": {"valid": true, "normalized": "UBERON:0002483", "suggestion": null}}

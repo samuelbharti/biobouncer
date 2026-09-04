@@ -1,0 +1,5 @@
+{"input": "NCBITaxon:9606", "source_db": "ncbitaxon", "how": "remote", "expect": {"valid": true, "normalized": "NCBITaxon:9606"}, "note": "Homo sapiens; a real taxon"}
+{"input": "NCBITaxon:10090", "source_db": "ncbitaxon", "how": "remote", "expect": {"valid": true, "normalized": "NCBITaxon:10090"}, "note": "Mus musculus; a real taxon"}
+{"input": "NCBITaxon:99999999", "source_db": "ncbitaxon", "how": "remote", "expect": {"valid": false}, "note": "well-formed but no such taxon; the ontology lookup returns 404"}
+{"input": "ncbitaxon:9606", "source_db": "ncbitaxon", "how": "remote", "expect": {"valid": false, "suggestion": "NCBITaxon:9606"}, "note": "different-case prefix; the canonical form exists remotely"}
+{"input": "NCBITaxon9606", "source_db": "ncbitaxon", "how": "remote", "expect": {"valid": false}, "note": "missing the colon; fails the grammar before any lookup"}

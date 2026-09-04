@@ -11,3 +11,9 @@
 {"input": "1-55516888-G", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false}, "note": "a missing field, only three parts"}
 {"input": "23-100-G-A", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false}, "note": "chromosome 23 is out of range"}
 {"input": "0-100-G-A", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false}, "note": "chromosome 0 does not exist"}
+{"input": "chr1-55516888-g-a", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false, "suggestion": "chr1-55516888-G-A"}, "note": "lowercase alleles behind a chr prefix are suggested in uppercase, prefix kept lowercase"}
+{"input": "CHR1-55516888-G-A", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false, "suggestion": "chr1-55516888-G-A"}, "note": "an uppercase chr prefix is suggested in lowercase"}
+{"input": "Chr1-55516888-g-a", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false, "suggestion": "chr1-55516888-G-A"}, "note": "a mixed-case prefix and lowercase alleles repair together"}
+{"input": "chrx-149481232-tg-t", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false, "suggestion": "chrX-149481232-TG-T"}, "note": "a lowercase chromosome letter is suggested in uppercase"}
+{"input": "chrmt-750-g-a", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false, "suggestion": "chrMT-750-G-A"}, "note": "a lowercase MT is suggested in uppercase"}
+{"input": "CHR23-100-G-A", "source_db": "gnomad", "how": "pattern", "expect": {"valid": false}, "note": "the prefix repair does not rescue an out-of-range chromosome"}

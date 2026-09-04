@@ -1,0 +1,19 @@
+key: orphanet
+name: Orphanet
+description: Orphanet identifiers for rare diseases.
+# ORPHA, a colon, and digits. Ids are uppercase; a lowercase input is
+# suggested in its canonical case.
+pattern: 'ORPHA:[0-9]+'
+example: 'ORPHA:558'
+normalize:
+  case: upper
+# remote mode checks existence against the Orphanet Rare Disease Ontology in the
+# EBI Ontology Lookup Service. The ORPHA prefix is rewritten to the ontology's
+# Orphanet prefix for the lookup. An obsolete term is reported with its successor.
+remote:
+  resolver: ols
+  ols_ontology: ordo
+  obo_prefix: Orphanet
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.orpha.net
