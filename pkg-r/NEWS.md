@@ -9,8 +9,8 @@
   checked faster. Results are unchanged.
 
 * Barret Schloerke and Carson Sievert are recorded as thesis advisors, Posit
-  Software, PBC as a copyright holder and funder, and Anthropic as a funder.
-  The LICENSE file lists both copyright holders.
+  Software, PBC as a copyright holder and funder, and Anthropic, PBC as a
+  funder. The LICENSE file lists both copyright holders.
 
 * A JavaScript package now joins the R and Python packages in the same
   repository, with the same verdicts for the same input.
