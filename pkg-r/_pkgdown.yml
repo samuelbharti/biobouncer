@@ -12,12 +12,12 @@ template:
   opengraph:
     image:
       src: https://www.samuelbharti.com/biobouncer/r/social-card.png
-      alt: "biobouncer: validate biological identifiers, the same verdict in R and Python"
+      alt: "biobouncer: validate biological identifiers, the same verdict in R, Python, and JavaScript"
 
 home:
   title: biobouncer
   description: >
-    Validate biological identifiers and inputs the same way in R and Python.
+    Validate biological identifiers and inputs the same way in R, Python, and JavaScript.
 
 navbar:
   structure:
