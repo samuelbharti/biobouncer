@@ -70,7 +70,8 @@ package, only data:
    `suggestion`). The R, Python, and JavaScript suites all run these same cases,
    so they are the cross-language parity contract. Cover valid shapes and the
    ways an input can be wrong.
-3. Run `python tools/sync_shared.py`, then the R, Python, and JavaScript test
+3. Run `python tools/check_sources.py` to validate the spec, then
+   `python tools/sync_shared.py`, then the R, Python, and JavaScript test
    suites.
 
 Many sources start life this way, as pattern-only data, before any builder or
