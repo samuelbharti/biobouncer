@@ -89,8 +89,39 @@ jobs:
           path: pkg-py/site
           if-no-files-found: error
 
+  build-js:
+    runs-on: ubuntu-latest
+    name: build-js
+    defaults:
+      run:
+        working-directory: pkg-js
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: pkg-js/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # TypeDoc builds the API reference from the TypeScript types, with the
+      # package README as the front page. A warning fails the build, so a type
+      # that the public API references but does not export cannot ship as a
+      # dead link.
+      - name: Build TypeDoc site
+        run: npm run docs
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: site-js
+          path: pkg-js/site
+          if-no-files-found: error
+
   deploy:
-    needs: [build-r, build-py]
+    needs: [build-r, build-py, build-js]
     if: >
       (github.event_name == 'push' && github.ref == 'refs/heads/main')
       || github.event_name == 'workflow_dispatch'
@@ -126,6 +157,11 @@ jobs:
         with:
           name: site-py
           path: _site/py
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: site-js
+          path: _site/js
 
       - uses: actions/configure-pages@v5
 

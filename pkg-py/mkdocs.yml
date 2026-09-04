@@ -1,5 +1,5 @@
 site_name: biobouncer (Python)
-site_description: Validate biological identifiers and inputs the same way in R and Python.
+site_description: Validate biological identifiers and inputs the same way in R, Python, and JavaScript.
 site_url: https://www.samuelbharti.com/biobouncer/py/
 repo_url: https://github.com/samuelbharti/biobouncer
 repo_name: samuelbharti/biobouncer
@@ -55,6 +55,7 @@ nav:
   - Sources cookbook: sources.md
   - API reference: reference.md
   - R docs: https://www.samuelbharti.com/biobouncer/r/
+  - JavaScript docs: https://www.samuelbharti.com/biobouncer/js/
 
 markdown_extensions:
   - admonition

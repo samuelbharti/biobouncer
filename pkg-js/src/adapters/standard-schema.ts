@@ -18,7 +18,8 @@ export interface StandardSchemaV1<Input = string, Output = Input> {
   };
 }
 
-type StandardResult<T> =
+/** The outcome of a Standard Schema validate call: a value, or a list of issues. */
+export type StandardResult<T> =
   | { readonly value: T; readonly issues?: undefined }
   | { readonly issues: ReadonlyArray<{ readonly message: string }> };
 

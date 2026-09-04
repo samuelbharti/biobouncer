@@ -12,7 +12,8 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 ```
 
 biobouncer validates biological identifiers and inputs. It answers one question,
-"is this a valid identifier?", with the same verdict in R and Python. This
+"is this a valid identifier?", with the same verdict in R, Python, and
+JavaScript. This
 vignette walks through the sources, the checking modes, and the validation
 adapters using only offline data, so every chunk here runs without a network.
 

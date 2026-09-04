@@ -8,19 +8,22 @@ import { partitionFirst } from "./pattern";
 import { getSource, type SourceSpec } from "./registry";
 import type { Mode, Result } from "./schema";
 
-type Category = "valid" | "repairable" | "invalid" | "missing";
-
-const CATEGORIES: Category[] = ["valid", "repairable", "invalid", "missing"];
-const BREAKERS = ["!", " x", "##"];
-const ABSENT_OFFSET = 9_000_000;
+/** How the checker classifies a synthesized value. */
+export type SynthCategory = "valid" | "repairable" | "invalid" | "missing";
 
 export interface SynthRow {
   input: string | null;
-  category: Category;
+  category: SynthCategory;
   valid: boolean | null;
   normalized: string | null;
   suggestion: string | null;
 }
+
+type Category = SynthCategory;
+
+const CATEGORIES: Category[] = ["valid", "repairable", "invalid", "missing"];
+const BREAKERS = ["!", " x", "##"];
+const ABSENT_OFFSET = 9_000_000;
 
 export interface SynthOptions {
   how?: Mode;

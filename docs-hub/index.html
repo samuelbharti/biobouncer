@@ -4,11 +4,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>biobouncer</title>
-    <meta name="description" content="Validate biological identifiers and inputs the same way in R and Python. One small API, three checking modes, 50 sources, one verdict in both languages." />
+    <meta name="description" content="Validate biological identifiers and inputs the same way in R, Python, and JavaScript. One small API, three checking modes, 50 sources, one verdict in all three languages." />
     <link rel="icon" href="assets/favicon.png" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="biobouncer" />
-    <meta property="og:description" content="Validate biological identifiers, with the same verdict in R and Python." />
+    <meta property="og:description" content="Validate biological identifiers, with the same verdict in R, Python, and JavaScript." />
     <meta property="og:image" content="https://www.samuelbharti.com/biobouncer/social-card.png" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -87,8 +87,9 @@
       .sec-h { margin: .5rem 0 0; font-family: "Bricolage Grotesque", sans-serif; color: var(--ink); font-size: 1.5rem; font-weight: 700; letter-spacing: -.015em; }
       .sec-sub { margin: .35rem 0 1.35rem; color: var(--muted); }
 
-      /* two doors: flat bordered blocks, no shadow, no rail, no lift */
-      .doors { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+      /* three doors: flat bordered blocks, no shadow, no rail, no lift */
+      .doors { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+      @media (max-width: 860px) { .doors { grid-template-columns: 1fr 1fr; } }
       @media (max-width: 620px) { .doors { grid-template-columns: 1fr; } }
       a.door { display: block; padding: 1.5rem 1.6rem; border: 1px solid var(--line); border-radius: var(--radius);
         background: var(--panel); text-decoration: none; color: inherit; }
@@ -98,7 +99,7 @@
       a.door p { margin: 0 0 1rem; color: var(--muted); font-size: .97rem; }
       a.door .install { font-family: "JetBrains Mono", monospace; font-size: .82rem; color: var(--ink);
         background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); padding: .45rem .65rem;
-        display: inline-block; max-width: 100%; overflow-wrap: anywhere; }
+        display: inline-block; max-width: 100%; overflow-wrap: break-word; }
       a.door .go { margin-top: 1rem; color: var(--teal); font-weight: 600; font-size: .93rem; }
       a.door:hover .go { text-decoration: underline; }
 
@@ -129,6 +130,7 @@
         <div class="nav-links">
           <a href="r/">R package</a>
           <a href="py/">Python package</a>
+          <a href="js/">JavaScript package</a>
           <a href="https://github.com/samuelbharti/biobouncer">GitHub</a>
         </div>
       </div>
@@ -137,17 +139,19 @@
     <main class="page">
       <section class="hero">
         <div class="hero-copy">
-          <p class="eyebrow">R and Python · one verdict</p>
+          <p class="eyebrow">R, Python, and JavaScript · one verdict</p>
           <h1>biobouncer</h1>
           <p class="tagline">A gate for biological inputs. It checks IDs at the door.</p>
           <p class="lead">
             One small API answers <em>"is this a valid identifier?"</em> for gene symbols, ontology
-            terms, variant formats, and database accessions across 50 sources. R and Python return
-            the same verdict for the same input, enforced by a shared conformance corpus.
+            terms, variant formats, and database accessions across 50 sources. R, Python, and
+            JavaScript return the same verdict for the same input, enforced by a shared conformance
+            corpus.
           </p>
           <div class="cta">
             <a class="btn btn-primary" href="r/">R docs &rarr;</a>
             <a class="btn btn-ghost" href="py/">Python docs &rarr;</a>
+            <a class="btn btn-ghost" href="js/">JavaScript docs &rarr;</a>
             <a class="btn btn-ghost" href="https://github.com/samuelbharti/biobouncer/tree/main/demo">Demo notebooks &rarr;</a>
           </div>
         </div>
@@ -157,16 +161,15 @@
       </section>
 
       <section class="sec">
-        <p class="eyebrow">Two doors</p>
-        <h2 class="sec-h">One bouncer, two doors</h2>
+        <p class="eyebrow">Three doors</p>
+        <h2 class="sec-h">One bouncer, three doors</h2>
         <p class="sec-sub">Same ID, same answer. Pick the language you work in.</p>
         <div class="doors">
           <a class="door" href="r/">
             <span class="lang">R</span>
             <h3>The R package</h3>
             <p>Function reference, a getting-started vignette, and recipes, built with pkgdown.</p>
-            <!-- Not on CRAN yet. Once it is: install.packages("biobouncer") -->
-            <span class="install mono">install.packages("biobouncer",<br>&nbsp;&nbsp;repos = "https://samuelbharti.r-universe.dev")</span>
+            <span class="install mono">install.packages(<wbr>"biobouncer")</span>
             <div class="go">Enter the R door &rarr;</div>
           </a>
           <a class="door" href="py/">
@@ -175,6 +178,13 @@
             <p>Guide, examples, a sources cookbook, and API reference, built with MkDocs.</p>
             <span class="install mono">pip install biobouncer</span>
             <div class="go">Enter the Python door &rarr;</div>
+          </a>
+          <a class="door" href="js/">
+            <span class="lang">JavaScript</span>
+            <h3>The JavaScript package</h3>
+            <p>API reference from the TypeScript types, with the README as the guide. Runs in Node and the browser.</p>
+            <span class="install mono">npm install biobouncer</span>
+            <div class="go">Enter the JavaScript door &rarr;</div>
           </a>
         </div>
       </section>
@@ -193,9 +203,9 @@
       <section class="sec">
         <p class="eyebrow">How it works</p>
         <h2 class="sec-h">A column in, a verdict out</h2>
-        <p class="sec-sub">A messy column goes in; one labeled verdict comes out, identical in R and Python.</p>
+        <p class="sec-sub">A messy column goes in; one labeled verdict comes out, identical in R, Python, and JavaScript.</p>
         <figure class="overview">
-          <img src="assets/overview.svg" alt="biobouncer takes a messy column of biological identifiers, checks each through one gate with the checking modes, and returns one labeled verdict that is the same in R and Python." />
+          <img src="assets/overview.svg" alt="biobouncer takes a messy column of biological identifiers, checks each through one gate with the checking modes, and returns one labeled verdict that is the same in R, Python, and JavaScript." />
           <figcaption>Validate, normalize, and repair a whole column, not just one field.</figcaption>
         </figure>
       </section>

@@ -10,6 +10,11 @@ This is the JavaScript/TypeScript implementation. It is part of the biobouncer
 monorepo and shares its identifier spec and corpus with the R and Python
 packages.
 
+**Documentation:** [API reference](https://www.samuelbharti.com/biobouncer/js/),
+generated from the TypeScript types. The
+[R](https://www.samuelbharti.com/biobouncer/r/) and
+[Python](https://www.samuelbharti.com/biobouncer/py/) docs cover the same API.
+
 > **Status:** in development, not yet published to npm.
 
 ## Install
@@ -54,8 +59,9 @@ r.repair(); // ["TP53", "KMT2A", ...]
 - `remote`: live existence against the source API.
 - `existence`: snapshot if available, else remote, else pattern.
 
-`pattern` and `cache` are synchronous. **`remote` is asynchronous** (network I/O),
-so use the async entry points:
+`pattern` and `cache` are synchronous. **A check that needs the network is
+asynchronous**: `remote` mode, and `existence` mode when no installed snapshot
+answers it and the source has a resolver. Use the async entry points for those:
 
 ```ts
 import { checkIdAsync, isValidIdAsync } from "biobouncer";
@@ -117,5 +123,6 @@ names, so JSON produced here matches R and Python. Function map:
 | `snapshots` / `biobouncer_snapshots` | `snapshots` |
 | `cache_dir` / `biobouncer_cache_dir` | `cacheDir` |
 
-See the runnable [`demo/biobouncer_js.mjs`](../demo/biobouncer_js.mjs) for the
-full tour.
+See the runnable
+[`demo/biobouncer_js.mjs`](https://github.com/samuelbharti/biobouncer/blob/main/demo/biobouncer_js.mjs)
+for the full tour.
