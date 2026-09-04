@@ -59,8 +59,9 @@ r.repair(); // ["TP53", "KMT2A", ...]
 - `remote`: live existence against the source API.
 - `existence`: snapshot if available, else remote, else pattern.
 
-`pattern` and `cache` are synchronous. **`remote` is asynchronous** (network I/O),
-so use the async entry points:
+`pattern` and `cache` are synchronous. **A check that needs the network is
+asynchronous**: `remote` mode, and `existence` mode when no installed snapshot
+answers it and the source has a resolver. Use the async entry points for those:
 
 ```ts
 import { checkIdAsync, isValidIdAsync } from "biobouncer";

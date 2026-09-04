@@ -161,10 +161,10 @@ JavaScript uses camelCase:
 | `snapshots` | `biobouncer_snapshots` | `snapshots` |
 | `cache_dir` | `biobouncer_cache_dir` | `cacheDir` |
 
-In JavaScript a check that needs the network is asynchronous. That is `remote`
-mode, and `existence` mode when no snapshot version is given. Use
-`checkIdAsync`, `isValidIdAsync`, and `reportAsync` for those. Options are an
-object, so `how="cache"` becomes `{{ how: "cache" }}`.
+In JavaScript a check that needs the network is asynchronous: `remote` mode, and
+`existence` mode when no installed snapshot answers it and the source has a
+resolver. Use `checkIdAsync`, `isValidIdAsync`, and `reportAsync` for those.
+Options are an object, so `how="cache"` becomes `{{ how: "cache" }}`.
 
 The pages below are the Python documentation. Read a Python function name through
 the table above to get its R or JavaScript equivalent; the arguments and the
