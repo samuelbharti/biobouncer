@@ -43,7 +43,10 @@ SOURCES = (
     ("pkg-r/NEWS.md", r"^#\s+biobouncer\s+(\d\S*)"),
     # The JS package version. The key is indented in package.json, so the anchor
     # allows leading whitespace rather than binding to the start of the line.
+    # package-lock.json records the same version and drifts the way uv.lock
+    # does when package.json is bumped without `npm install`.
     ("pkg-js/package.json", r'^\s*"version":\s*"([^"]+)"'),
+    ("pkg-js/package-lock.json", r'^\s*"version":\s*"([^"]+)"'),
 )
 
 

@@ -373,7 +373,7 @@ df |> assertr::verify(
 - **Reproducibility is not optional.** Offline modes are pure functions of
   pinned snapshots; results always report the version they came from.
 - **Cross-language parity is a test, not a promise.** A shared corpus of
-  input/expected-verdict cases is run against both the R and Python
+  input/expected-verdict cases is run against the R, Python, and JavaScript
   implementations in CI.
 - **Rich results over booleans.** Return what failed, what it normalizes to, and
   what it should probably be.
@@ -400,7 +400,7 @@ biobouncer_cache_dir()          # where snapshots live
 Delivered:
 
 - [x] `pattern` mode, the core API, and the rich result schema
-- [x] Shared conformance corpus with R and Python parity
+- [x] Shared conformance corpus with R, Python, and JavaScript parity
 - [x] `cache` mode and snapshot tooling for the OBO ontologies
 - [x] `remote` resolvers (OLS, Ensembl, UniProt, NCBI, EBI, and more: 19 resolvers across 41 sources)
 - [x] Species and version awareness
