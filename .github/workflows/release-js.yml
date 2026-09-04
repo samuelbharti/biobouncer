@@ -36,6 +36,11 @@ jobs:
           node-version: "20"
           registry-url: "https://registry.npmjs.org"
 
+      # Trusted Publishing needs npm 11.5.1 or newer. Node 20 bundles npm 10,
+      # which has no OIDC exchange and fails with ENEEDAUTH at publish time.
+      - name: Update npm for trusted publishing
+        run: npm install -g npm@latest && npm --version
+
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
