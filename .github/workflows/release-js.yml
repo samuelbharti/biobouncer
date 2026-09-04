@@ -7,6 +7,15 @@ name: release-js
 # publisher on npm must name this repository and this workflow file, so neither
 # can be renamed without updating it to match.
 #
+# BOOTSTRAP EXCEPTION: Trusted Publishing cannot authenticate the very first
+# publish of a package that does not exist on npm yet, since there is nothing
+# for the trusted-publisher relationship to attach to. The "Publish to npm"
+# step below carries a temporary NODE_AUTH_TOKEN, read from the short-lived
+# NPM_TOKEN repository secret, only to get biobouncer's first version onto the
+# registry. Once that publish succeeds, configure the npm Trusted Publisher on
+# the now-existing package, remove the NODE_AUTH_TOKEN line below in a
+# follow-up commit, and delete the NPM_TOKEN secret.
+#
 # workflow_dispatch is here because a release can only be published once. If the
 # build or upload fails, a manual run against the tag retries it.
 
@@ -68,4 +77,7 @@ jobs:
         run: npm run check:pack
 
       - name: Publish to npm
+        # See the BOOTSTRAP EXCEPTION note at the top of this file.
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm publish --provenance --access public
