@@ -3,7 +3,19 @@
 All notable changes to the Python package are recorded here. The R package keeps
 a matching changelog in `pkg-r/NEWS.md`; the two packages share one version.
 
-## Unreleased
+## 0.2.0
+
+### Added
+
+- A JavaScript package joins the R and Python packages in the same repository,
+  with the same verdicts for the same input. There is no change to the Python
+  package.
+
+### Changed
+
+- Barret Schloerke and Carson Sievert are recorded as thesis advisors, and
+  Posit Software, PBC as a copyright holder and funder, in the R package
+  metadata. The repository LICENSE lists both copyright holders.
 
 ### Fixed
 
