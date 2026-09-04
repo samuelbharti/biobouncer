@@ -26,6 +26,7 @@ export interface IdSchemaOptions {
   how?: Mode;
   species?: string | number | null;
   version?: string | null;
+  onError?: "raise" | "indeterminate";
 }
 
 /**
@@ -51,8 +52,15 @@ export function idSchema(
           return { issues: [{ message: "expected a string identifier" }] };
         }
         const result = (await checkIdAsync(value, sourceDb, opts))[0];
-        if (!result || result.valid === true || result.valid === null) {
+        if (!result || result.valid === true) {
           return { value };
+        }
+        if (result.error !== null) {
+          return {
+            issues: [
+              { message: `could not check ${sourceDb} identifier: ${result.error}` },
+            ],
+          };
         }
         const hint = result.suggestion ? ` (did you mean ${result.suggestion}?)` : "";
         return { issues: [{ message: `not a valid ${sourceDb} identifier${hint}` }] };
