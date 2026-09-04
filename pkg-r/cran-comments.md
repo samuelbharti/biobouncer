@@ -1,41 +1,35 @@
 # cran-comments
 
-## Resubmission
+## Update
 
-This is a resubmission. Thank you for the review. The three points raised are
-addressed as follows.
+This is an update from 0.1.4 to 0.2.0.
 
-* References are now given in the `Description` field of DESCRIPTION, in the
-  requested `authors (year) <doi:...>` form with no space after `doi:`. The two
-  cited works are the sources the identifier patterns follow: Hoyt et al. (2022)
-  <doi:10.1038/s41597-022-01807-3> for the Bioregistry, and den Dunnen et al.
-  (2016) <doi:10.1002/humu.22981> for the HGVS sequence variant nomenclature.
-
-* The commented-out example code in `id_predicate.Rd` is removed. The examples
-  for that function now run in full, and no example anywhere in the package
-  contains commented-out code. The third-party integrations that were shown as
-  comments (assertr, validate and pointblank) are documented in an online
-  article instead, so no example depends on a package that is only suggested.
-
-* No example requires a package from `Suggests`, so no `requireNamespace()`
-  guard is needed. `Suggests` is unchanged and lists only knitr, rmarkdown,
-  testthat and withr, none of which are called from an example.
+* A gnomAD id with a `chr` prefix now gets a suggestion when an allele or the
+  chromosome is lowercase. No verdict changes.
+* Suggestions in `pattern` mode are computed for a whole column in one pass.
+  Results are unchanged.
+* Two thesis advisors and Posit Software, PBC are added to `Authors@R`, as
+  `ths` and as `cph` and `fnd`. The LICENSE file lists both copyright holders.
+* A companion JavaScript package joins the R and Python packages in the same
+  repository. The R package is not affected.
 
 ## R CMD check results
 
-0 errors | 0 warnings | 1 note
+0 errors | 0 warnings | 0 notes
 
-* This is a new submission.
-
-`R CMD check --as-cran` is otherwise clean, with incoming and remote checks
-enabled. The two DOIs added to the Description field resolve.
+`R CMD check --as-cran` is clean, with incoming and remote checks enabled. A
+spelling NOTE on `Hoyt` and `Dunnen`, if it appears, refers to author names in
+the two citations in the `Description` field.
 
 ## Test environments
 
-* Local: macOS 26.5, R 4.6.0
 * Local: Windows 11, R 4.6.1
 * GitHub Actions: ubuntu-latest (R-devel, R-release, R-oldrel-1),
   windows-latest (R-release), macos-latest (R-release)
+
+## Reverse dependencies
+
+There are no reverse dependencies on CRAN.
 
 ## Notes for the reviewer
 
@@ -46,7 +40,6 @@ enabled. The two DOIs added to the Description field resolve.
 * Downloaded snapshots are written under `tools::R_user_dir("biobouncer",
   "cache")`, and only when the user calls `biobouncer_pull()`. Nothing is written
   to the user's home filespace or the package library.
-
 * The one `\dontrun{}` in the package wraps the `biobouncer_pull()` example. That
   example is kept unrun rather than wrapped in `\donttest{}` because it needs a
   network connection and writes a snapshot into the user cache directory, so it
