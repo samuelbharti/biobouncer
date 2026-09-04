@@ -2,24 +2,20 @@
 
 ## Update
 
-This is an update from 0.1.4 to 0.2.0.
-
-* A gnomAD id with a `chr` prefix now gets a suggestion when an allele or the
-  chromosome is lowercase. No verdict changes.
-* Suggestions in `pattern` mode are computed for a whole column in one pass.
-  Results are unchanged.
-* Two thesis advisors and Posit Software, PBC are added to `Authors@R`, as
-  `ths` and as `cph` and `fnd`. The LICENSE file lists both copyright holders.
-* A companion JavaScript package joins the R and Python packages in the same
-  repository. The R package is not affected.
+This is an update from 0.1.4 to 0.2.0. NEWS.md lists the changes. The one a
+reviewer may want to notice is in `Authors@R`: two thesis advisors are added
+with role `ths`, and Posit Software, PBC with roles `cph` and `fnd`. The
+LICENSE file lists both copyright holders.
 
 ## R CMD check results
 
-0 errors | 0 warnings | 0 notes
+0 errors | 0 warnings | 1 note
 
-`R CMD check --as-cran` is clean, with incoming and remote checks enabled. A
-spelling NOTE on `Hoyt` and `Dunnen`, if it appears, refers to author names in
-the two citations in the `Description` field.
+* The CRAN incoming check flags `Hoyt` and `Dunnen` as possibly misspelled.
+  They are author names in the two citations in the `Description` field.
+
+`R CMD check --as-cran` is otherwise clean, with incoming and remote checks
+enabled.
 
 ## Test environments
 

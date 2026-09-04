@@ -4,17 +4,16 @@
   chromosome is lowercase, so `chr1-55516888-g-a` suggests `chr1-55516888-G-A`.
   An uppercase `CHR` prefix is suggested as `chr`. No verdict changes (#89).
 
-* Suggestions in `pattern` mode are computed for a whole column in one pass,
-  so a large column with many malformed ids is checked much faster. Results are
-  unchanged.
+* Repair suggestions are computed for a whole column in one pass instead of
+  one call per element, in every mode. A column with many malformed ids is
+  checked faster. Results are unchanged.
 
 * Barret Schloerke and Carson Sievert are recorded as thesis advisors, and
   Posit Software, PBC as a copyright holder and funder. The LICENSE file lists
   both copyright holders.
 
 * A JavaScript package now joins the R and Python packages in the same
-  repository, with the same verdicts for the same input. There is no change to
-  the R package.
+  repository, with the same verdicts for the same input.
 
 # biobouncer 0.1.4
 

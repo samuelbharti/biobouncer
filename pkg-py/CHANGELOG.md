@@ -5,17 +5,16 @@ a matching changelog in `pkg-r/NEWS.md`; the two packages share one version.
 
 ## 0.2.0
 
-### Added
-
-- A JavaScript package joins the R and Python packages in the same repository,
-  with the same verdicts for the same input. There is no change to the Python
-  package.
-
 ### Changed
 
-- Barret Schloerke and Carson Sievert are recorded as thesis advisors, and
-  Posit Software, PBC as a copyright holder and funder, in the R package
-  metadata. The repository LICENSE lists both copyright holders.
+- Posit Software, PBC is added as a copyright holder in the LICENSE file.
+
+### Notes
+
+- A JavaScript package joins the R and Python packages in the same repository,
+  with the same verdicts for the same input.
+- 0.1.4 was released on CRAN only. This is the first PyPI release since 0.1.3,
+  and it includes the 0.1.4 changes listed below.
 
 ### Fixed
 

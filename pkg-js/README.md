@@ -21,11 +21,8 @@ generated from the TypeScript types. The
 npm install biobouncer
 ```
 
-Development version from the checkout:
-
-```sh
-npm --prefix pkg-js run build
-```
+To work on the package itself, see
+[CONTRIBUTING.md](https://github.com/samuelbharti/biobouncer/blob/main/CONTRIBUTING.md).
 
 ## Quickstart
 
