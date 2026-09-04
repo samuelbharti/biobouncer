@@ -17,9 +17,10 @@ to rewrite both files, and
     python tools/gen_llms.py --check
 
 to fail if the committed files are stale, which the docs workflow runs on every
-pull request. Both files are Python-led with a compact R map, because the two
-packages return the same verdict for the same input by construction and the R
-prose would only repeat what the Python pages already say.
+pull request. Both files are Python-led with a compact R and JavaScript map,
+because the three packages return the same verdict for the same input by
+construction and the R or JavaScript prose would only repeat what the Python
+pages already say.
 """
 
 from __future__ import annotations
@@ -35,7 +36,8 @@ OUT_DIR = ROOT / "docs-hub"
 SITE = "https://www.samuelbharti.com/biobouncer"
 REPO = "https://github.com/samuelbharti/biobouncer"
 PYPI = "https://pypi.org/project/biobouncer"
-RUNIVERSE = "https://samuelbharti.r-universe.dev"
+CRAN = "https://cran.r-project.org/package=biobouncer"
+NPM = "https://www.npmjs.com/package/biobouncer"
 
 # The prose pages, in reading order. reference.md is skipped: it is only
 # mkdocstrings ::: directives, not prose an agent can read.
@@ -93,14 +95,15 @@ def header(version: str, sources: int) -> str:
 
 > A gate for biological inputs. It validates gene symbols, ontology terms,
 > variant formats, and database identifiers, and returns the same verdict in
-> Python and R.
+> Python, R, and JavaScript.
 
 Version {version}. {sources} sources.
 
 biobouncer answers one question, "is this a valid identifier?", for a value or a
 whole column. It is offline by default and has no required heavy dependencies.
-The Python and R packages return the same verdict for the same input, enforced by
-a shared conformance corpus, so the API below applies to both.
+The Python, R, and JavaScript packages return the same verdict for the same
+input, enforced by a shared conformance corpus, so the API below applies to all
+three.
 
 ## Install
 
@@ -110,8 +113,13 @@ pip install biobouncer
 ```
 
 ```r
-# R (not on CRAN yet)
-install.packages("biobouncer", repos = "{RUNIVERSE}")
+# R
+install.packages("biobouncer")
+```
+
+```bash
+# JavaScript
+npm install biobouncer
 ```
 
 ## The four modes
@@ -137,22 +145,27 @@ Every check returns one record per input, in order, with these fields:
 `how`, `error`. A missing input keeps `valid` empty rather than turning into a
 silent `False`. `suggestion` holds the repaired form of a wrong but fixable id.
 
-## Python and R
+## Python, R, and JavaScript
 
-The core API is identical. A few names carry a package prefix in R:
+The core API is identical. A few names carry a package prefix in R, and
+JavaScript uses camelCase:
 
-| Python | R |
-|--------|---|
-| `check_id`, `is_valid_id` | `check_id`, `is_valid_id` |
-| `sources`, `source_info` | `sources`, `source_info` |
-| `report`, `Report.repair` | `report_id`, `repair_id` |
-| `pull` | `biobouncer_pull` |
-| `snapshots` | `biobouncer_snapshots` |
-| `cache_dir` | `biobouncer_cache_dir` |
+| Python | R | JavaScript |
+|--------|---|------------|
+| `check_id`, `is_valid_id` | `check_id`, `is_valid_id` | `checkId`, `isValidId` |
+| `sources`, `source_info` | `sources`, `source_info` | `sources`, `sourceInfo` |
+| `report`, `Report.repair` | `report_id`, `repair_id` | `report`, `Report.repair` |
+| `pull` | `biobouncer_pull` | not available |
+| `snapshots` | `biobouncer_snapshots` | `snapshots` |
+| `cache_dir` | `biobouncer_cache_dir` | `cacheDir` |
+
+In JavaScript the `remote` mode is asynchronous: use `checkIdAsync`,
+`isValidIdAsync`, and `reportAsync`. Options are an object, so `how="cache"`
+becomes `{{ how: "cache" }}`.
 
 The pages below are the Python documentation. Read a Python function name through
-the table above to get its R equivalent; the arguments and the verdict are the
-same.
+the table above to get its R or JavaScript equivalent; the arguments and the
+verdict are the same.
 """
 
 
@@ -172,7 +185,8 @@ Example prompt:
 The everyday job is one call. `report(column, source_db, how="cache")` returns a
 report whose `.repair()` substitutes the fixable values and leaves valid, missing,
 and unmappable ones untouched, preserving order and length. In R the same call is
-`repair_id(column, source_db, how = "cache")`.
+`repair_id(column, source_db, how = "cache")`. In JavaScript it is
+`report(column, sourceDb, {{ how: "cache" }}).repair()`.
 """
 
 
@@ -194,7 +208,7 @@ def build_index(version: str, sources: int) -> str:
 
 > A gate for biological inputs. It validates gene symbols, ontology terms,
 > variant formats, and database identifiers across {sources} sources, and returns
-> the same verdict in Python and R. Version {version}.
+> the same verdict in Python, R, and JavaScript. Version {version}.
 
 ## Documentation
 
@@ -202,12 +216,14 @@ def build_index(version: str, sources: int) -> str:
 - [Overview]({SITE}/): what biobouncer is, with install and a first example.
 - [Python documentation]({SITE}/py/): guide, column cleaning, examples, CLI, and API reference.
 - [R documentation]({SITE}/r/): reference and vignettes.
+- [JavaScript documentation]({SITE}/js/): API reference from the TypeScript types, with the README as the guide.
 
 ## Use it
 
 - [Install for Python]({PYPI}/): `pip install biobouncer`.
-- [Install for R]({RUNIVERSE}): `install.packages("biobouncer", repos = "{RUNIVERSE}")`.
-- [Demo notebooks]({REPO}/tree/main/demo): the same story in Python and R over messy data.
+- [Install for R]({CRAN}): `install.packages("biobouncer")`.
+- [Install for JavaScript]({NPM}): `npm install biobouncer`.
+- [Demo notebooks]({REPO}/tree/main/demo): the same story in Python, R, and JavaScript over messy data.
 
 ## Source
 
