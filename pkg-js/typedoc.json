@@ -5,6 +5,7 @@
   "name": "biobouncer (JavaScript)",
   "includeVersion": true,
   "hideGenerator": true,
+  "customFooterHtml": "Developed by Samuel Bharti and Posit Software, PBC.",
   "treatWarningsAsErrors": true,
   "navigationLinks": {
     "R docs": "https://www.samuelbharti.com/biobouncer/r/",
