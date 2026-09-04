@@ -78,13 +78,13 @@ through the `browser` export condition, so the same `import "biobouncer"` works 
 the server and in the client.
 
 - **Node and server runtimes** (Node, Bun, Deno, Next.js server components and API
-  routes, Electron main): all four modes, including `cache` and `pull`, which read
-  bundled snapshots from disk.
+  routes, Electron main): all four modes, including `cache`, which reads bundled
+  snapshots from disk.
 - **The browser** (React, Vite, Next.js client components, any bundler targeting
-  the web): `pattern` (pure logic) and `remote` (via `fetch`) work. `cache` and
-  `pull` need a filesystem, so they are not available client-side: `cache` throws a
-  clear error and `snapshots()` returns an empty list rather than breaking the
-  build. Put existence checks that need a snapshot on the server, or use `remote`.
+  the web): `pattern` (pure logic) and `remote` (via `fetch`) work. `cache` needs
+  a filesystem, so it is not available client-side: `cache` throws a clear error
+  and `snapshots()` returns an empty list rather than breaking the build. Put
+  existence checks that need a snapshot on the server, or use `remote`.
 
 It is authored in TypeScript and ships type declarations, so a `.ts`/`.tsx`
 project gets full types and autocomplete. There is no browser-only setup: the

@@ -2,7 +2,7 @@
 //
 // The browser build aliases "./io" to this file (see tsup.browser.config.ts), so
 // nothing in the browser bundle imports node:fs, node:zlib, or friends. There is
-// no filesystem here: cache mode and pull are Node-only and degrade cleanly, while
+// no filesystem here: cache mode is Node-only and degrades cleanly, while
 // pattern mode (pure logic) and remote mode (fetch) work unchanged. The remote
 // on-disk response cache simply turns into a no-op, so every remote check goes to
 // the network.
