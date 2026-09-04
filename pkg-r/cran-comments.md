@@ -4,8 +4,9 @@
 
 This is an update from 0.1.4 to 0.2.0. NEWS.md lists the changes. The one a
 reviewer may want to notice is in `Authors@R`: two thesis advisors are added
-with role `ths`, Posit Software, PBC with roles `cph` and `fnd`, and Anthropic
-with role `fnd`. The LICENSE file lists both copyright holders.
+with role `ths`, Posit Software, PBC with roles `cph` and `fnd`, and
+Anthropic, PBC with role `fnd`. The LICENSE file lists both copyright
+holders.
 
 ## R CMD check results
 

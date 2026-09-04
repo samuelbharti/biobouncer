@@ -32,7 +32,7 @@ Other contributors:
   \item Barret Schloerke \email{barret@posit.co} (\href{https://orcid.org/0000-0001-9986-114X}{ORCID}) [thesis advisor]
   \item Carson Sievert \email{carson@posit.co} (\href{https://orcid.org/0000-0002-4958-2844}{ORCID}) [thesis advisor]
   \item Posit Software, PBC (\href{https://ror.org/03wc8by49}{ROR}) [copyright holder, funder]
-  \item Anthropic [funder]
+  \item Anthropic, PBC [funder]
 }
 
 }
