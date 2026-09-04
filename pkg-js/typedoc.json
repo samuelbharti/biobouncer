@@ -1,13 +1,13 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "entryPoints": ["src/index.ts"],
+  "tsconfig": "tsconfig.docs.json",
   "out": "site",
-  "readme": "README.md",
   "name": "biobouncer (JavaScript)",
   "includeVersion": true,
-  "excludePrivate": true,
   "excludeInternal": true,
   "hideGenerator": true,
+  "treatWarningsAsErrors": true,
   "navigationLinks": {
     "R docs": "https://www.samuelbharti.com/biobouncer/r/",
     "Python docs": "https://www.samuelbharti.com/biobouncer/py/",
