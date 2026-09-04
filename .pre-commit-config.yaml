@@ -39,6 +39,14 @@ repos:
         args: [--fix]
       - id: ruff-format
 
+  # JavaScript/TypeScript lint and format (Biome, a single bundled binary).
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v2.2.0
+    hooks:
+      - id: biome-check
+        files: ^pkg-js/.*\.(ts|mjs|cjs|json)$
+        exclude: ^pkg-js/(src/_data/|src/generated/|dist/|package-lock\.json)
+
   # Enforce Conventional Commit messages.
   - repo: https://github.com/compilerla/conventional-pre-commit
     rev: v4.4.0

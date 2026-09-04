@@ -1,0 +1,5 @@
+{"input": "MP:0001262", "source_db": "mp", "how": "cache", "version": "sample", "category": "valid", "expect": {"valid": true, "normalized": "MP:0001262", "suggestion": null}}
+{"input": "mp:0001262", "source_db": "mp", "how": "cache", "version": "sample", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "MP:0001262"}}
+{"input": "MP:9001262", "source_db": "mp", "how": "cache", "version": "sample", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "mp", "how": "cache", "version": "sample", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "MP:0002274", "source_db": "mp", "how": "cache", "version": "sample", "category": "valid", "expect": {"valid": true, "normalized": "MP:0002274", "suggestion": null}}

@@ -1,0 +1,7 @@
+{"input": "4HHB", "source_db": "pdb", "how": "pattern", "expect": {"valid": true, "normalized": "4HHB"}, "note": "canonical structure id (hemoglobin)"}
+{"input": "6VXX", "source_db": "pdb", "how": "pattern", "expect": {"valid": true, "normalized": "6VXX"}, "note": "structure id with a leading digit and letters"}
+{"input": "4hhb", "source_db": "pdb", "how": "pattern", "expect": {"valid": false, "suggestion": "4HHB"}, "note": "lowercase is suggestible to the canonical uppercase"}
+{"input": "0ABC", "source_db": "pdb", "how": "pattern", "expect": {"valid": false}, "note": "the first character cannot be zero"}
+{"input": "ABCD", "source_db": "pdb", "how": "pattern", "expect": {"valid": false}, "note": "the first character must be a digit"}
+{"input": "12345", "source_db": "pdb", "how": "pattern", "expect": {"valid": false}, "note": "an id is exactly four characters"}
+{"input": "4HH", "source_db": "pdb", "how": "pattern", "expect": {"valid": false}, "note": "too short"}

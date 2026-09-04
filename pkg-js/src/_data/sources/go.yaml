@@ -1,0 +1,19 @@
+key: go
+name: Gene Ontology
+description: Gene Ontology terms for molecular function, process, and component.
+pattern: "GO:[0-9]{7}"
+example: 'GO:0006915'
+species_aware: false
+version_aware: true
+curie:
+  prefix: GO
+  pad_to: 7
+cache:
+  builder: obo
+  obo_url: http://purl.obolibrary.org/obo/go/go-basic.obo
+remote:
+  resolver: ols
+  ols_ontology: go
+provenance:
+  pattern_source: bioregistry
+  homepage: https://geneontology.org

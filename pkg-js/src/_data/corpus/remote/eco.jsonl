@@ -1,0 +1,5 @@
+{"input": "ECO:0000269", "source_db": "eco", "how": "remote", "expect": {"valid": true, "normalized": "ECO:0000269"}, "note": "experimental evidence; a real term"}
+{"input": "ECO:0000001", "source_db": "eco", "how": "remote", "expect": {"valid": true, "normalized": "ECO:0000001"}, "note": "a real evidence term"}
+{"input": "ECO:9999999", "source_db": "eco", "how": "remote", "expect": {"valid": false}, "note": "well-formed but no such term; the ontology lookup returns 404"}
+{"input": "eco:0000269", "source_db": "eco", "how": "remote", "expect": {"valid": false, "suggestion": "ECO:0000269"}, "note": "different-case prefix; the canonical form exists remotely"}
+{"input": "ECO0000269", "source_db": "eco", "how": "remote", "expect": {"valid": false}, "note": "missing the colon; fails the grammar before any lookup"}

@@ -29,6 +29,7 @@ SKIP_NAMES = {"README.md", ".gitkeep"}
 TARGETS = {
     "pkg-r": ROOT / "pkg-r" / "inst" / "extdata",
     "pkg-py": ROOT / "pkg-py" / "src" / "biobouncer" / "_data",
+    "pkg-js": ROOT / "pkg-js" / "src" / "_data",
 }
 
 

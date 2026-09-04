@@ -1,0 +1,19 @@
+key: ncbifam
+name: NCBIfam
+description: NCBIfam models (including TIGRFAMs), a member database of InterPro.
+# Either a TIGR accession (TIGR and five digits) or an NF accession (NF and six
+# digits). Ids are uppercase; a lowercase input is suggested in its canonical
+# case.
+pattern: 'TIGR[0-9]{5}|NF[0-9]{6}'
+example: 'TIGR00001'
+normalize:
+  case: upper
+# remote mode checks existence against the EBI InterPro API, which hosts NCBIfam,
+# reusing the interpro resolver. The entry endpoint answers 204 for a well-formed
+# accession that is not a current entry. This is an existence check only.
+remote:
+  resolver: interpro
+  interpro_db: ncbifam
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.ncbi.nlm.nih.gov/genome/annotation_prok/evidence

@@ -1,0 +1,4 @@
+{"input": "EFO:0000249", "source_db": "efo", "how": "remote", "expect": {"valid": true, "normalized": "EFO:0000249"}, "note": "well-formed and exists in the live ontology"}
+{"input": "EFO:9999999", "source_db": "efo", "how": "remote", "expect": {"valid": false}, "note": "well-formed but does not exist"}
+{"input": "efo:249", "source_db": "efo", "how": "remote", "expect": {"valid": false, "suggestion": "EFO:0000249"}, "note": "malformed, and the corrected form exists remotely"}
+{"input": "EFO:0000401", "source_db": "efo", "how": "remote", "expect": {"valid": false, "suggestion": "MONDO:0005016"}, "note": "obsolete efo term replaced by a mondo term; the cross-ontology successor is surfaced as-is"}

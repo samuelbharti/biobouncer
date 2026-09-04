@@ -1,0 +1,7 @@
+{
+  "resolver": "ols",
+  "url": "https://www.ebi.ac.uk/ols4/api/ontologies/mondo/terms?obo_id=MONDO:0000500",
+  "recorded": "2026-07-12",
+  "status": 500,
+  "body": null
+}

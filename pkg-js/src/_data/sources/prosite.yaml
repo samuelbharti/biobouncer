@@ -1,0 +1,17 @@
+key: prosite
+name: PROSITE
+description: PROSITE identifiers for protein patterns and profiles.
+# PS and exactly five digits. Ids are uppercase; a lowercase input is
+# suggested in its canonical case.
+pattern: 'PS[0-9]{5}'
+example: 'PS00001'
+normalize:
+  case: upper
+# remote mode checks existence against the ExPASy PROSITE entry endpoint, which
+# resolves both patterns and profiles from one address. This is an existence
+# check only; a deleted accession is reported as absent, not with a successor.
+remote:
+  resolver: prosite
+provenance:
+  pattern_source: bioregistry
+  homepage: https://prosite.expasy.org

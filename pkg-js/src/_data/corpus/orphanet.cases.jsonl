@@ -1,0 +1,5 @@
+{"input": "ORPHA:558", "source_db": "orphanet", "how": "pattern", "expect": {"valid": true, "normalized": "ORPHA:558"}, "note": "Marfan syndrome"}
+{"input": "ORPHA:98896", "source_db": "orphanet", "how": "pattern", "expect": {"valid": true, "normalized": "ORPHA:98896"}, "note": "a higher-numbered disease"}
+{"input": "orpha:558", "source_db": "orphanet", "how": "pattern", "expect": {"valid": false, "suggestion": "ORPHA:558"}, "note": "lowercase is suggestible to uppercase"}
+{"input": "ORPHA:", "source_db": "orphanet", "how": "pattern", "expect": {"valid": false}, "note": "prefix without digits"}
+{"input": "ORPHA558", "source_db": "orphanet", "how": "pattern", "expect": {"valid": false}, "note": "missing the colon"}

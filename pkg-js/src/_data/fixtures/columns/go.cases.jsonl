@@ -1,0 +1,5 @@
+{"input": "GO:0006915", "source_db": "go", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "GO:0006915", "suggestion": null}}
+{"input": "go:0006915", "source_db": "go", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "GO:0006915"}}
+{"input": "GO:0006915!", "source_db": "go", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "go", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "GO:0006916", "source_db": "go", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "GO:0006916", "suggestion": null}}

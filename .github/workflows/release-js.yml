@@ -1,0 +1,67 @@
+name: release-js
+
+# Publish the JavaScript package to npm when a release is published.
+#
+# Authentication is npm Trusted Publishing (OIDC), so there is no token in
+# repository secrets, and the build is published with provenance. The trusted
+# publisher on npm must name this repository and this workflow file, so neither
+# can be renamed without updating it to match.
+#
+# workflow_dispatch is here because a release can only be published once. If the
+# build or upload fails, a manual run against the tag retries it.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: publish
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # npm provenance / trusted publishing
+      contents: read
+    defaults:
+      run:
+        working-directory: pkg-js
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      # Trusted Publishing needs npm 11.5.1 or newer. Node 20 bundles npm 10,
+      # which has no OIDC exchange and fails with ENEEDAUTH at publish time.
+      - name: Update npm for trusted publishing
+        run: npm install -g npm@latest && npm --version
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      # The R, Python, and JS packages share one version. Check it before
+      # building, while a mismatch is still free to fix: npm refuses to replace a
+      # version once published.
+      - name: Check the versions agree with the tag
+        run: python tools/check_versions.py ${{ github.event.release.tag_name }}
+        working-directory: ${{ github.workspace }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      # The package is useless without its snapshots, and must not leak the corpus
+      # or fixtures. This cannot be undone after publish, so it is a check of its own.
+      - name: Check the tarball contents
+        run: npm run check:pack
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public

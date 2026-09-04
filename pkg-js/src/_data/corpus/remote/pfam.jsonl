@@ -1,0 +1,5 @@
+{"input": "PF00001", "source_db": "pfam", "how": "remote", "expect": {"valid": true, "normalized": "PF00001"}, "note": "a real family (7 transmembrane receptor, rhodopsin family)"}
+{"input": "PF00002", "source_db": "pfam", "how": "remote", "expect": {"valid": true, "normalized": "PF00002"}, "note": "a real family (7 transmembrane receptor, secretin family)"}
+{"input": "PF99999", "source_db": "pfam", "how": "remote", "expect": {"valid": false}, "note": "well-formed but no such family; the api answers 204"}
+{"input": "pf00001", "source_db": "pfam", "how": "remote", "expect": {"valid": false, "suggestion": "PF00001"}, "note": "lowercase; the canonical uppercase form exists remotely"}
+{"input": "PF001", "source_db": "pfam", "how": "remote", "expect": {"valid": false}, "note": "too few digits; fails the grammar before any lookup"}

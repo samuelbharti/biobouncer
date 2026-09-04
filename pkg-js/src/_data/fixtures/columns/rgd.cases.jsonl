@@ -1,0 +1,5 @@
+{"input": "RGD:3059", "source_db": "rgd", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "RGD:3059", "suggestion": null}}
+{"input": "rgd:3059", "source_db": "rgd", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "RGD:3059"}}
+{"input": "RGD:3059!", "source_db": "rgd", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "rgd", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "RGD:3060", "source_db": "rgd", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "RGD:3060", "suggestion": null}}

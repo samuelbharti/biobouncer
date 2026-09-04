@@ -1,0 +1,14 @@
+key: inchikey
+name: InChIKey
+description: Hashed InChI keys identifying chemical structures.
+# A 14-letter connectivity hash, a 10-letter block (remaining layers, flags, and
+# version), and a final protonation letter. All uppercase; a lowercase input is
+# suggested in its canonical case. Pattern only: existence would need a UniChem
+# or PubChem lookup, which is not offered yet.
+pattern: '[A-Z]{14}-[A-Z]{10}-[A-Z]'
+example: 'BSYNRYMUTXBXSQ-UHFFFAOYSA-N'
+normalize:
+  case: upper
+provenance:
+  pattern_source: bioregistry
+  homepage: https://www.inchi-trust.org

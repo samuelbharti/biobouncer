@@ -1,0 +1,5 @@
+{"input": "PF00001", "source_db": "pfam", "how": "pattern", "expect": {"valid": true, "normalized": "PF00001"}, "note": "seven-transmembrane receptor family"}
+{"input": "PF00069", "source_db": "pfam", "how": "pattern", "expect": {"valid": true, "normalized": "PF00069"}, "note": "protein kinase domain"}
+{"input": "pf00001", "source_db": "pfam", "how": "pattern", "expect": {"valid": false, "suggestion": "PF00001"}, "note": "lowercase is suggestible to uppercase"}
+{"input": "PF0001", "source_db": "pfam", "how": "pattern", "expect": {"valid": false}, "note": "four digits, one short"}
+{"input": "PF000012", "source_db": "pfam", "how": "pattern", "expect": {"valid": false}, "note": "six digits, one too many"}

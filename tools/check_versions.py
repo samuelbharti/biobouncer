@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Check that every declared version agrees.
 
-The R and Python packages ship as one project and share a single version, so the
-number is written in four places. Nothing keeps them in step on its own, and the
-one that drifts is usually noticed only after a release is out, when it cannot be
-taken back. This script is the check.
+The R, Python, and JavaScript packages ship as one project and share a single
+version, so the number is written in several places. Nothing keeps them in step
+on its own, and the one that drifts is usually noticed only after a release is
+out, when it cannot be taken back. This script is the check.
 
-Run it with no argument to compare the four files to each other:
+Run it with no argument to compare the files to each other:
 
     python tools/check_versions.py
 
@@ -41,6 +41,9 @@ SOURCES = (
     # these match the first heading that starts with a digit and skip it.
     ("pkg-py/CHANGELOG.md", r"^##\s+(\d\S*)"),
     ("pkg-r/NEWS.md", r"^#\s+biobouncer\s+(\d\S*)"),
+    # The JS package version. The key is indented in package.json, so the anchor
+    # allows leading whitespace rather than binding to the start of the line.
+    ("pkg-js/package.json", r'^\s*"version":\s*"([^"]+)"'),
 )
 
 

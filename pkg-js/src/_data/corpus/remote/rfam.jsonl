@@ -1,0 +1,5 @@
+{"input": "RF00001", "source_db": "rfam", "how": "remote", "expect": {"valid": true, "normalized": "RF00001"}, "note": "a real family (5S ribosomal RNA)"}
+{"input": "RF00005", "source_db": "rfam", "how": "remote", "expect": {"valid": true, "normalized": "RF00005"}, "note": "a real family (tRNA)"}
+{"input": "RF99999", "source_db": "rfam", "how": "remote", "expect": {"valid": false}, "note": "well-formed but no such family"}
+{"input": "rf00001", "source_db": "rfam", "how": "remote", "expect": {"valid": false, "suggestion": "RF00001"}, "note": "lowercase; the canonical uppercase form exists remotely"}
+{"input": "RF001", "source_db": "rfam", "how": "remote", "expect": {"valid": false}, "note": "too few digits; fails the grammar before any lookup"}

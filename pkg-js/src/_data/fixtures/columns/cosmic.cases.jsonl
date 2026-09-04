@@ -1,0 +1,5 @@
+{"input": "COSM476", "source_db": "cosmic", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "COSM476", "suggestion": null}}
+{"input": "cosm476", "source_db": "cosmic", "how": "pattern", "category": "repairable", "expect": {"valid": false, "normalized": null, "suggestion": "COSM476"}}
+{"input": "COSM476!", "source_db": "cosmic", "how": "pattern", "category": "invalid", "expect": {"valid": false, "normalized": null, "suggestion": null}}
+{"input": null, "source_db": "cosmic", "how": "pattern", "category": "missing", "expect": {"valid": null, "normalized": null, "suggestion": null}}
+{"input": "COSM477", "source_db": "cosmic", "how": "pattern", "category": "valid", "expect": {"valid": true, "normalized": "COSM477", "suggestion": null}}

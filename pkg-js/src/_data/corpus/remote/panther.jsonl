@@ -1,0 +1,4 @@
+{"input": "PTHR11003", "source_db": "panther", "how": "remote", "expect": {"valid": true, "normalized": "PTHR11003"}, "note": "a real PANTHER family"}
+{"input": "PTHR99999", "source_db": "panther", "how": "remote", "expect": {"valid": false}, "note": "well-formed but not a current entry; the endpoint answers 204"}
+{"input": "pthr11003", "source_db": "panther", "how": "remote", "expect": {"valid": false, "suggestion": "PTHR11003"}, "note": "lowercase; the canonical form exists remotely"}
+{"input": "PTHR1103", "source_db": "panther", "how": "remote", "expect": {"valid": false}, "note": "four digits; fails the grammar before any lookup"}
