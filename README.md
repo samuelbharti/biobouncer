@@ -2,11 +2,11 @@
 
 > A gate for biological inputs. Validate gene symbols, ontology terms, variant
 > formats, and database identifiers, the same way, with the same answer, in
-> both **R** and **Python**.
+> **R**, **Python**, and **JavaScript**.
 
 <p align="center">
   <img src="docs-hub/assets/overview.svg" width="820"
-       alt="biobouncer takes a messy column of biological identifiers, checks each through one gate with four modes (pattern, cache, remote, existence), and returns one labeled verdict (valid, repairable, invalid, or missing) that is the same in R and Python." />
+       alt="biobouncer takes a messy column of biological identifiers, checks each through one gate with four modes (pattern, cache, remote, existence), and returns one labeled verdict (valid, repairable, invalid, or missing) that is the same in R, Python, and JavaScript." />
 </p>
 
 [![CRAN status](https://www.r-pkg.org/badges/version/biobouncer)](https://cran.r-project.org/package=biobouncer)
@@ -33,8 +33,8 @@ up scattered across projects as ad-hoc regexes and utility functions, and the R
 version and the Python version quietly disagree on edge cases.
 
 `biobouncer` puts those checks in one place, behind one small API, and guarantees
-that R and Python give the **same verdict** for the same input by testing both
-against a shared conformance corpus. It does not try to replace annotation
+that R, Python, and JavaScript give the **same verdict** for the same input by
+testing all three against a shared conformance corpus. It does not try to replace annotation
 engines like biomaRt, ensembldb, or mygene. It validates *inputs* before they
 reach those tools.
 
@@ -63,8 +63,8 @@ reach those tools.
 ## Installation
 
 `biobouncer` lives in a monorepo: the R package in `pkg-r/`, the Python package in
-`pkg-py/`. This matters only when installing from GitHub, where you point the
-installer at the subdirectory.
+`pkg-py/`, and the JavaScript package in `pkg-js/`. This matters only when
+installing from GitHub, where you point the installer at the subdirectory.
 
 **Python**
 
@@ -90,13 +90,24 @@ pak::pak("samuelbharti/biobouncer/pkg-r")
 R-universe also serves prebuilt binaries of the latest release:
 `install.packages("biobouncer", repos = "https://samuelbharti.r-universe.dev")`.
 
+**JavaScript**
+
+```sh
+npm install biobouncer
+```
+
+The package ships a Node build and a browser build. See the
+[JavaScript docs](https://www.samuelbharti.com/biobouncer/js/) for the runtime
+targets and the async entry points.
+
 ## Try it
 
 [`demo/`](demo/) has two notebooks, one in
 [Python](demo/biobouncer_python.ipynb) and one in [R](demo/biobouncer_r.ipynb),
 and a [JavaScript script](demo/biobouncer_js.mjs). All three run the same story
 over the same messy data so you can see the packages reach the same answers.
-They cover all four modes and end with the framework adapters. All run offline.
+The notebooks cover all four modes and end with the framework adapters; the
+script covers `pattern`, `cache`, and `remote`. All run offline.
 
 ## Use it with an AI agent
 

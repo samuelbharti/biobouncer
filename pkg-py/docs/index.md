@@ -1,8 +1,10 @@
 # biobouncer
 
 biobouncer validates biological identifiers and inputs. It answers one question,
-"is this a valid identifier?", with the same verdict in Python and R. The R
-package has its [own documentation site](https://www.samuelbharti.com/biobouncer/r/).
+"is this a valid identifier?", with the same verdict in Python, R, and
+JavaScript. The [R](https://www.samuelbharti.com/biobouncer/r/) and
+[JavaScript](https://www.samuelbharti.com/biobouncer/js/) packages have their
+own documentation sites.
 
 ## Install
 
