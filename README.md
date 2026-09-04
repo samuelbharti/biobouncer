@@ -426,6 +426,11 @@ Adding a source should be small and declarative: a prefix, a pattern, optional
 species/version metadata, and (optionally) a cache builder and a remote
 resolver. See `CONTRIBUTING.md` and the source-registry spec in `PLAN.md`.
 
+## Acknowledgements
+
+Barret Schloerke and Carson Sievert advise this work as thesis advisors.
+Posit Software, PBC funds it and holds copyright together with the author.
+
 ## License
 
 MIT © biobouncer authors.

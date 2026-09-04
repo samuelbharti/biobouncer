@@ -125,3 +125,8 @@ names, so JSON produced here matches R and Python. Function map:
 See the runnable
 [`demo/biobouncer_js.mjs`](https://github.com/samuelbharti/biobouncer/blob/main/demo/biobouncer_js.mjs)
 for the full tour.
+
+## Acknowledgements
+
+Barret Schloerke and Carson Sievert advise this work as thesis advisors.
+Posit Software, PBC funds it and holds copyright together with the author.
