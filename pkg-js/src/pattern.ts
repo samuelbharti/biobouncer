@@ -21,18 +21,6 @@ export function matches(pattern: string, s: string): boolean {
 
 const DIGITS = /^[0-9]+$/;
 
-// Rewrite rules are unanchored, so they get their own cache.
-const rewrites = new Map<string, RegExp>();
-
-function rewriteRegExp(from: string): RegExp {
-  let re = rewrites.get(from);
-  if (re === undefined) {
-    re = new RegExp(from);
-    rewrites.set(from, re);
-  }
-  return re;
-}
-
 /** Split on the first occurrence of `sep`: [head, found, tail]. */
 export function partitionFirst(s: string, sep: string): [string, boolean, string] {
   const i = s.indexOf(sep);
@@ -62,11 +50,13 @@ export function suggest(spec: SourceSpec, s: string): string | null {
 
   const norm = spec.normalize;
   if (norm && (norm.case === "upper" || norm.case === "lower")) {
-    let candidate = norm.case === "upper" ? s.toUpperCase() : s.toLowerCase();
-    // Rewrites run after the fold. `to` is inserted literally; see CONTRIBUTING.
-    for (const rule of norm.rewrite ?? []) {
-      const to = rule.to.replace(/\$/g, "$$$$");
-      candidate = candidate.replace(rewriteRegExp(rule.from), to);
+    const fold = (t: string) =>
+      norm.case === "upper" ? t.toUpperCase() : t.toLowerCase();
+    let candidate = fold(s);
+    // A literal prefix keeps the spelling the spec gives it; only the rest folds.
+    const prefix = norm.keep_prefix;
+    if (prefix && s.slice(0, prefix.length).toLowerCase() === prefix.toLowerCase()) {
+      candidate = prefix + fold(s.slice(prefix.length));
     }
     if (candidate !== s && matches(spec.pattern, candidate)) return candidate;
   }

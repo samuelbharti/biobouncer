@@ -47,11 +47,12 @@ def _suggest(source: Source, s: str) -> str | None:
 
     norm = source.normalize
     if norm and norm.get("case") in ("upper", "lower"):
-        candidate = s.upper() if norm["case"] == "upper" else s.lower()
-        # Rewrites run after the fold. `to` is inserted literally; see CONTRIBUTING.
-        for rule in norm.get("rewrite") or ():
-            to = rule["to"].replace("\\", "\\\\")
-            candidate = _compiled(rule["from"]).sub(to, candidate, count=1)
+        fold = str.upper if norm["case"] == "upper" else str.lower
+        candidate = fold(s)
+        # A literal prefix keeps the spelling the spec gives it; only the rest folds.
+        prefix = norm.get("keep_prefix")
+        if prefix and s[: len(prefix)].lower() == prefix.lower():
+            candidate = prefix + fold(s[len(prefix) :])
         if candidate != s and matches(source.pattern, candidate):
             return candidate
     return None

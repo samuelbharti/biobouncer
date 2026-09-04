@@ -24,10 +24,7 @@ export interface SourceSpec {
   species_aware?: boolean;
   version_aware?: boolean;
   curie?: { prefix: string; pad_to?: number } | null;
-  normalize?: {
-    case: "upper" | "lower";
-    rewrite?: Array<{ from: string; to: string }>;
-  } | null;
+  normalize?: { case: "upper" | "lower"; keep_prefix?: string } | null;
   cache?: Record<string, unknown> | null;
   remote?: Record<string, unknown> | null;
   species?: { scheme: string; map: SpeciesEntry[] } | null;

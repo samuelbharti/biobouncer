@@ -61,10 +61,10 @@ package, only data:
    agree). Add optional `normalize`, `curie`, `species`, `cache`, or `remote`
    blocks only if the source needs them. A `normalize` block builds a repair
    candidate for an input that fails the pattern: `case: upper` or
-   `case: lower` folds the whole string, then each `rewrite` rule, in order,
-   replaces the first match of the regex `from` with `to`, inserted as literal
-   text. Write `from` against the folded text, in the plain ASCII regex syntax
-   all three engines share, and quote `to`.
+   `case: lower` folds the whole string. `keep_prefix` names a literal prefix
+   that keeps the spelling given here when the input starts with it in any
+   case; only the rest folds. A source with a `curie` block repairs through
+   that block instead, so `normalize` has no effect there.
 2. Add cases to `shared/corpus/<key>.cases.jsonl`, one JSON object per line with
    `input`, `source_db`, `how`, and the expected `valid` (and `normalized` or
    `suggestion`). The R, Python, and JavaScript suites all run these same cases,

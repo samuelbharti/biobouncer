@@ -15,14 +15,11 @@
 }
 
 # A repair candidate for each element of x, or NA: a wrong-case or unpadded
-# form that maps to a valid id. Vectorized, so a column is folded, rewritten,
-# and matched in one pass per rule rather than one regex call per element.
+# form that maps to a valid id. An NA element stays NA. Vectorized, so a column
+# is folded and matched in one pass rather than one regex call per element.
 .suggest_many <- function(source, x) {
   out <- rep(NA_character_, length(x))
   pos <- which(!is.na(x))
-  if (length(pos) == 0L) {
-    return(out)
-  }
   s <- x[pos]
   curie <- source$curie
   if (!is.null(curie)) {
@@ -34,11 +31,12 @@
     local <- ifelse(has_sep, substr(s, idx + 1L, nchar(s)), s)
     hit <- toupper(head) == toupper(prefix)
     if (!is.null(pad_to)) {
-      digits <- hit & grepl("^[0-9]+$", local)
+      digits <- grepl("^[0-9]+$", local)
       local[digits] <- .zero_pad(local[digits], pad_to)
     }
     candidate <- paste0(prefix, ":", local)
-    good <- hit & candidate != s & .matches(source$pattern, candidate)
+    good <- hit & candidate != s
+    good[good] <- .matches(source$pattern, candidate[good])
     out[pos[good]] <- candidate[good]
     return(out)
   }
@@ -46,20 +44,21 @@
   if (
     !is.null(norm) && !is.null(norm$case) && norm$case %in% c("upper", "lower")
   ) {
-    candidate <- if (identical(norm$case, "upper")) toupper(s) else tolower(s)
-    # Rewrites run after the fold. `to` is inserted literally; see CONTRIBUTING.
-    for (rule in norm$rewrite) {
-      to <- gsub("\\", "\\\\", rule$to, fixed = TRUE)
-      candidate <- sub(rule$from, to, candidate, perl = TRUE)
+    fold <- if (identical(norm$case, "upper")) toupper else tolower
+    candidate <- fold(s)
+    # A literal prefix keeps the spelling the spec gives it; only the rest folds.
+    prefix <- norm$keep_prefix
+    if (!is.null(prefix)) {
+      n <- nchar(prefix)
+      has_prefix <- tolower(substr(s, 1L, n)) == tolower(prefix)
+      rest <- substr(s[has_prefix], n + 1L, nchar(s[has_prefix]))
+      candidate[has_prefix] <- paste0(prefix, fold(rest))
     }
-    good <- candidate != s & .matches(source$pattern, candidate)
+    good <- candidate != s
+    good[good] <- .matches(source$pattern, candidate[good])
     out[pos[good]] <- candidate[good]
   }
   out
-}
-
-.suggest_one <- function(source, s) {
-  .suggest_many(source, s)
 }
 
 # Species code between ENS and the feature letter for an Ensembl stable id, or
