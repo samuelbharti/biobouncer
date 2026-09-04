@@ -9,6 +9,8 @@ const out = execSync("npm pack --dry-run --json", { encoding: "utf8" });
 const files = JSON.parse(out)[0].files.map((f) => f.path);
 
 const problems = [];
+if (!files.includes("LICENSE")) problems.push("missing LICENSE");
+if (!files.includes("README.md")) problems.push("missing README.md");
 if (!files.includes("dist/index.js")) problems.push("missing dist/index.js (ESM)");
 if (!files.includes("dist/index.cjs")) problems.push("missing dist/index.cjs (CJS)");
 if (!files.includes("dist/index.d.ts"))
