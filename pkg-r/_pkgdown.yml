@@ -19,6 +19,12 @@ home:
   description: >
     Validate biological identifiers and inputs the same way in R, Python, and JavaScript.
 
+# The home page sidebar lists the advisors and the funder next to the author.
+# The footer keeps the pkgdown default.
+authors:
+  sidebar:
+    roles: [aut, cre, ths, fnd]
+
 navbar:
   structure:
     left: [intro, reference, articles, news]
