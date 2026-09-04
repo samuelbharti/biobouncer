@@ -2,7 +2,7 @@
 
 > A gate for biological inputs. It validates gene symbols, ontology terms,
 > variant formats, and database identifiers across 50 sources, and returns
-> the same verdict in Python, R, and JavaScript. Version 0.1.4.
+> the same verdict in Python, R, and JavaScript. Version 0.2.0.
 
 ## Documentation
 

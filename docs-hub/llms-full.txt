@@ -4,7 +4,7 @@
 > variant formats, and database identifiers, and returns the same verdict in
 > Python, R, and JavaScript.
 
-Version 0.1.4. 50 sources.
+Version 0.2.0. 50 sources.
 
 biobouncer answers one question, "is this a valid identifier?", for a value or a
 whole column. It is offline by default and has no required heavy dependencies.
