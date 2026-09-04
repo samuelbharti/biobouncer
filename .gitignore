@@ -46,6 +46,9 @@ pkg-js/site/
 .ipynb_checkpoints/
 .virtual_documents/
 
+# Local planning notes, never committed.
+docs/local/
+
 # Demo environments. The notebooks and their data are tracked; the environments
 # they run in are not, and they run to hundreds of megabytes. .venv/ is already
 # covered above. The demo resolves current versions rather than pinning a lock,
