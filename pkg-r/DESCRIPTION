@@ -11,7 +11,7 @@ Authors@R: c(
            comment = c(ORCID = "0000-0002-4958-2844")),
     person("Posit Software, PBC", role = c("cph", "fnd"),
            comment = c(ROR = "03wc8by49")),
-    person("Anthropic", role = "fnd")
+    person("Anthropic, PBC", role = "fnd")
   )
 Description: Gene symbols, ontology terms, variant formats, and database
     accessions are validated through one small application programming
