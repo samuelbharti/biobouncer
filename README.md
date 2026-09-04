@@ -20,8 +20,9 @@
 > **Status: pre-1.0.** The public API is in use and documented below. It may
 > still change before the 1.0 release.
 
-**Documentation:** [R package](https://www.samuelbharti.com/biobouncer/r/) (pkgdown)
-and [Python package](https://www.samuelbharti.com/biobouncer/py/) (MkDocs), from
+**Documentation:** [R package](https://www.samuelbharti.com/biobouncer/r/) (pkgdown),
+[Python package](https://www.samuelbharti.com/biobouncer/py/) (MkDocs), and
+[JavaScript package](https://www.samuelbharti.com/biobouncer/js/) (TypeDoc), from
 one [landing page](https://www.samuelbharti.com/biobouncer/).
 
 ---

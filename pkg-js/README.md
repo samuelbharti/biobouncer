@@ -10,6 +10,11 @@ This is the JavaScript/TypeScript implementation. It is part of the biobouncer
 monorepo and shares its identifier spec and corpus with the R and Python
 packages.
 
+**Documentation:** the [API reference](https://www.samuelbharti.com/biobouncer/js/)
+is generated from the TypeScript types. This README is its front page. The
+[R](https://www.samuelbharti.com/biobouncer/r/) and
+[Python](https://www.samuelbharti.com/biobouncer/py/) docs cover the same API.
+
 > **Status:** in development, not yet published to npm.
 
 ## Install
@@ -117,5 +122,6 @@ names, so JSON produced here matches R and Python. Function map:
 | `snapshots` / `biobouncer_snapshots` | `snapshots` |
 | `cache_dir` / `biobouncer_cache_dir` | `cacheDir` |
 
-See the runnable [`demo/biobouncer_js.mjs`](../demo/biobouncer_js.mjs) for the
-full tour.
+See the runnable
+[`demo/biobouncer_js.mjs`](https://github.com/samuelbharti/biobouncer/blob/main/demo/biobouncer_js.mjs)
+for the full tour.

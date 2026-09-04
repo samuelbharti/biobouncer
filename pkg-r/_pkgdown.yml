@@ -22,11 +22,14 @@ home:
 navbar:
   structure:
     left: [intro, reference, articles, news]
-    right: [python, github]
+    right: [python, javascript, github]
   components:
     python:
       text: Python docs
       href: https://www.samuelbharti.com/biobouncer/py/
+    javascript:
+      text: JavaScript docs
+      href: https://www.samuelbharti.com/biobouncer/js/
     github:
       icon: fab fa-github
       href: https://github.com/samuelbharti/biobouncer
