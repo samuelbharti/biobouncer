@@ -19,7 +19,7 @@ import {
 } from "./errors";
 import { checkOne } from "./pattern";
 import { getSource, type SourceSpec } from "./registry";
-import { remoteVerdicts } from "./remote";
+import { remoteVerdicts, utcStamp } from "./remote";
 import type { Mode, Result } from "./schema";
 
 const KNOWN_MODES = new Set<string>(["pattern", "cache", "remote", "existence"]);
@@ -121,23 +121,26 @@ function planDispatch(
   }
 
   if (how === "existence") {
-    const version =
-      opts.version != null ? String(opts.version) : defaultCacheVersion(sourceDb, spec);
-    if (version !== null && hasSnapshot(sourceDb, version)) {
-      const ids = snapshotSet(sourceDb, version);
-      return {
-        mode: "cache",
-        ids,
-        retired: snapshotRetired(sourceDb, version),
-        fuzzy: buildFuzzy(spec, ids),
-        version,
-      };
+    // Same as R and Python: a snapshot answers only when the caller names a
+    // version. With no version the check goes live, or degrades to pattern.
+    if (opts.version != null) {
+      const version = String(opts.version);
+      if (hasSnapshot(sourceDb, version)) {
+        const ids = snapshotSet(sourceDb, version);
+        return {
+          mode: "cache",
+          ids,
+          retired: snapshotRetired(sourceDb, version),
+          fuzzy: buildFuzzy(spec, ids),
+          version,
+        };
+      }
     }
-    if (spec.remote) return { mode: "remote", version: new Date().toISOString() };
+    if (spec.remote) return { mode: "remote", version: utcStamp() };
     return { mode: "pattern" };
   }
 
-  return { mode: "remote", version: new Date().toISOString() };
+  return { mode: "remote", version: utcStamp() };
 }
 
 function assembleOffline(
@@ -223,7 +226,7 @@ export async function checkIdAsync(
       normalized: v.normalized,
       suggestion: v.suggestion,
       sourceDb,
-      version: plan.version,
+      version: v.fetchedAt ?? plan.version,
       species,
       how,
       error: v.error,

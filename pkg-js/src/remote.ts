@@ -31,6 +31,11 @@ export interface RemoteTransport {
 const TRANSIENT = new Set([429, 500, 502, 503, 504]);
 const MAX_ATTEMPTS = 3;
 
+/** The current UTC time in the second-precision form R and Python stamp results with. */
+export function utcStamp(): string {
+  return new Date().toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
 async function parseBody(res: Response): Promise<unknown | null> {
   const text = await res.text();
   if (!text.trim()) return null;
@@ -64,16 +69,27 @@ async function fetchOnce(
   }
 }
 
+// A network failure and a transient status both get the same backoff, as in R
+// and Python. The last attempt is not followed by a sleep.
 async function withRetry(fn: () => Promise<RemoteResponse>): Promise<RemoteResponse> {
-  let last: RemoteResponse | null = null;
+  let lastRes: RemoteResponse | null = null;
+  let lastErr: RemoteError | null = null;
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-    const res = await fn();
-    if (!TRANSIENT.has(res.status)) return res;
-    last = res;
-    await new Promise((r) => setTimeout(r, 500 * 2 ** attempt));
+    if (attempt > 0) await new Promise((r) => setTimeout(r, 500 * 2 ** (attempt - 1)));
+    try {
+      const res = await fn();
+      if (!TRANSIENT.has(res.status)) return res;
+      lastRes = res;
+      lastErr = null;
+    } catch (e) {
+      if (!(e instanceof RemoteError)) throw e;
+      lastErr = e;
+      lastRes = null;
+    }
   }
-  if (last === null) throw new RemoteError("no response");
-  return last;
+  if (lastErr !== null) throw lastErr;
+  if (lastRes === null) throw new RemoteError("no response");
+  return lastRes;
 }
 
 const defaultTransport: RemoteTransport = {
@@ -395,6 +411,7 @@ interface Lookup {
   valid: boolean;
   successor: string | null;
   error: string | null;
+  fetchedAt: string | null;
 }
 
 // --- On-disk response cache (Node-only) ------------------------------------
@@ -429,7 +446,9 @@ function cachePathFor(resolver: Resolver, id: string): string {
   return join(cacheDir(), "remote", resolver.name, `${safeIdent(id)}.json`);
 }
 
-function readRemoteCache(path: string): { status: number; body: unknown } | null {
+function readRemoteCache(
+  path: string,
+): { status: number; body: unknown; fetchedAt: string | null } | null {
   try {
     const text = readTextIfExists(path);
     if (text === null) return null;
@@ -439,19 +458,24 @@ function readRemoteCache(path: string): { status: number; body: unknown } | null
       fetched_at?: string;
     };
     if (isStale(rec.fetched_at)) return null;
-    return { status: rec.status, body: rec.body };
+    return { status: rec.status, body: rec.body, fetchedAt: rec.fetched_at ?? null };
   } catch {
     return null;
   }
 }
 
-function writeRemoteCache(path: string, url: string, res: RemoteResponse): void {
+function writeRemoteCache(
+  path: string,
+  url: string,
+  res: RemoteResponse,
+  fetchedAt: string,
+): void {
   try {
     const record = {
       status: res.status,
       body: res.body,
       url: redactUrl(url),
-      fetched_at: new Date().toISOString(),
+      fetched_at: fetchedAt,
     };
     writeTextEnsuringDir(path, JSON.stringify(record));
   } catch {
@@ -467,17 +491,18 @@ function verdictFrom(
   species: string | number | null,
   status: number,
   body: unknown,
+  fetchedAt: string | null,
 ): Lookup {
   if (!resolver.exists(status, body))
-    return { valid: false, successor: null, error: null };
+    return { valid: false, successor: null, error: null, fetchedAt };
   if (resolver.speciesOk && !resolver.speciesOk(spec, id, body, species)) {
-    return { valid: false, successor: null, error: null };
+    return { valid: false, successor: null, error: null, fetchedAt };
   }
   if (resolver.retired) {
     const [isRetired, successor] = resolver.retired(spec, body);
-    if (isRetired) return { valid: false, successor, error: null };
+    if (isRetired) return { valid: false, successor, error: null, fetchedAt };
   }
-  return { valid: true, successor: null, error: null };
+  return { valid: true, successor: null, error: null, fetchedAt };
 }
 
 async function remoteLookup(
@@ -494,31 +519,49 @@ async function remoteLookup(
   if (!refresh) {
     const hit = readRemoteCache(cachePath);
     if (hit !== null)
-      return verdictFrom(resolver, spec, id, species, hit.status, hit.body);
+      return verdictFrom(
+        resolver,
+        spec,
+        id,
+        species,
+        hit.status,
+        hit.body,
+        hit.fetchedAt,
+      );
   }
 
   try {
     const res = resolver.body
       ? await activeTransport.post(url, resolver.body(spec, id))
       : await activeTransport.get(url);
+    const fetchedAt = utcStamp();
     // exists() runs before the write, so an unexpected status is never cached.
-    const lookup = verdictFrom(resolver, spec, id, species, res.status, res.body);
-    writeRemoteCache(cachePath, url, res);
+    const lookup = verdictFrom(
+      resolver,
+      spec,
+      id,
+      species,
+      res.status,
+      res.body,
+      fetchedAt,
+    );
+    writeRemoteCache(cachePath, url, res, fetchedAt);
     return lookup;
   } catch (e) {
     if (e instanceof RemoteError && onError === "indeterminate") {
-      return { valid: false, successor: null, error: e.message };
+      return { valid: false, successor: null, error: e.message, fetchedAt: null };
     }
     throw e;
   }
 }
 
-/** One verdict tuple per item, in input order. */
+/** One verdict tuple per item, in input order. fetchedAt is the stamp of the response used. */
 export interface RemoteVerdict {
   valid: boolean | null;
   normalized: string | null;
   suggestion: string | null;
   error: string | null;
+  fetchedAt: string | null;
 }
 
 type Plan =
@@ -558,19 +601,39 @@ export async function remoteVerdicts(
 
   return plans.map((plan): RemoteVerdict => {
     if (plan.kind === "missing") {
-      return { valid: null, normalized: null, suggestion: null, error: null };
+      return {
+        valid: null,
+        normalized: null,
+        suggestion: null,
+        error: null,
+        fetchedAt: null,
+      };
     }
     if (plan.kind === "wellformed") {
       const r = resolved.get(plan.id);
+      const fetchedAt = r?.fetchedAt ?? null;
       if (r && r.error !== null)
-        return { valid: null, normalized: null, suggestion: null, error: r.error };
+        return {
+          valid: null,
+          normalized: null,
+          suggestion: null,
+          error: r.error,
+          fetchedAt,
+        };
       if (r?.valid)
-        return { valid: true, normalized: plan.id, suggestion: null, error: null };
+        return {
+          valid: true,
+          normalized: plan.id,
+          suggestion: null,
+          error: null,
+          fetchedAt,
+        };
       return {
         valid: false,
         normalized: null,
         suggestion: r?.successor ?? null,
         error: null,
+        fetchedAt,
       };
     }
     // malformed: a suggestion candidate only surfaces if it exists remotely.
@@ -582,8 +645,15 @@ export async function remoteVerdicts(
           normalized: null,
           suggestion: plan.candidate,
           error: null,
+          fetchedAt: r.fetchedAt,
         };
     }
-    return { valid: false, normalized: null, suggestion: null, error: null };
+    return {
+      valid: false,
+      normalized: null,
+      suggestion: null,
+      error: null,
+      fetchedAt: null,
+    };
   });
 }

@@ -33,10 +33,13 @@ describe("remote disk cache", () => {
     const first = await checkIdAsync("MONDO:0005148", "mondo", { how: "remote" });
     expect(first[0]?.valid).toBe(true);
     expect(calls).toBe(1);
+    // The stamp is the fetch time in the second-precision form R and Python use.
+    expect(first[0]?.version).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
 
     const second = await checkIdAsync("MONDO:0005148", "mondo", { how: "remote" });
     expect(second[0]?.valid).toBe(true);
     expect(calls).toBe(1); // served from the cache
+    expect(second[0]?.version).toBe(first[0]?.version); // the cached fetch time, not now
 
     const refreshed = await checkIdAsync("MONDO:0005148", "mondo", {
       how: "remote",
