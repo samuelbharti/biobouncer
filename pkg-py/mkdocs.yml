@@ -4,6 +4,7 @@ site_url: https://www.samuelbharti.com/biobouncer/py/
 repo_url: https://github.com/samuelbharti/biobouncer
 repo_name: samuelbharti/biobouncer
 edit_uri: edit/main/pkg-py/docs/
+copyright: "Developed by Samuel Bharti and Posit Software, PBC."
 
 theme:
   name: material

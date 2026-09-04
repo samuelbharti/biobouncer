@@ -75,3 +75,10 @@ bg.sources()
 Read on in the [guide](guide.md) for the checking modes, species and version
 awareness, HGVS syntax, and the framework adapters, or jump to the
 [API reference](reference.md).
+
+## Acknowledgements
+
+Barret Schloerke and Carson Sievert advise this work as thesis advisors.
+Posit Software, PBC funds it and holds copyright together with the author.
+An additional gift from Anthropic supported the early stages and the
+planning of this work.

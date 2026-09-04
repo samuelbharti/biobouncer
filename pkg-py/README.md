@@ -91,6 +91,13 @@ to get set up, and
 [open an issue](https://github.com/samuelbharti/biobouncer/issues) for a bug or a
 source request.
 
+## Acknowledgements
+
+Barret Schloerke and Carson Sievert advise this work as thesis advisors.
+Posit Software, PBC funds it and holds copyright together with the author.
+An additional gift from Anthropic supported the early stages and the
+planning of this work.
+
 ## Citation
 
 If you use biobouncer in your work, please cite it. The DOI above always resolves
