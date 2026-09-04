@@ -8,9 +8,9 @@
   one call per element, in every mode. A column with many malformed ids is
   checked faster. Results are unchanged.
 
-* Barret Schloerke and Carson Sievert are recorded as thesis advisors, and
-  Posit Software, PBC as a copyright holder and funder. The LICENSE file lists
-  both copyright holders.
+* Barret Schloerke and Carson Sievert are recorded as thesis advisors, Posit
+  Software, PBC as a copyright holder and funder, and Anthropic as a funder.
+  The LICENSE file lists both copyright holders.
 
 * A JavaScript package now joins the R and Python packages in the same
   repository, with the same verdicts for the same input.
