@@ -25,7 +25,7 @@ export interface SourceSpec {
   version_aware?: boolean;
   curie?: { prefix: string; pad_to?: number } | null;
   normalize?: {
-    case?: "upper" | "lower";
+    case: "upper" | "lower";
     rewrite?: Array<{ from: string; to: string }>;
   } | null;
   cache?: Record<string, unknown> | null;

@@ -46,20 +46,12 @@ def _suggest(source: Source, s: str) -> str | None:
         return None
 
     norm = source.normalize
-    if norm:
-        candidate = s
-        case = norm.get("case")
-        if case == "upper":
-            candidate = candidate.upper()
-        elif case == "lower":
-            candidate = candidate.lower()
-        # Rewrites run after the fold, so `from` is written against folded text.
-        # The replacement is literal, which the lambda guarantees.
+    if norm and norm.get("case") in ("upper", "lower"):
+        candidate = s.upper() if norm["case"] == "upper" else s.lower()
+        # Rewrites run after the fold. `to` is inserted literally; see CONTRIBUTING.
         for rule in norm.get("rewrite") or ():
-            to = str(rule["to"])
-            candidate = _compiled(rule["from"]).sub(
-                lambda _m, to=to: to, candidate, count=1
-            )
+            to = rule["to"].replace("\\", "\\\\")
+            candidate = _compiled(rule["from"]).sub(to, candidate, count=1)
         if candidate != s and matches(source.pattern, candidate):
             return candidate
     return None

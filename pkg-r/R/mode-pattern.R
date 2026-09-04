@@ -11,58 +11,55 @@
 }
 
 .zero_pad <- function(local, width) {
-  if (nchar(local) >= width) {
-    return(local)
-  }
-  paste0(strrep("0", width - nchar(local)), local)
+  paste0(strrep("0", pmax(0L, width - nchar(local))), local)
 }
 
-.suggest_one <- function(source, s) {
-  if (is.na(s)) {
-    return(NA_character_)
+# A repair candidate for each element of x, or NA: a wrong-case or unpadded
+# form that maps to a valid id. Vectorized, so a column is folded, rewritten,
+# and matched in one pass per rule rather than one regex call per element.
+.suggest_many <- function(source, x) {
+  out <- rep(NA_character_, length(x))
+  pos <- which(!is.na(x))
+  if (length(pos) == 0L) {
+    return(out)
   }
+  s <- x[pos]
   curie <- source$curie
   if (!is.null(curie)) {
     prefix <- curie$prefix
     pad_to <- curie$pad_to
     idx <- regexpr(":", s, fixed = TRUE)
-    if (idx > 0L) {
-      head <- substr(s, 1L, idx - 1L)
-      local <- substr(s, idx + 1L, nchar(s))
-    } else {
-      head <- prefix
-      local <- s
-    }
-    if (toupper(head) != toupper(prefix)) {
-      return(NA_character_)
-    }
-    if (!is.null(pad_to) && grepl("^[0-9]+$", local)) {
-      local <- .zero_pad(local, pad_to)
+    has_sep <- idx > 0L
+    head <- ifelse(has_sep, substr(s, 1L, idx - 1L), prefix)
+    local <- ifelse(has_sep, substr(s, idx + 1L, nchar(s)), s)
+    hit <- toupper(head) == toupper(prefix)
+    if (!is.null(pad_to)) {
+      digits <- hit & grepl("^[0-9]+$", local)
+      local[digits] <- .zero_pad(local[digits], pad_to)
     }
     candidate <- paste0(prefix, ":", local)
-    if (!identical(candidate, s) && .matches(source$pattern, candidate)) {
-      return(candidate)
-    }
-    return(NA_character_)
+    good <- hit & candidate != s & .matches(source$pattern, candidate)
+    out[pos[good]] <- candidate[good]
+    return(out)
   }
   norm <- source$normalize
-  if (!is.null(norm)) {
-    candidate <- s
-    if (identical(norm$case, "upper")) {
-      candidate <- toupper(s)
-    } else if (identical(norm$case, "lower")) {
-      candidate <- tolower(s)
-    }
-    # Rewrites run after the fold, so `from` is written against folded text.
-    # `to` must not contain a backslash, so sub() keeps it literal.
+  if (
+    !is.null(norm) && !is.null(norm$case) && norm$case %in% c("upper", "lower")
+  ) {
+    candidate <- if (identical(norm$case, "upper")) toupper(s) else tolower(s)
+    # Rewrites run after the fold. `to` is inserted literally; see CONTRIBUTING.
     for (rule in norm$rewrite) {
-      candidate <- sub(rule$from, rule$to, candidate, perl = TRUE)
+      to <- gsub("\\", "\\\\", rule$to, fixed = TRUE)
+      candidate <- sub(rule$from, to, candidate, perl = TRUE)
     }
-    if (!identical(candidate, s) && .matches(source$pattern, candidate)) {
-      return(candidate)
-    }
+    good <- candidate != s & .matches(source$pattern, candidate)
+    out[pos[good]] <- candidate[good]
   }
-  NA_character_
+  out
+}
+
+.suggest_one <- function(source, s) {
+  .suggest_many(source, s)
 }
 
 # Species code between ENS and the feature letter for an Ensembl stable id, or
@@ -129,11 +126,16 @@
   valid <- base_match & species_ok
   normalized <- ifelse(!is_na & valid, x, NA_character_)
   suggestion <- rep(NA_character_, n)
-  for (i in which(!is_na & !base_match)) {
-    candidate <- .suggest_one(source, x[i])
-    if (!is.na(candidate) && .species_ok(source, candidate, species)) {
-      suggestion[i] <- candidate
+  idx <- which(!is_na & !base_match)
+  if (length(idx) > 0L) {
+    candidate <- .suggest_many(source, x[idx])
+    keep <- !is.na(candidate)
+    if (!is.null(species)) {
+      for (j in which(keep)) {
+        keep[j] <- .species_ok(source, candidate[j], species)
+      }
     }
+    suggestion[idx[keep]] <- candidate[keep]
   }
   list(valid = valid, normalized = normalized, suggestion = suggestion)
 }

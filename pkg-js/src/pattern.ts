@@ -21,6 +21,18 @@ export function matches(pattern: string, s: string): boolean {
 
 const DIGITS = /^[0-9]+$/;
 
+// Rewrite rules are unanchored, so they get their own cache.
+const rewrites = new Map<string, RegExp>();
+
+function rewriteRegExp(from: string): RegExp {
+  let re = rewrites.get(from);
+  if (re === undefined) {
+    re = new RegExp(from);
+    rewrites.set(from, re);
+  }
+  return re;
+}
+
 /** Split on the first occurrence of `sep`: [head, found, tail]. */
 export function partitionFirst(s: string, sep: string): [string, boolean, string] {
   const i = s.indexOf(sep);
@@ -49,15 +61,12 @@ export function suggest(spec: SourceSpec, s: string): string | null {
   }
 
   const norm = spec.normalize;
-  if (norm) {
-    let candidate = s;
-    if (norm.case === "upper") candidate = s.toUpperCase();
-    else if (norm.case === "lower") candidate = s.toLowerCase();
-    // Rewrites run after the fold, so `from` is written against folded text.
-    // A replacer function keeps `to` literal. The compiled cache above wraps
-    // patterns in anchors, so a fresh unanchored RegExp is used here.
+  if (norm && (norm.case === "upper" || norm.case === "lower")) {
+    let candidate = norm.case === "upper" ? s.toUpperCase() : s.toLowerCase();
+    // Rewrites run after the fold. `to` is inserted literally; see CONTRIBUTING.
     for (const rule of norm.rewrite ?? []) {
-      candidate = candidate.replace(new RegExp(rule.from), () => rule.to);
+      const to = rule.to.replace(/\$/g, "$$$$");
+      candidate = candidate.replace(rewriteRegExp(rule.from), to);
     }
     if (candidate !== s && matches(spec.pattern, candidate)) return candidate;
   }

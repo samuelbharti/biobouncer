@@ -18,7 +18,7 @@ normalize:
   case: upper
   rewrite:
     - from: '^CHR'
-      to: chr
+      to: 'chr'
 provenance:
   pattern_source: gnomad
   homepage: https://gnomad.broadinstitute.org
