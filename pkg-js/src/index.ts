@@ -11,7 +11,11 @@ import { version as pkgVersion } from "../package.json";
 /** The installed package version. */
 export const version: string = pkgVersion;
 
-export type { IdSchemaOptions, StandardSchemaV1 } from "./adapters/standard-schema";
+export type {
+  IdSchemaOptions,
+  StandardResult,
+  StandardSchemaV1,
+} from "./adapters/standard-schema";
 export { idSchema } from "./adapters/standard-schema";
 
 export type { SnapshotRow } from "./cache";
@@ -27,5 +31,5 @@ export type { ReportRow, ReportSummary } from "./report";
 export { Report, report, reportAsync } from "./report";
 export type { Mode, Result, Summary } from "./schema";
 export { SCHEMA_VERSION } from "./schema";
-export type { SynthOptions, SynthRow } from "./synthesize";
+export type { Category, SynthOptions, SynthRow } from "./synthesize";
 export { synthesize } from "./synthesize";

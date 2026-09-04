@@ -8,7 +8,8 @@ import { partitionFirst } from "./pattern";
 import { getSource, type SourceSpec } from "./registry";
 import type { Mode, Result } from "./schema";
 
-type Category = "valid" | "repairable" | "invalid" | "missing";
+/** The label a synthesized value carries: how the checker classifies it. */
+export type Category = "valid" | "repairable" | "invalid" | "missing";
 
 const CATEGORIES: Category[] = ["valid", "repairable", "invalid", "missing"];
 const BREAKERS = ["!", " x", "##"];

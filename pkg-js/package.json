@@ -12,7 +12,7 @@
   ],
   "license": "MIT",
   "author": "Samuel Bharti",
-  "homepage": "https://github.com/samuelbharti/biobouncer",
+  "homepage": "https://www.samuelbharti.com/biobouncer/js/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/samuelbharti/biobouncer.git",
@@ -55,6 +55,8 @@
     "typecheck": "tsc --noEmit",
     "check:pack": "node scripts/check-pack.mjs",
     "check:browser": "node scripts/check-browser.mjs",
+    "predocs": "npm run bundle",
+    "docs": "typedoc",
     "lint": "biome ci .",
     "format": "biome format --write ."
   },
@@ -62,6 +64,7 @@
     "@biomejs/biome": "^2.2.0",
     "@types/node": "^22.10.0",
     "tsup": "^8.3.5",
+    "typedoc": "^0.28.20",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8",
     "yaml": "^2.6.1"

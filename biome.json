@@ -11,6 +11,7 @@
       "!pkg-js/src/_data",
       "!pkg-js/src/generated",
       "!pkg-js/dist",
+      "!pkg-js/site",
       "!pkg-js/package-lock.json",
       "!**/node_modules"
     ]
