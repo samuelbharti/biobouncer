@@ -6,14 +6,19 @@ description: gnomAD-style genomic variant coordinates (chrom-pos-ref-alt).
 # identity is resolved, and the form a VCF row reduces to. An optional lowercase
 # chr prefix is accepted. Both alleles are required, so an empty reference or
 # alternate is rejected. Pattern mode checks the coordinate shape only, not that
-# the variant exists or which genome build it refers to. Alleles are matched
-# uppercase; a lowercase allele is suggested in uppercase.
+# the variant exists or which genome build it refers to. Alleles and the
+# chromosome are matched uppercase; a lowercase allele or chromosome is suggested
+# in uppercase. The case fold would also uppercase the prefix, so a rewrite puts
+# it back to lowercase chr, which is the canonical spelling.
 pattern: '(?:chr)?(?:[1-9]|1[0-9]|2[0-2]|X|Y|MT?)-[0-9]+-[ACGTN]+-[ACGTN]+'
 example: '1-55516888-G-A'
 species_aware: false
 version_aware: false
 normalize:
   case: upper
+  rewrite:
+    - from: '^CHR'
+      to: chr
 provenance:
   pattern_source: gnomad
   homepage: https://gnomad.broadinstitute.org

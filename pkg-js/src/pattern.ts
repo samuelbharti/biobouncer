@@ -49,8 +49,16 @@ export function suggest(spec: SourceSpec, s: string): string | null {
   }
 
   const norm = spec.normalize;
-  if (norm && (norm.case === "upper" || norm.case === "lower")) {
-    const candidate = norm.case === "upper" ? s.toUpperCase() : s.toLowerCase();
+  if (norm) {
+    let candidate = s;
+    if (norm.case === "upper") candidate = s.toUpperCase();
+    else if (norm.case === "lower") candidate = s.toLowerCase();
+    // Rewrites run after the fold, so `from` is written against folded text.
+    // A replacer function keeps `to` literal. The compiled cache above wraps
+    // patterns in anchors, so a fresh unanchored RegExp is used here.
+    for (const rule of norm.rewrite ?? []) {
+      candidate = candidate.replace(new RegExp(rule.from), () => rule.to);
+    }
     if (candidate !== s && matches(spec.pattern, candidate)) return candidate;
   }
   return null;

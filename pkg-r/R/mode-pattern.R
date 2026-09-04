@@ -46,10 +46,18 @@
     return(NA_character_)
   }
   norm <- source$normalize
-  if (
-    !is.null(norm) && !is.null(norm$case) && norm$case %in% c("upper", "lower")
-  ) {
-    candidate <- if (identical(norm$case, "upper")) toupper(s) else tolower(s)
+  if (!is.null(norm)) {
+    candidate <- s
+    if (identical(norm$case, "upper")) {
+      candidate <- toupper(s)
+    } else if (identical(norm$case, "lower")) {
+      candidate <- tolower(s)
+    }
+    # Rewrites run after the fold, so `from` is written against folded text.
+    # `to` must not contain a backslash, so sub() keeps it literal.
+    for (rule in norm$rewrite) {
+      candidate <- sub(rule$from, rule$to, candidate, perl = TRUE)
+    }
     if (!identical(candidate, s) && .matches(source$pattern, candidate)) {
       return(candidate)
     }
