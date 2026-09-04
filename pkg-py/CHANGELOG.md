@@ -8,11 +8,8 @@ a matching changelog in `pkg-r/NEWS.md`; the two packages share one version.
 ### Fixed
 
 - A gnomAD id with a `chr` prefix now gets a suggestion when an allele or the
-  chromosome is lowercase. `chr1-55516888-g-a` suggests `chr1-55516888-G-A`,
-  and `CHR1-55516888-G-A` suggests `chr1-55516888-G-A`. Before, the case fold
-  turned `chr` into `CHR`, the pattern rejected it, and no candidate was
-  produced. The shared spec gains a `rewrite` normalize rule that fixes the
-  prefix after the fold. No verdict changes (#89).
+  chromosome is lowercase, so `chr1-55516888-g-a` suggests `chr1-55516888-G-A`.
+  An uppercase `CHR` prefix is suggested as `chr`. No verdict changes (#89).
 
 ## 0.1.4
 
