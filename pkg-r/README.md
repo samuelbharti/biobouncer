@@ -75,3 +75,10 @@ testthat::test_dir("pkg-r/tests/testthat")
 Shared source definitions and the conformance corpus live in `shared/` at the
 repository root and are vendored into `inst/extdata/` by
 `python tools/sync_shared.py`. Do not edit the vendored copies by hand.
+
+## Acknowledgements
+
+Barret Schloerke and Carson Sievert advise this work as thesis advisors.
+Posit Software, PBC funds it and holds copyright together with the author.
+An additional gift from Anthropic supported the early stages and the
+planning of this work.
