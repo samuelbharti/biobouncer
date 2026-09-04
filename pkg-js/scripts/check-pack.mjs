@@ -6,7 +6,11 @@
 import { execSync } from "node:child_process";
 
 const out = execSync("npm pack --dry-run --json", { encoding: "utf8" });
-const files = JSON.parse(out)[0].files.map((f) => f.path);
+// npm <12 prints a top-level array; npm 12+ prints an object keyed by package
+// name. Object.values() reads the one entry either way, since Object.values()
+// on a single-element array is that same element.
+const [pack] = Object.values(JSON.parse(out));
+const files = pack.files.map((f) => f.path);
 
 const problems = [];
 if (!files.includes("LICENSE")) problems.push("missing LICENSE");
