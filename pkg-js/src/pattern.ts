@@ -55,7 +55,7 @@ export function suggest(spec: SourceSpec, s: string): string | null {
     let candidate = fold(s);
     // A literal prefix keeps the spelling the spec gives it; only the rest folds.
     const prefix = norm.keep_prefix;
-    if (prefix && s.slice(0, prefix.length).toLowerCase() === prefix.toLowerCase()) {
+    if (prefix && s.toLowerCase().startsWith(prefix.toLowerCase())) {
       candidate = prefix + fold(s.slice(prefix.length));
     }
     if (candidate !== s && matches(spec.pattern, candidate)) return candidate;

@@ -51,7 +51,7 @@ def _suggest(source: Source, s: str) -> str | None:
         candidate = fold(s)
         # A literal prefix keeps the spelling the spec gives it; only the rest folds.
         prefix = norm.get("keep_prefix")
-        if prefix and s[: len(prefix)].lower() == prefix.lower():
+        if prefix and s.lower().startswith(prefix.lower()):
             candidate = prefix + fold(s[len(prefix) :])
         if candidate != s and matches(source.pattern, candidate):
             return candidate

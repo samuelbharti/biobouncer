@@ -20,28 +20,27 @@
 .suggest_many <- function(source, x) {
   out <- rep(NA_character_, length(x))
   pos <- which(!is.na(x))
+  if (length(pos) == 0L) {
+    return(out)
+  }
   s <- x[pos]
+  candidate <- s
   curie <- source$curie
+  norm <- source$normalize
   if (!is.null(curie)) {
     prefix <- curie$prefix
     pad_to <- curie$pad_to
     idx <- regexpr(":", s, fixed = TRUE)
     has_sep <- idx > 0L
     head <- ifelse(has_sep, substr(s, 1L, idx - 1L), prefix)
-    local <- ifelse(has_sep, substr(s, idx + 1L, nchar(s)), s)
-    hit <- toupper(head) == toupper(prefix)
+    local <- substring(s, idx + 1L)
     if (!is.null(pad_to)) {
       digits <- grepl("^[0-9]+$", local)
       local[digits] <- .zero_pad(local[digits], pad_to)
     }
-    candidate <- paste0(prefix, ":", local)
-    good <- hit & candidate != s
-    good[good] <- .matches(source$pattern, candidate[good])
-    out[pos[good]] <- candidate[good]
-    return(out)
-  }
-  norm <- source$normalize
-  if (
+    hit <- toupper(head) == toupper(prefix)
+    candidate[hit] <- paste0(prefix, ":", local[hit])
+  } else if (
     !is.null(norm) && !is.null(norm$case) && norm$case %in% c("upper", "lower")
   ) {
     fold <- if (identical(norm$case, "upper")) toupper else tolower
@@ -49,15 +48,14 @@
     # A literal prefix keeps the spelling the spec gives it; only the rest folds.
     prefix <- norm$keep_prefix
     if (!is.null(prefix)) {
-      n <- nchar(prefix)
-      has_prefix <- tolower(substr(s, 1L, n)) == tolower(prefix)
-      rest <- substr(s[has_prefix], n + 1L, nchar(s[has_prefix]))
+      has_prefix <- startsWith(tolower(s), tolower(prefix))
+      rest <- substring(s[has_prefix], nchar(prefix) + 1L)
       candidate[has_prefix] <- paste0(prefix, fold(rest))
     }
-    good <- candidate != s
-    good[good] <- .matches(source$pattern, candidate[good])
-    out[pos[good]] <- candidate[good]
   }
+  good <- candidate != s
+  good[good] <- .matches(source$pattern, candidate[good])
+  out[pos[good]] <- candidate[good]
   out
 }
 
@@ -123,18 +121,16 @@
     }
   }
   valid <- base_match & species_ok
-  normalized <- ifelse(!is_na & valid, x, NA_character_)
-  suggestion <- rep(NA_character_, n)
-  idx <- which(!is_na & !base_match)
-  if (length(idx) > 0L) {
-    candidate <- .suggest_many(source, x[idx])
-    keep <- !is.na(candidate)
-    if (!is.null(species)) {
-      for (j in which(keep)) {
-        keep[j] <- .species_ok(source, candidate[j], species)
+  normalized <- rep(NA_character_, n)
+  normalized[valid %in% TRUE] <- x[valid %in% TRUE]
+  probe <- ifelse(base_match %in% FALSE, x, NA_character_)
+  suggestion <- .suggest_many(source, probe)
+  if (!is.null(species)) {
+    for (i in which(!is.na(suggestion))) {
+      if (!.species_ok(source, suggestion[i], species)) {
+        suggestion[i] <- NA_character_
       }
     }
-    suggestion[idx[keep]] <- candidate[keep]
   }
   list(valid = valid, normalized = normalized, suggestion = suggestion)
 }

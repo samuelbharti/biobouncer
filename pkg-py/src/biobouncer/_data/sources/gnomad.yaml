@@ -8,8 +8,9 @@ description: gnomAD-style genomic variant coordinates (chrom-pos-ref-alt).
 # alternate is rejected. Pattern mode checks the coordinate shape only, not that
 # the variant exists or which genome build it refers to. Alleles and the
 # chromosome are matched uppercase; a lowercase allele or chromosome is suggested
-# in uppercase. A prefix keeps its lowercase spelling in a suggestion, since that
-# is the only form the pattern accepts, so CHR1-... suggests chr1-....
+# in uppercase. The pattern accepts only a lowercase chr prefix. That is a
+# convention this spec chose, since gnomAD ids carry no prefix at all, and a
+# suggestion keeps it, so CHR1-... suggests chr1-....
 pattern: '(?:chr)?(?:[1-9]|1[0-9]|2[0-2]|X|Y|MT?)-[0-9]+-[ACGTN]+-[ACGTN]+'
 example: '1-55516888-G-A'
 species_aware: false
