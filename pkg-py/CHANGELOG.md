@@ -3,6 +3,14 @@
 All notable changes to the Python package are recorded here. The R package keeps
 a matching changelog in `pkg-r/NEWS.md`; the two packages share one version.
 
+## Unreleased
+
+### Fixed
+
+- A gnomAD id with a `chr` prefix now gets a suggestion when an allele or the
+  chromosome is lowercase, so `chr1-55516888-g-a` suggests `chr1-55516888-G-A`.
+  An uppercase `CHR` prefix is suggested as `chr`. No verdict changes (#89).
+
 ## 0.1.4
 
 ### Added

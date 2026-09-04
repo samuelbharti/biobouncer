@@ -50,7 +50,14 @@ export function suggest(spec: SourceSpec, s: string): string | null {
 
   const norm = spec.normalize;
   if (norm && (norm.case === "upper" || norm.case === "lower")) {
-    const candidate = norm.case === "upper" ? s.toUpperCase() : s.toLowerCase();
+    const fold = (t: string) =>
+      norm.case === "upper" ? t.toUpperCase() : t.toLowerCase();
+    let candidate = fold(s);
+    // A literal prefix keeps the spelling the spec gives it; only the rest folds.
+    const prefix = norm.keep_prefix;
+    if (prefix && s.toLowerCase().startsWith(prefix.toLowerCase())) {
+      candidate = prefix + fold(s.slice(prefix.length));
+    }
     if (candidate !== s && matches(spec.pattern, candidate)) return candidate;
   }
   return null;

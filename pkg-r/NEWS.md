@@ -1,3 +1,9 @@
+# biobouncer (development version)
+
+* A gnomAD id with a `chr` prefix now gets a suggestion when an allele or the
+  chromosome is lowercase, so `chr1-55516888-g-a` suggests `chr1-55516888-G-A`.
+  An uppercase `CHR` prefix is suggested as `chr`. No verdict changes (#89).
+
 # biobouncer 0.1.4
 
 * Two new pattern sources for model-organism identifiers. `mgi` validates an
