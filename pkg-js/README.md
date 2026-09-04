@@ -10,8 +10,8 @@ This is the JavaScript/TypeScript implementation. It is part of the biobouncer
 monorepo and shares its identifier spec and corpus with the R and Python
 packages.
 
-**Documentation:** the [API reference](https://www.samuelbharti.com/biobouncer/js/)
-is generated from the TypeScript types. This README is its front page. The
+**Documentation:** [API reference](https://www.samuelbharti.com/biobouncer/js/),
+generated from the TypeScript types. The
 [R](https://www.samuelbharti.com/biobouncer/r/) and
 [Python](https://www.samuelbharti.com/biobouncer/py/) docs cover the same API.
 

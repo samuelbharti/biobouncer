@@ -9,13 +9,10 @@
        alt="biobouncer takes a messy column of biological identifiers, checks each through one gate with four modes (pattern, cache, remote, existence), and returns one labeled verdict (valid, repairable, invalid, or missing) that is the same in R and Python." />
 </p>
 
+[![CRAN status](https://www.r-pkg.org/badges/version/biobouncer)](https://cran.r-project.org/package=biobouncer)
 [![PyPI version](https://img.shields.io/pypi/v/biobouncer)](https://pypi.org/project/biobouncer/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21346522.svg)](https://doi.org/10.5281/zenodo.21346522)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-
-<!-- Add once published to CRAN:
-[![CRAN status](https://www.r-pkg.org/badges/version/biobouncer)](https://cran.r-project.org/package=biobouncer)
--->
 
 > **Status: pre-1.0.** The public API is in use and documented below. It may
 > still change before the 1.0 release.
@@ -80,27 +77,26 @@ pip install "git+https://github.com/samuelbharti/biobouncer.git#subdirectory=pkg
 
 **R**
 
-Install from R-universe, which serves prebuilt binaries and updates on each
-release:
+Install from CRAN:
 
 ```r
-install.packages("biobouncer", repos = "https://samuelbharti.r-universe.dev")
+install.packages("biobouncer")
 
 # development version from GitHub (package is in the pkg-r/ subdirectory)
 pak::pak("samuelbharti/biobouncer/pkg-r")
 # or: remotes::install_github("samuelbharti/biobouncer", subdir = "pkg-r")
 ```
 
-biobouncer is not on CRAN yet. Once it is, `install.packages("biobouncer")` will
-work with no `repos` argument.
+R-universe also serves prebuilt binaries of the latest release:
+`install.packages("biobouncer", repos = "https://samuelbharti.r-universe.dev")`.
 
 ## Try it
 
 [`demo/`](demo/) has two notebooks, one in
 [Python](demo/biobouncer_python.ipynb) and one in [R](demo/biobouncer_r.ipynb),
-that run the same story over the same messy data so you can see both packages
-reach the same answers. They cover all four modes and end with the framework
-adapters. Both run offline.
+and a [JavaScript script](demo/biobouncer_js.mjs). All three run the same story
+over the same messy data so you can see the packages reach the same answers.
+They cover all four modes and end with the framework adapters. All run offline.
 
 ## Use it with an AI agent
 
@@ -114,7 +110,7 @@ coding agent can read the whole API in one pass:
 
 Point your agent (Claude Code, Cursor, and similar) at `llms-full.txt`, then ask
 it to validate or clean a data file. It can install biobouncer with the same `pip`
-or R-universe commands above. For example:
+or `install.packages()` commands above. For example:
 
 > Read https://www.samuelbharti.com/biobouncer/llms-full.txt. Then use biobouncer
 > in Python to validate and repair the `gene` column of `data.csv` against `hgnc`
@@ -406,10 +402,12 @@ Delivered:
 - [x] Per-id indeterminate state and concurrent large-column remote checks
 - [x] An Open Targets connector (GraphQL)
 - [x] First tagged releases on PyPI and R-universe
+- [x] CRAN release
+- [x] A JavaScript package with the same verdicts
 
 Planned:
 
-- [ ] CRAN submission
+- [ ] First npm release
 
 ## Contributing
 

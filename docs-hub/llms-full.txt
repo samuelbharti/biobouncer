@@ -62,13 +62,15 @@ JavaScript uses camelCase:
 | `check_id`, `is_valid_id` | `check_id`, `is_valid_id` | `checkId`, `isValidId` |
 | `sources`, `source_info` | `sources`, `source_info` | `sources`, `sourceInfo` |
 | `report`, `Report.repair` | `report_id`, `repair_id` | `report`, `Report.repair` |
+| `synthesize` | `synthesize_ids` | `synthesize` |
 | `pull` | `biobouncer_pull` | not available |
 | `snapshots` | `biobouncer_snapshots` | `snapshots` |
 | `cache_dir` | `biobouncer_cache_dir` | `cacheDir` |
 
-In JavaScript the `remote` mode is asynchronous: use `checkIdAsync`,
-`isValidIdAsync`, and `reportAsync`. Options are an object, so `how="cache"`
-becomes `{ how: "cache" }`.
+In JavaScript a check that needs the network is asynchronous. That is `remote`
+mode, and `existence` mode when no snapshot version is given. Use
+`checkIdAsync`, `isValidIdAsync`, and `reportAsync` for those. Options are an
+object, so `how="cache"` becomes `{ how: "cache" }`.
 
 The pages below are the Python documentation. Read a Python function name through
 the table above to get its R or JavaScript equivalent; the arguments and the

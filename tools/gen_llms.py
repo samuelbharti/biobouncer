@@ -3,7 +3,8 @@
 
 An agent asked to validate or clean a column of identifiers has no single file
 that describes biobouncer. The docs are spread across a pkgdown site, a MkDocs
-site, and several READMEs. The llms.txt convention (https://llmstxt.org) closes
+site, a TypeDoc site, and several READMEs. The llms.txt convention
+(https://llmstxt.org) closes
 that gap: a short curated index, and a full file an agent can paste as context.
 
 llms-full.txt is the Python documentation pages concatenated behind a generated
@@ -155,13 +156,15 @@ JavaScript uses camelCase:
 | `check_id`, `is_valid_id` | `check_id`, `is_valid_id` | `checkId`, `isValidId` |
 | `sources`, `source_info` | `sources`, `source_info` | `sources`, `sourceInfo` |
 | `report`, `Report.repair` | `report_id`, `repair_id` | `report`, `Report.repair` |
+| `synthesize` | `synthesize_ids` | `synthesize` |
 | `pull` | `biobouncer_pull` | not available |
 | `snapshots` | `biobouncer_snapshots` | `snapshots` |
 | `cache_dir` | `biobouncer_cache_dir` | `cacheDir` |
 
-In JavaScript the `remote` mode is asynchronous: use `checkIdAsync`,
-`isValidIdAsync`, and `reportAsync`. Options are an object, so `how="cache"`
-becomes `{{ how: "cache" }}`.
+In JavaScript a check that needs the network is asynchronous. That is `remote`
+mode, and `existence` mode when no snapshot version is given. Use
+`checkIdAsync`, `isValidIdAsync`, and `reportAsync` for those. Options are an
+object, so `how="cache"` becomes `{{ how: "cache" }}`.
 
 The pages below are the Python documentation. Read a Python function name through
 the table above to get its R or JavaScript equivalent; the arguments and the
@@ -223,7 +226,7 @@ def build_index(version: str, sources: int) -> str:
 - [Install for Python]({PYPI}/): `pip install biobouncer`.
 - [Install for R]({CRAN}): `install.packages("biobouncer")`.
 - [Install for JavaScript]({NPM}): `npm install biobouncer`.
-- [Demo notebooks]({REPO}/tree/main/demo): the same story in Python, R, and JavaScript over messy data.
+- [Demos]({REPO}/tree/main/demo): Python and R notebooks and a JavaScript script, the same story over messy data.
 
 ## Source
 

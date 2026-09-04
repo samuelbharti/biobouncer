@@ -17,7 +17,7 @@
 - [Install for Python](https://pypi.org/project/biobouncer/): `pip install biobouncer`.
 - [Install for R](https://cran.r-project.org/package=biobouncer): `install.packages("biobouncer")`.
 - [Install for JavaScript](https://www.npmjs.com/package/biobouncer): `npm install biobouncer`.
-- [Demo notebooks](https://github.com/samuelbharti/biobouncer/tree/main/demo): the same story in Python, R, and JavaScript over messy data.
+- [Demos](https://github.com/samuelbharti/biobouncer/tree/main/demo): Python and R notebooks and a JavaScript script, the same story over messy data.
 
 ## Source
 
