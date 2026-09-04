@@ -31,13 +31,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # The current Node LTS, not a fixed version: npm's own minimum supported
+      # Node keeps moving forward, and a pinned Node fell behind it once
+      # already (v0.2.0's first publish failed because npm@latest required a
+      # newer Node than the "20" pinned here). Trusted Publishing itself needs
+      # npm 11.5.1 or newer; Node 20's bundled npm 10 has no OIDC exchange and
+      # fails with ENEEDAUTH at publish time.
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "lts/*"
           registry-url: "https://registry.npmjs.org"
 
-      # Trusted Publishing needs npm 11.5.1 or newer. Node 20 bundles npm 10,
-      # which has no OIDC exchange and fails with ENEEDAUTH at publish time.
       - name: Update npm for trusted publishing
         run: npm install -g npm@latest && npm --version
 
