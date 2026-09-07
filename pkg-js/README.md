@@ -129,6 +129,5 @@ for the full tour.
 ## Acknowledgements
 
 Barret Schloerke and Carson Sievert advise this work as thesis advisors.
-Posit Software, PBC funds it and holds copyright together with the author.
-An additional gift from Anthropic, PBC supported the early stages and the
-planning of this work.
+Posit Software, PBC funded early work on this package and holds copyright
+together with the author.
