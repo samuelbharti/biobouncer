@@ -292,7 +292,6 @@ with source. (After biobouncer reaches CRAN, opt out of duplicate auto-indexing 
 install.packages("biobouncer", repos = "https://YOURACCOUNT.r-universe.dev")
 # R — dev from the monorepo subdirectory
 pak::pak("YOURORG/biobouncer/pkg-r")
-remotes::install_github("YOURORG/biobouncer", subdir = "pkg-r")
 ```
 ```bash
 # Python — dev from the monorepo subdirectory
