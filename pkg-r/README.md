@@ -6,6 +6,20 @@ This directory holds the R package for biobouncer. See the repository root
 Offline `pattern` and `cache` modes, live `remote` mode, and `existence` mode
 (snapshot first, then remote) work across 46 sources.
 
+## Installation
+
+Install from CRAN:
+
+```r
+install.packages("biobouncer")
+
+# development version from GitHub (package is in the pkg-r/ subdirectory)
+pak::pak("samuelbharti/biobouncer/pkg-r")
+```
+
+R-universe also serves prebuilt binaries of the latest release:
+`install.packages("biobouncer", repos = "https://samuelbharti.r-universe.dev")`.
+
 ## Usage
 
 ```r
@@ -69,7 +83,7 @@ From the repository root:
 roxygen2::roxygenise("pkg-r")
 
 # run the tests
-testthat::test_dir("pkg-r/tests/testthat")
+devtools::test("pkg-r")
 ```
 
 Shared source definitions and the conformance corpus live in `shared/` at the

@@ -24,6 +24,45 @@ one [landing page](https://www.samuelbharti.com/biobouncer/).
 
 ---
 
+## Installation
+
+`biobouncer` lives in a monorepo: the R package in `pkg-r/`, the Python package in
+`pkg-py/`, and the JavaScript package in `pkg-js/`. This matters only when
+installing from GitHub, where you point the installer at the subdirectory.
+
+**Python**
+
+```bash
+pip install biobouncer
+
+# development version from GitHub (package is in the pkg-py/ subdirectory)
+pip install "git+https://github.com/samuelbharti/biobouncer.git#subdirectory=pkg-py"
+```
+
+**R**
+
+Install from CRAN:
+
+```r
+install.packages("biobouncer")
+
+# development version from GitHub (package is in the pkg-r/ subdirectory)
+pak::pak("samuelbharti/biobouncer/pkg-r")
+```
+
+R-universe also serves prebuilt binaries of the latest release:
+`install.packages("biobouncer", repos = "https://samuelbharti.r-universe.dev")`.
+
+**JavaScript**
+
+```sh
+npm install biobouncer
+```
+
+The package ships a Node build and a browser build. See the
+[JavaScript docs](https://www.samuelbharti.com/biobouncer/js/) for the runtime
+targets and the async entry points.
+
 ## Why biobouncer
 
 If you build analyses or Shiny/Dash apps in computational biology, you keep
@@ -59,46 +98,6 @@ reach those tools.
   for use in scripts and CI.
 - **Reproducible by design.** `pattern` and `cache` modes are pure functions of
   pinned data; every result records the snapshot version it came from.
-
-## Installation
-
-`biobouncer` lives in a monorepo: the R package in `pkg-r/`, the Python package in
-`pkg-py/`, and the JavaScript package in `pkg-js/`. This matters only when
-installing from GitHub, where you point the installer at the subdirectory.
-
-**Python**
-
-```bash
-pip install biobouncer
-
-# development version from GitHub (package is in the pkg-py/ subdirectory)
-pip install "git+https://github.com/samuelbharti/biobouncer.git#subdirectory=pkg-py"
-```
-
-**R**
-
-Install from CRAN:
-
-```r
-install.packages("biobouncer")
-
-# development version from GitHub (package is in the pkg-r/ subdirectory)
-pak::pak("samuelbharti/biobouncer/pkg-r")
-# or: remotes::install_github("samuelbharti/biobouncer", subdir = "pkg-r")
-```
-
-R-universe also serves prebuilt binaries of the latest release:
-`install.packages("biobouncer", repos = "https://samuelbharti.r-universe.dev")`.
-
-**JavaScript**
-
-```sh
-npm install biobouncer
-```
-
-The package ships a Node build and a browser build. See the
-[JavaScript docs](https://www.samuelbharti.com/biobouncer/js/) for the runtime
-targets and the async entry points.
 
 ## Try it
 
