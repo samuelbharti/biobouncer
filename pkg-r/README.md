@@ -1,7 +1,13 @@
 # biobouncer (R package) <img src="man/figures/logo.png" align="right" height="150" alt="biobouncer logo" />
 
+Validate gene symbols, ontology terms, variant formats, and database
+accessions from R. Checks run offline against identifier patterns and pinned
+snapshots, or live against the source, and return the same verdict as the
+companion Python and JavaScript packages for the same input.
+
 This directory holds the R package for biobouncer. See the repository root
-`README.md` for what biobouncer does and `PLAN.md` for the architecture.
+`README.md` for the full picture across all three languages and `PLAN.md` for
+the architecture.
 
 Offline `pattern` and `cache` modes, live `remote` mode, and `existence` mode
 (snapshot first, then remote) work across 46 sources.
