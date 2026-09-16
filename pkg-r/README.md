@@ -14,12 +14,14 @@ accessions from R. Checks run offline against identifier patterns and pinned
 snapshots, or live against the source, and return the same verdict as the
 companion Python and JavaScript packages for the same input.
 
-This directory holds the R package for biobouncer. See the repository root
-`README.md` for the full picture across all three languages and `PLAN.md` for
-the architecture.
+All four modes work across 50 sources. `pattern` and `cache` run offline,
+`remote` checks the live source, and `existence` takes the snapshot when there
+is one, falls back to remote, and falls back again to pattern for a source with
+no resolver.
 
-Offline `pattern` and `cache` modes, live `remote` mode, and `existence` mode
-(snapshot first, then remote) work across 46 sources.
+Documentation is at <https://www.samuelbharti.com/biobouncer/r/>. The Python and
+JavaScript packages are documented from
+<https://www.samuelbharti.com/biobouncer/>.
 
 ## Installation
 
@@ -89,18 +91,10 @@ rules <- validate::validator(good_terms = is_mondo(term))
 validate::confront(df, rules)
 ```
 
-## Development
+## Contributing
 
-From the repository root:
+See [`CONTRIBUTING.md`](https://github.com/samuelbharti/biobouncer/blob/main/CONTRIBUTING.md).
 
-```r
-# generate NAMESPACE and man pages
-roxygen2::roxygenise("pkg-r")
+## License
 
-# run the tests
-devtools::test("pkg-r")
-```
-
-Shared source definitions and the conformance corpus live in `shared/` at the
-repository root and are vendored into `inst/extdata/` by
-`python tools/sync_shared.py`. Do not edit the vendored copies by hand.
+MIT. See [`LICENSE`](https://github.com/samuelbharti/biobouncer/blob/main/LICENSE).
