@@ -91,8 +91,8 @@ it is not run in this vignette, but the call looks like this:
 # Live check against the Ensembl REST API.
 check_id("ENSG00000139618", source_db = "ensembl", how = "remote")
 
-# existence mode uses a snapshot when one is available and otherwise
-# falls back to remote.
+# existence mode uses a snapshot when one answers, otherwise remote, and
+# pattern for a source with no resolver.
 check_id("MONDO:0005148", source_db = "mondo", how = "existence")
 ```
 
@@ -215,5 +215,5 @@ value can be a retired id that maps to its successor.
 - `report_id()` and `repair_id()` validate and clean a whole column in one call.
 - Results are vectorized and preserve input order and length. Errors are
   explicit.
-- The same inputs give the same verdicts in the Python package, which is
-  enforced by a shared conformance corpus.
+- The same inputs give the same verdicts in the Python and JavaScript
+  packages, which a shared conformance corpus enforces.

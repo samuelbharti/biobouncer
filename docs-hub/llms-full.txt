@@ -183,7 +183,7 @@ a network runs offline.
 | `pattern`   | Is the string well-formed for this source?        |   no    |
 | `cache`     | Does the id exist in a pinned local snapshot?     |   no    |
 | `remote`    | Does the id exist right now in the source?        |   yes   |
-| `existence` | Snapshot when available, otherwise remote.        | maybe   |
+| `existence` | Snapshot if one answers, else remote, else pattern. | maybe   |
 
 ### pattern
 

@@ -70,9 +70,9 @@ r.to_frame()  # a verdict table (pandas, polars, or pyarrow via narwhals)
 
 Checks run in four modes: `pattern` (offline shape), `cache` (offline existence
 against a pinned snapshot), `remote` (live existence against the source API), and
-`existence` (snapshot first, then remote). Snapshots ship with the package, so the
-offline modes work with no setup and no network. `biobouncer.pull()` refreshes one
-to a newer dated release when you want it.
+`existence` (snapshot if one answers, else remote, else pattern). Snapshots ship
+with the package, so the offline modes work with no setup and no network.
+`biobouncer.pull()` refreshes one to a newer dated release when you want it.
 
 There is also a `biobouncer` command line tool that exits non-zero on any invalid
 input, for use in a pipeline or in CI.

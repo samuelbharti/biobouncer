@@ -62,7 +62,8 @@ node demo/biobouncer_js.mjs
 
 `remote` mode reaches live APIs. Those cells are wrapped in `try`/`except` in
 Python, `tryCatch` in R, and `try`/`catch` in JavaScript, so all three run
-offline too. The other three modes never touch the network.
+offline too. `pattern` and `cache` never touch the network, and `existence`
+reaches it only when no snapshot answers.
 
 ## These demos are tested
 

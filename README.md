@@ -88,7 +88,8 @@ reach those tools.
   ChEBI, GO, HGVS, and more) selected with a single `source_db` argument.
 - **Checking modes.** Choose how strict and how online you want to be:
   `pattern` (offline regex/grammar), `cache` (offline existence against a pinned
-  snapshot), or `remote` (live existence against the source's API).
+  snapshot), `remote` (live existence against the source's API), or `existence`
+  (the snapshot if one answers, else remote, else pattern).
 - **Species-, source-, and version-aware.** Ask not just *"is this valid?"* but
   *"was this valid for this species, in this source, at this version?"*
 - **Rich, vectorized results.** Get a per-element table of `valid` /
