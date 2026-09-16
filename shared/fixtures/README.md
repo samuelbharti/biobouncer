@@ -33,6 +33,6 @@ Existence is decided per resolver:
 When a `species` is requested, remote mode also checks it: Ensembl from the id
 prefix (offline), UniProt from the entry's organism taxon id.
 
-Both packages load these through the same transport seam they use for live
+All three packages load these through the same transport seam they use for live
 requests, so a fixture exercises the real existence logic. Live requests are
 opt-in through the `BIOBOUNCER_REMOTE_TESTS` environment variable.

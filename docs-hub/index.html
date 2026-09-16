@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>biobouncer</title>
-    <meta name="description" content="Validate biological identifiers and inputs the same way in R, Python, and JavaScript. One small API, three checking modes, 50 sources, one verdict in all three languages." />
+    <meta name="description" content="Validate biological identifiers and inputs the same way in R, Python, and JavaScript. One small API, four checking modes, 50 sources, one verdict in all three languages." />
     <link rel="icon" href="assets/favicon.png" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="biobouncer" />
@@ -191,12 +191,13 @@
 
       <section class="sec">
         <p class="eyebrow">Checking modes</p>
-        <h2 class="sec-h">Three ways to check</h2>
+        <h2 class="sec-h">Four ways to check</h2>
         <p class="sec-sub">One argument, <code>how</code>, decides how strict and how online the check is.</p>
         <div class="modes">
           <div class="mode"><b>pattern</b><span>Is it well-formed? Offline, deterministic.</span></div>
           <div class="mode"><b>cache</b><span>Does it exist in a pinned snapshot? Offline, reproducible.</span></div>
           <div class="mode"><b>remote</b><span>Does it exist right now in the source? Live.</span></div>
+          <div class="mode"><b>existence</b><span>Snapshot if one answers, else remote, else pattern.</span></div>
         </div>
       </section>
 
