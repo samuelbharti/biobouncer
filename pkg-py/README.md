@@ -1,11 +1,16 @@
 # biobouncer <img src="https://raw.githubusercontent.com/samuelbharti/biobouncer/main/pkg-r/man/figures/logo.png" align="right" height="150" alt="biobouncer logo" />
 
-> A gate for biological inputs. Validate gene symbols, ontology terms, variant
-> formats, and database identifiers, the same way, with the same answer, in
-> both **R** and **Python**.
-
+<!-- badges: start -->
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+[![PyPI](https://img.shields.io/pypi/v/biobouncer)](https://pypi.org/project/biobouncer/)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21346522-1682D4)](https://doi.org/10.5281/zenodo.21346522)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/samuelbharti/biobouncer/blob/main/LICENSE)
+<!-- badges: end -->
+
+> A gate for biological inputs. Validate gene symbols, ontology terms, variant
+> formats, and database identifiers, the same way, with the same answer, in
+> **R**, **Python**, and **JavaScript**.
+
 
 This is the Python package. A companion [R package](https://www.samuelbharti.com/biobouncer/r/)
 is built alongside it, and the two are held to the same verdict for the same
