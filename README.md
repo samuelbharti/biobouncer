@@ -21,9 +21,6 @@
 </p>
 
 
-> **Status: pre-1.0.** The public API is in use and documented below. It may
-> still change before the 1.0 release.
-
 **Documentation:** [R package](https://www.samuelbharti.com/biobouncer/r/) (pkgdown),
 [Python package](https://www.samuelbharti.com/biobouncer/py/) (MkDocs), and
 [JavaScript package](https://www.samuelbharti.com/biobouncer/js/) (TypeDoc), from
@@ -70,7 +67,7 @@ The package ships a Node build and a browser build. See the
 [JavaScript docs](https://www.samuelbharti.com/biobouncer/js/) for the runtime
 targets and the async entry points.
 
-## Why biobouncer
+## Motivation
 
 If you build analyses or Shiny/Dash apps in computational biology, you keep
 rewriting the same guards: *is this a real gene symbol? a well-formed MONDO id?
@@ -84,7 +81,7 @@ testing all three against a shared conformance corpus. It does not try to replac
 engines like biomaRt, ensembldb, or mygene. It validates *inputs* before they
 reach those tools.
 
-## Key features
+## Features
 
 - **One entry point, many sources.** `check_id()` / `is_valid_id()` work across
   50 databases and ontologies (MONDO, EFO, HGNC, Ensembl, RefSeq, dbSNP, UniProt,
@@ -106,7 +103,7 @@ reach those tools.
 - **Reproducible by design.** `pattern` and `cache` modes are pure functions of
   pinned data; every result records the snapshot version it came from.
 
-## Try it
+## Demos
 
 [`demo/`](demo/) has two notebooks, one in
 [Python](demo/biobouncer_python.ipynb) and one in [R](demo/biobouncer_r.ipynb),
@@ -115,7 +112,7 @@ over the same messy data so you can see the packages reach the same answers.
 The notebooks cover all four modes and end with the framework adapters; the
 script covers `pattern`, `cache`, and `remote`. All run offline.
 
-## Use it with an AI agent
+## AI agents
 
 biobouncer publishes its docs in the [llms.txt](https://llmstxt.org) format, so a
 coding agent can read the whole API in one pass:
@@ -134,7 +131,7 @@ or `install.packages()` commands above. For example:
 > in cache mode, write the cleaned table to `data_clean.csv`, and preserve the row
 > order.
 
-## Quickstart
+## Usage
 
 **R**
 
@@ -215,7 +212,7 @@ checkId(["MONDO:0005148", "MONDO:9999999", "mondo:5148"], "mondo", {
 });
 ```
 
-## Clean a column
+## Cleaning a column
 
 The everyday job is a whole column: which values are wrong, and can you fix the
 ones you can. `report_id()` / `report()` validate the column and print a summary;
@@ -274,7 +271,7 @@ rep.repair();
 `report`/`report_id` are for inspecting and cleaning; to enforce validity inside
 a framework (pandera, Great Expectations, pydantic, shiny) use the adapters.
 
-## The checking modes
+## Modes
 
 | Mode      | What it answers                                   | Network | Reproducible | Speed |
 |-----------|---------------------------------------------------|:-------:|:------------:|:-----:|
@@ -290,7 +287,7 @@ of code and pinned data, so the same call always returns the same answer.
 `remote` reflects the live source and can change between runs; every result
 records which mode and snapshot produced it.
 
-## Species, source, and version awareness
+## Species and versions
 
 Identifiers are not valid in a vacuum. A symbol can be current in one species
 and meaningless in another; an id can exist in one release of a source and be
@@ -331,11 +328,13 @@ Every `check_id()` row carries enough context to be self-describing:
 | `how`        | mode used (`pattern` / `cache` / `remote` / `existence`)       |
 | `error`      | reason a remote check was left indeterminate, else `NA`/`None` |
 
-## Supported sources (growing)
+## Sources
 
-biobouncer checks 50 sources. A selection is shown below; run `source_info()` or see
-the [sources cookbook](https://www.samuelbharti.com/biobouncer/py/sources/) for the
-full list with the modes each source supports.
+biobouncer checks 50 sources. A selection is shown below. Run `source_info()` for
+the full list, or read the sources cookbook for
+[R](https://www.samuelbharti.com/biobouncer/r/articles/sources.html) or
+[Python](https://www.samuelbharti.com/biobouncer/py/sources/), which gives an
+example id and the modes each source supports.
 
 | `source_db`    | Source                     | Example id                 | pattern | cache | remote | species-aware |
 |----------------|----------------------------|----------------------------|:-------:|:-----:|:------:|:-------------:|
@@ -360,7 +359,7 @@ Targets connector checks whether a human Ensembl gene id is a target the platfor
 covers, through its GraphQL API. Identifier patterns come from the
 Identifiers.org / Bioregistry registries where available.
 
-## Integrating with your stack
+## Validation frameworks
 
 `biobouncer` provides the domain checks; your existing validation framework
 provides the plumbing.
@@ -410,22 +409,7 @@ df |> assertr::verify(
 )
 ```
 
-## Design principles
-
-- **Intrinsic before extrinsic.** Format checks (`pattern`) are the fast,
-  offline, always-reproducible core. Existence checks (`cache`, `remote`) are
-  opt-in and clearly separated.
-- **Reproducibility is not optional.** Offline modes are pure functions of
-  pinned snapshots; results always report the version they came from.
-- **Cross-language parity is a test, not a promise.** A shared corpus of
-  input/expected-verdict cases is run against the R, Python, and JavaScript
-  implementations in CI.
-- **Rich results over booleans.** Return what failed, what it normalizes to, and
-  what it should probably be.
-- **Compose, don't compete.** Ship adapters into the frameworks people already
-  use rather than another standalone validator.
-
-## Reference data & caching
+## Caching
 
 Offline `cache` mode reads versioned snapshots of source identifier sets.
 Snapshots are pinned (never auto-updated silently) so analyses stay
@@ -439,31 +423,6 @@ biobouncer_cache_dir()          # where snapshots live
 ```
 
 `remote` mode caches responses locally and respects each source's rate limits.
-
-## Roadmap
-
-Delivered:
-
-- [x] `pattern` mode, the core API, and the rich result schema
-- [x] Shared conformance corpus with R, Python, and JavaScript parity
-- [x] `cache` mode and snapshot tooling for the OBO ontologies
-- [x] `remote` resolvers (OLS, Ensembl, UniProt, NCBI, EBI, and more: 19 resolvers across 41 sources)
-- [x] Species and version awareness
-- [x] Framework adapters (pandera, pydantic, Great Expectations, narwhals; shinyvalidate, checkmate, assertr/validate/pointblank)
-- [x] HGVS syntax validator
-- [x] Command-line interface
-- [x] Real gene-symbol validation (a full HGNC snapshot and a genenames.org resolver)
-- [x] Fuzzy "did you mean" suggestions
-- [x] A validate-and-repair report for data-frame columns (`report` / `report_id`)
-- [x] Per-id indeterminate state and concurrent large-column remote checks
-- [x] An Open Targets connector (GraphQL)
-- [x] First tagged releases on PyPI and R-universe
-- [x] CRAN release
-- [x] A JavaScript package with the same verdicts
-
-Planned:
-
-- [ ] First npm release
 
 ## Contributing
 
