@@ -70,7 +70,7 @@ The package ships a Node build and a browser build. See the
 [JavaScript docs](https://www.samuelbharti.com/biobouncer/js/) for the runtime
 targets and the async entry points.
 
-## Why biobouncer
+## Motivation
 
 If you build analyses or Shiny/Dash apps in computational biology, you keep
 rewriting the same guards: *is this a real gene symbol? a well-formed MONDO id?
