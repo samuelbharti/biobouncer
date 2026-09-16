@@ -11,7 +11,7 @@
 
 [![CRAN status](https://www.r-pkg.org/badges/version/biobouncer)](https://cran.r-project.org/package=biobouncer)
 [![PyPI version](https://img.shields.io/pypi/v/biobouncer)](https://pypi.org/project/biobouncer/)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21346522.svg)](https://doi.org/10.5281/zenodo.21346522)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21346522-1682D4)](https://doi.org/10.5281/zenodo.21346522)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 > **Status: pre-1.0.** The public API is in use and documented below. It may
