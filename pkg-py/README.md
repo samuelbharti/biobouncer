@@ -4,7 +4,7 @@
 > formats, and database identifiers, the same way, with the same answer, in
 > both **R** and **Python**.
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.21346522.svg)](https://doi.org/10.5281/zenodo.21346522)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21346522-1682D4)](https://doi.org/10.5281/zenodo.21346522)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/samuelbharti/biobouncer/blob/main/LICENSE)
 
 This is the Python package. A companion [R package](https://www.samuelbharti.com/biobouncer/r/)
