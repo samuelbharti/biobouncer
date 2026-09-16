@@ -15,6 +15,10 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag to publish, for example v0.2.0
+        required: true
 
 permissions:
   contents: read
@@ -35,7 +39,7 @@ jobs:
       # while a mismatch is still free to fix: PyPI refuses to replace a version
       # once uploaded, so a wrong number here can only be abandoned.
       - name: Check the versions agree with the tag
-        run: python tools/check_versions.py ${{ github.event.release.tag_name }}
+        run: python tools/check_versions.py ${{ github.event.release.tag_name || inputs.tag }}
 
       - name: Build the sdist and the wheel
         run: uv build --out-dir dist
