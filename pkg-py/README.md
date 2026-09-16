@@ -12,12 +12,10 @@
 > **R**, **Python**, and **JavaScript**.
 
 
-This is the Python package. A companion [R package](https://www.samuelbharti.com/biobouncer/r/)
-is built alongside it, and the two are held to the same verdict for the same
-input by a shared conformance corpus.
-
-> **Status: pre-1.0.** The public API is in use and documented. It may still
-> change before the 1.0 release.
+This is the Python package. An [R package](https://www.samuelbharti.com/biobouncer/r/)
+and a [JavaScript package](https://www.samuelbharti.com/biobouncer/js/) are built
+alongside it, and a shared conformance corpus holds all three to the same verdict
+for the same input.
 
 ## Install
 
@@ -88,13 +86,9 @@ reference.
 
 ## Contributing
 
-The package is developed in the
-[biobouncer monorepo](https://github.com/samuelbharti/biobouncer) alongside the R
-package and the shared spec. See
-[CONTRIBUTING.md](https://github.com/samuelbharti/biobouncer/blob/main/CONTRIBUTING.md)
-to get set up, and
-[open an issue](https://github.com/samuelbharti/biobouncer/issues) for a bug or a
-source request.
+See [CONTRIBUTING.md](https://github.com/samuelbharti/biobouncer/blob/main/CONTRIBUTING.md),
+or [open an issue](https://github.com/samuelbharti/biobouncer/issues) for a bug or
+a source request.
 
 ## Acknowledgements
 
@@ -107,7 +101,7 @@ together with the author.
 If you use biobouncer in your work, please cite it. The DOI above always resolves
 to the latest release; see
 [CITATION.cff](https://github.com/samuelbharti/biobouncer/blob/main/CITATION.cff)
-for the current version and a per-version DOI. A preprint is in preparation.
+for the current version and a per-version DOI.
 
 ## License
 
