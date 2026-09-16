@@ -138,3 +138,8 @@ for the full tour.
 Barret Schloerke and Carson Sievert advise this work as thesis advisors.
 Posit Software, PBC funded early work on this package and holds copyright
 together with the author.
+
+## License
+
+MIT. See
+[LICENSE](https://github.com/samuelbharti/biobouncer/blob/main/LICENSE).

@@ -191,6 +191,30 @@ bg.check_id(
 )
 ```
 
+**JavaScript**
+
+```ts
+import { checkId, isValidId, isValidIdAsync } from "biobouncer";
+
+// 1. pattern mode: offline, deterministic, and synchronous
+isValidId("MONDO:0005148", "mondo"); // true
+
+// 2. cache mode: existence against a pinned local snapshot
+isValidId("MONDO:0005148", "mondo", { how: "cache", version: "sample" }); // true
+
+// 3. remote mode reaches the network, so it takes the async entry point
+await isValidIdAsync("ENSG00000139618", "ensembl", {
+  how: "remote",
+  species: "homo_sapiens",
+}); // true
+
+// Rich, per-item results over a whole column, in input order
+checkId(["MONDO:0005148", "MONDO:9999999", "mondo:5148"], "mondo", {
+  how: "cache",
+  version: "sample",
+});
+```
+
 ## Clean a column
 
 The everyday job is a whole column: which values are wrong, and can you fix the
@@ -230,6 +254,21 @@ rep
 
 rep.repair()
 # ['TP53', 'KMT2A', 'notagene', None]
+```
+
+**JavaScript**
+
+```ts
+import { report } from "biobouncer";
+
+const genes = ["TP53", "MLL", "notagene", null];
+
+const rep = report(genes, "hgnc", { how: "cache" });
+rep.summary;
+// { total: 4, valid: 1, invalid: 1, repairable: 1, missing: 1, indeterminate: 0 }
+
+rep.repair();
+// ["TP53", "KMT2A", "notagene", null]
 ```
 
 `report`/`report_id` are for inspecting and cleaning; to enforce validity inside
