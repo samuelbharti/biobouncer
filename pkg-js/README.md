@@ -1,5 +1,12 @@
 # biobouncer (JavaScript / TypeScript)
 
+<!-- badges: start -->
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+[![npm](https://img.shields.io/npm/v/biobouncer)](https://www.npmjs.com/package/biobouncer)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21346522-1682D4)](https://doi.org/10.5281/zenodo.21346522)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/samuelbharti/biobouncer/blob/main/LICENSE)
+<!-- badges: end -->
+
 Validate biological identifiers and inputs, the same way and with the same
 verdict as the [R and Python packages](https://github.com/samuelbharti/biobouncer).
 One small API checks gene symbols, ontology terms, variant formats, and database

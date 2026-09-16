@@ -1,5 +1,16 @@
 # biobouncer <img src="pkg-r/man/figures/logo.png" align="right" height="150" alt="biobouncer logo" />
 
+<!-- badges: start -->
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+[![CRAN status](https://www.r-pkg.org/badges/version/biobouncer)](https://CRAN.R-project.org/package=biobouncer)
+[![CRAN downloads](https://cranlogs.r-pkg.org/badges/grand-total/biobouncer)](https://CRAN.R-project.org/package=biobouncer)
+[![r-universe](https://samuelbharti.r-universe.dev/badges/biobouncer)](https://samuelbharti.r-universe.dev/biobouncer)
+[![npm](https://img.shields.io/npm/v/biobouncer)](https://www.npmjs.com/package/biobouncer)
+[![PyPI](https://img.shields.io/pypi/v/biobouncer)](https://pypi.org/project/biobouncer/)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21346522-1682D4)](https://doi.org/10.5281/zenodo.21346522)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/samuelbharti/biobouncer/blob/main/LICENSE)
+<!-- badges: end -->
+
 > A gate for biological inputs. Validate gene symbols, ontology terms, variant
 > formats, and database identifiers, the same way, with the same answer, in
 > **R**, **Python**, and **JavaScript**.
@@ -9,10 +20,6 @@
        alt="biobouncer takes a messy column of biological identifiers, checks each through one gate with four modes (pattern, cache, remote, existence), and returns one labeled verdict (valid, repairable, invalid, or missing) that is the same in R, Python, and JavaScript." />
 </p>
 
-[![CRAN status](https://www.r-pkg.org/badges/version/biobouncer)](https://cran.r-project.org/package=biobouncer)
-[![PyPI version](https://img.shields.io/pypi/v/biobouncer)](https://pypi.org/project/biobouncer/)
-[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21346522-1682D4)](https://doi.org/10.5281/zenodo.21346522)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 > **Status: pre-1.0.** The public API is in use and documented below. It may
 > still change before the 1.0 release.
