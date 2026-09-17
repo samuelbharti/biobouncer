@@ -46,7 +46,7 @@ jobs:
       # newer Node than the "20" pinned here). Trusted Publishing itself needs
       # npm 11.5.1 or newer; Node 20's bundled npm 10 has no OIDC exchange and
       # fails with ENEEDAUTH at publish time.
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "lts/*"
           registry-url: "https://registry.npmjs.org"
