@@ -91,4 +91,5 @@ articles:
       - articles/sources
   - title: Use cases
     contents:
+      - articles/gene-symbols
       - articles/variants

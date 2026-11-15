@@ -1,0 +1,149 @@
+---
+title: "Convert gene symbols between species"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(biobouncer)
+```
+
+biobouncer does not convert an identifier from one species to another. It
+guards a conversion: it cleans the symbols that go in and checks the ids that
+come out. The lookup in between is done here by the
+[bioclients](https://www.samuelbharti.com/bioclients/) package, which asks
+IMPC for the mouse ortholog of a human gene.
+
+This article converts a column of human gene symbols to mouse genes in three
+steps:
+
+1. Clean the human symbols.
+2. Look up the mouse ortholog of each symbol.
+3. Check the mouse ids that came back.
+
+## Clean the human symbols
+
+A lookup service can only match the symbol it is given, and a retired or
+misspelled symbol may match nothing. Repair the column first. `cache` mode
+checks each symbol against the HGNC snapshot that ships with the package, and
+it needs no network.
+
+```{r}
+symbols <- c("TP53", "tp53", "MLL", "BRCA1", "NF1", "NOTAGENE")
+res <- check_id(symbols, source_db = "hgnc", how = "cache")
+res[c("input", "valid", "suggestion", "version")]
+```
+
+`tp53` has the wrong case and `MLL` is a previous symbol of `KMT2A`, so both
+get a suggestion. `NOTAGENE` has none. The `version` column is the date of the
+HGNC snapshot that gave the answer.
+
+`repair_id()` applies the suggestions. Keep the symbols that are valid after
+the repair, and set the others aside for a person to look at.
+
+```{r}
+clean <- repair_id(symbols, source_db = "hgnc", how = "cache")
+ok <- is_valid_id(clean, source_db = "hgnc", how = "cache")
+
+human <- unique(clean[ok])
+human
+
+clean[!ok]
+```
+
+## Look up the mouse orthologs
+
+`impc_mouse_ortholog()` from bioclients takes one human symbol. It returns the
+MGI id and the mouse symbol that IMPC holds for that gene. The call needs a
+network, so the code is shown with the output of a run on 2026-11-15.
+
+```{r, eval = FALSE}
+library(bioclients)
+
+lookup <- function(symbol) {
+  hit <- biohttp::body_or_null(impc_mouse_ortholog(symbol))
+  if (is.null(hit)) {
+    hit <- data.frame(mgi = NA_character_, marker_symbol = NA_character_)
+  }
+  cbind(human = symbol, hit)
+}
+
+orthologs <- do.call(rbind, lapply(human, lookup))
+orthologs
+#>   human        mgi marker_symbol
+#> 1  TP53  MGI:98834         Trp53
+#> 2 KMT2A  MGI:96995         Kmt2a
+#> 3 BRCA1 MGI:104537         Brca1
+#> 4   NF1  MGI:97306           Nf1
+```
+
+When IMPC has no mouse ortholog for a gene, the call returns no data. The
+helper turns that into a row of `NA`, so the table keeps one row per human
+symbol.
+
+## Check the mouse ids
+
+The `mgi` source checks each id that came back.
+
+```{r, eval = FALSE}
+is_valid_id(orthologs$mgi, source_db = "mgi")
+#> [1] TRUE TRUE TRUE TRUE
+```
+
+`mgi` has `pattern` mode only. A pass confirms the shape of the id. It does
+not confirm that MGI holds a record for it.
+
+## Keep mouse symbols out of the HGNC check
+
+The `hgnc` source holds human symbols only, and biobouncer has no source for
+mouse symbols. A mouse symbol is not valid in `hgnc`. When its spelling is
+close to a human symbol, the suggestion is the human gene.
+
+```{r}
+res <- check_id(c("Trp53", "Kmt2a", "Nf1"), source_db = "hgnc", how = "cache")
+res[c("input", "valid", "suggestion")]
+```
+
+`repair_id()` on this column would turn every mouse symbol back into a human
+one. Check a mouse gene by its MGI id, as in the step above.
+
+## Catch an answer from the wrong species
+
+A lookup can answer for a species you did not ask for. `mygene_genes()` from
+bioclients searches human genes unless `species` says otherwise. Given two
+mouse symbols and no `species`, it returns the human genes.
+
+```{r, eval = FALSE}
+hits <- biohttp::body_or_null(mygene_genes(c("Trp53", "Kmt2a")))
+hits[c("symbol", "ensembl_gene")]
+#> # A tibble: 2 × 2
+#>   symbol ensembl_gene
+#>   <chr>  <chr>
+#> 1 TP53   ENSG00000141510
+#> 2 KMT2A  ENSG00000118058
+```
+
+An Ensembl gene id carries its species in the letters after `ENS`, so
+biobouncer can test the species offline. Both ids above are well-formed
+Ensembl ids, and both fail a check for mouse.
+
+```{r}
+is_valid_id(
+  c("ENSG00000141510", "ENSG00000118058"),
+  source_db = "ensembl",
+  species = "mus_musculus"
+)
+```
+
+The mouse gene id for Trp53 passes the same check.
+
+```{r}
+is_valid_id("ENSMUSG00000059552", source_db = "ensembl", species = "mus_musculus")
+```
+
+Put this check on any column of Ensembl ids that should hold one species.
+
+## Genome assemblies
+
+A gene symbol and an MGI id name a gene, and neither changes with the genome
+assembly. Coordinates do. To test a coordinate against a build, see
+[Variant identifiers](variants.html#catch-a-coordinate-from-the-wrong-genome-build).
