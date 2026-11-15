@@ -1,0 +1,239 @@
+---
+title: "Convert gene symbols between species"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(biobouncer)
+```
+
+biobouncer does not convert an identifier from one species to another. It
+guards a conversion: it cleans the symbols that go in and checks the ids that
+come out. The lookup in between is done here by the
+[bioclients](https://www.samuelbharti.com/bioclients/) package, which asks
+IMPC for the mouse ortholog of a human gene.
+
+This article converts a column of human gene symbols to mouse genes in three
+steps:
+
+1. Clean the human symbols.
+2. Look up the mouse ortholog of each symbol.
+3. Join the orthologs back to the input column.
+
+The sections after those steps cover checks on the mouse side: MGI ids from a
+file, mouse symbols in the HGNC check, and the species of an id that a lookup
+returns.
+
+## Clean the human symbols
+
+A lookup service can only match the symbol it is given, and a retired or
+misspelled symbol may match nothing. Check the column first. `cache` mode
+checks each symbol against the HGNC snapshot that ships with the package, and
+it needs no network.
+
+```{r}
+symbols <- c("TP53", "tp53", "MLL", "BRCA1", "NF1", "NRF2", "NOTAGENE")
+res <- check_id(symbols, source_db = "hgnc", how = "cache")
+res[c("input", "valid", "suggestion", "version")]
+```
+
+`tp53` has the wrong case and `MLL` is a previous symbol of `KMT2A`. Both
+suggestions are right. `NOTAGENE` has none. The `version` column is the date
+of the HGNC snapshot that gave the answer.
+
+Read the suggestions before you apply them. A suggestion is the approved
+symbol behind a previous symbol or an alias, and that lookup is
+case-sensitive. When it finds nothing, the suggestion is the approved symbol
+with the nearest spelling, which can be a different gene. `NRF2` is an alias
+of two genes, `NFE2L2` and `GABPA`, so the snapshot cannot resolve it, and its
+suggestion here is `BRF2`. Case has the same effect: `MLL` resolves to
+`KMT2A`, while lowercase `mll` gets the nearest spelling, `ELL`.
+
+Reject the suggestions that are wrong, then apply the others. One pass over
+the result gives the repaired column and the rows to set aside.
+
+```{r}
+reject <- "NRF2"
+
+fixable <- res$valid %in% FALSE &
+  !is.na(res$suggestion) &
+  !res$input %in% reject
+clean <- ifelse(fixable, res$suggestion, res$input)
+keep <- res$valid %in% TRUE | fixable
+
+human <- unique(clean[keep])
+human
+
+clean[!keep]
+```
+
+```{r, include = FALSE}
+# The prose above and the pasted lookup output below depend on these values.
+# A new HGNC snapshot that changes them must fail the build here, so the page
+# cannot contradict itself.
+stopifnot(
+  identical(human, c("TP53", "KMT2A", "BRCA1", "NF1")),
+  identical(res$suggestion[res$input == "NRF2"], "BRF2"),
+  identical(check_id("mll", "hgnc", how = "cache")$suggestion, "ELL")
+)
+```
+
+## Look up the mouse orthologs
+
+`impc_mouse_ortholog()` from bioclients takes one human symbol. It returns the
+MGI id and the mouse symbol that IMPC holds for that gene. The call needs a
+network, so the code is shown with the output of a run on 2026-11-15.
+
+```{r, eval = FALSE}
+library(bioclients)
+
+lookup <- function(symbol) {
+  res <- impc_mouse_ortholog(symbol)
+  hit <- res$data
+  if (is.null(hit)) {
+    hit <- data.frame(mgi = NA_character_, marker_symbol = NA_character_)
+  }
+  cbind(human = symbol, hit, status = res$status)
+}
+
+stopifnot(length(human) > 0)
+orthologs <- do.call(rbind, lapply(human, lookup))
+orthologs
+#>   human        mgi marker_symbol status
+#> 1  TP53  MGI:98834         Trp53     ok
+#> 2 KMT2A  MGI:96995         Kmt2a     ok
+#> 3 BRCA1 MGI:104537         Brca1     ok
+#> 4   NF1  MGI:97306           Nf1     ok
+```
+
+The `status` column tells a missing ortholog from a failed request. When IMPC
+returns no ortholog, the ids are `NA` and the status is `no_data`. Any other
+status with `NA` ids is a request that failed, such as a timeout. Look those
+symbols up again.
+
+Two limits of bioclients 0.1.1 affect this step. It sends the symbol in upper
+case and IMPC matches case, so a mixed-case symbol such as `C9orf72` returns
+`no_data` although IMPC holds its ortholog. It also returns one mouse gene per
+symbol: IMPC holds four mouse genes for `CYP2D6`, and the lookup returns the
+first, `Cyp2d10`, with the status `ok`.
+
+## Join the orthologs back to the input column
+
+The lookup ran once per unique symbol. `match()` puts the result back on the
+input, one row per input value and in the input order. The rows that were set
+aside before the lookup stay in place with the status `set_aside`, so every
+row carries a status.
+
+```{r, eval = FALSE}
+rows <- match(ifelse(keep, clean, NA), orthologs$human)
+result <- data.frame(input = symbols, orthologs[rows, ], row.names = NULL)
+result$status[!keep] <- "set_aside"
+result
+#>      input human        mgi marker_symbol    status
+#> 1     TP53  TP53  MGI:98834         Trp53        ok
+#> 2     tp53  TP53  MGI:98834         Trp53        ok
+#> 3      MLL KMT2A  MGI:96995         Kmt2a        ok
+#> 4    BRCA1 BRCA1 MGI:104537         Brca1        ok
+#> 5      NF1   NF1  MGI:97306           Nf1        ok
+#> 6     NRF2  <NA>       <NA>          <NA> set_aside
+#> 7 NOTAGENE  <NA>       <NA>          <NA> set_aside
+```
+
+## Check MGI ids
+
+`impc_mouse_ortholog()` returns only ids that have the MGI shape, so a check
+on its output always passes. The `mgi` source does its work on MGI ids that
+arrive from a file or a hand-edited table, where a bare number or a lowercase
+prefix is common.
+
+```{r}
+mgi_ids <- c("MGI:98834", "98834", "mgi:96995")
+res <- check_id(mgi_ids, source_db = "mgi")
+res[c("input", "valid", "suggestion")]
+```
+
+`mgi` has `pattern` mode only. A pass confirms the shape of the id. It does
+not confirm that MGI holds a record for it.
+
+## Keep mouse symbols out of the HGNC check
+
+The `hgnc` source holds human symbols only, and biobouncer has no source for
+mouse symbols. In `cache` mode, a mouse symbol is not valid unless a human
+symbol has the same spelling. When it gets a suggestion, the suggestion is a
+human symbol, chosen by spelling or from the alias list. It is never chosen
+by orthology.
+
+```{r}
+res <- check_id(
+  c("Trp53", "Kmt2a", "Nf1", "Fgf15"),
+  source_db = "hgnc",
+  how = "cache"
+)
+res[c("input", "valid", "suggestion")]
+```
+
+```{r, include = FALSE}
+# The prose below names these suggestions.
+stopifnot(identical(res$suggestion, c("TP53", "KMT2A", "NF1", "FGF1")))
+```
+
+For the first three symbols the suggestion is the human counterpart.
+For `Fgf15` it is the wrong gene: IMPC gives `Fgf15` as the mouse ortholog of
+human `FGF19`, and the suggestion is `FGF1`.
+
+`repair_id()` on this column would write human symbols over the mouse ones. A
+mouse symbol with the same spelling as a human symbol, such as `C3`, passes.
+In both cases the result says nothing about the mouse gene. Check a mouse gene
+by its MGI id.
+
+## Catch an answer from the wrong species
+
+A lookup can answer for a species you did not ask for. `mygene_genes()` from
+bioclients searches human genes unless `species` says otherwise. Given two
+mouse symbols and no `species`, it returns the human genes.
+
+```{r, eval = FALSE}
+res <- mygene_genes(c("Trp53", "Kmt2a"))
+hits <- biohttp::body_or_null(res)
+if (is.null(hits)) {
+  stop("MyGene lookup: ", res$status)
+}
+hits[c("symbol", "ensembl_gene")]
+#> # A tibble: 2 × 2
+#>   symbol ensembl_gene
+#>   <chr>  <chr>
+#> 1 TP53   ENSG00000141510
+#> 2 KMT2A  ENSG00000118058
+```
+
+An Ensembl gene id carries its species in the letters after `ENS`, so
+biobouncer can test the species offline. Both ids above are well-formed
+Ensembl ids, and both fail a check for mouse.
+
+```{r}
+is_valid_id(
+  c("ENSG00000141510", "ENSG00000118058"),
+  source_db = "ensembl",
+  species = "mus_musculus"
+)
+```
+
+The mouse gene id for Trp53 passes the same check.
+
+```{r}
+is_valid_id("ENSMUSG00000059552", source_db = "ensembl", species = "mus_musculus")
+```
+
+Write the species as a name in this form, or as an NCBI taxon id given as a
+number, such as `10090`. The species that the Ensembl source checks are listed
+in its
+[source spec](https://github.com/samuelbharti/biobouncer/blob/main/shared/sources/ensembl.yaml).
+Any other value is not checked, and every well-formed id passes. That
+includes a name such as `"mouse"` and a taxon id passed as a string, such as
+`"10090"`.
+
+## Genome assemblies
+
+A gene symbol and an MGI id name a gene, and neither changes with the genome
+assembly. Coordinates do. To test a coordinate against a build, see
+[Variant identifiers](variants.html#catch-a-coordinate-from-the-wrong-genome-build).

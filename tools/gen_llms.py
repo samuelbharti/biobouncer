@@ -42,7 +42,15 @@ NPM = "https://www.npmjs.com/package/biobouncer"
 
 # The prose pages, in reading order. reference.md is skipped: it is only
 # mkdocstrings ::: directives, not prose an agent can read.
-PAGES = ["index.md", "guide.md", "report.md", "examples.md", "cli.md", "sources.md"]
+PAGES = [
+    "index.md",
+    "guide.md",
+    "report.md",
+    "examples.md",
+    "variants.md",
+    "cli.md",
+    "sources.md",
+]
 
 
 def package_version() -> str:

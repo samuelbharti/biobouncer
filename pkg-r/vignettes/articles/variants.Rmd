@@ -1,0 +1,291 @@
+---
+title: "Variant identifiers"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(biobouncer)
+```
+
+One variant can be written in several ways, and a check proves something
+different for each of them. This article builds the common forms from VCF
+columns, then checks them against the shape of the id, the reference
+sequence, the databases that assign record ids, and gnomAD.
+
+The running example is `rs7412`, a C to T change in the APOE gene on
+chromosome 19.
+
+## One variant, five written forms
+
+| Form | `source_db` | Identifier | Genome build |
+|---|---|---|---|
+| gnomAD-style coordinate | `gnomad` | `19-44908822-C-T` | not stated |
+| SPDI | `spdi` | `NC_000019.10:44908821:C:T` | GRCh38, through the sequence version |
+| HGVS | `hgvs` | `NC_000019.10:g.44908822C>T` | GRCh38, through the sequence version |
+| dbSNP | `dbsnp` | `rs7412` | none, a record id |
+| ClinVar | `clinvar` | `VCV000017848` | none, a record id |
+
+The first three describe the change itself, and you can build them from a VCF
+row. The last two are record ids that a database assigned. The only way to
+check them is a lookup.
+
+## Checks at a glance
+
+| Check | Tool | Network |
+|---|---|---|
+| The id is well formed | any variant source, `pattern` mode | no |
+| The change fits the reference sequence | `hgvs` source, `remote` mode | yes |
+| The rsID is in dbSNP and not merged into another | `dbsnp` source, `remote` mode | yes |
+| The accession exists in ClinVar | `clinvar` source, `remote` mode | yes |
+| gnomAD has observed the variant | `gnomad_frequencies()` from bioclients | yes |
+
+Each check is covered below, in this order.
+
+## Build the coordinate forms from VCF columns
+
+A VCF row gives a chromosome, a 1-based position, a reference allele, and an
+alternate allele. For a single-base substitution, each coordinate form is a
+paste of those four fields.
+
+```{r}
+vcf <- data.frame(
+  chrom = c("19", "19"),
+  pos = c(44908822L, 44908684L),
+  ref = c("C", "T"),
+  alt = c("T", "C")
+)
+
+# The RefSeq accession of each chromosome, in the build the VCF was called on.
+# NC_000019.10 is chromosome 19 in GRCh38.
+refseq <- c("19" = "NC_000019.10")
+acc <- unname(refseq[as.character(vcf$chrom)])
+stopifnot(!anyNA(acc))
+
+pos <- as.integer(vcf$pos)
+
+gnomad_id <- paste(vcf$chrom, pos, vcf$ref, vcf$alt, sep = "-")
+spdi_id <- paste(acc, pos - 1L, vcf$ref, vcf$alt, sep = ":")
+hgvs_id <- paste0(acc, ":g.", pos, vcf$ref, ">", vcf$alt)
+
+data.frame(gnomad_id, spdi_id, hgvs_id)
+```
+
+The build has three guards. `as.character()` makes the accession lookup go
+by name when the chromosome column is a factor, and `stopifnot()` stops on a
+chromosome that has no accession. `as.integer()` keeps the position whole: R
+writes a round number stored as a double, such as 20000000, as `2e+07`.
+
+Two details differ between the forms. SPDI counts positions from 0, so its
+position is the VCF position minus one. SPDI and HGVS also name a versioned
+reference sequence, which fixes the genome build, while the gnomAD-style id
+names only the chromosome.
+
+The HGVS paste is correct for single-base substitutions only. HGVS writes an
+insertion or a deletion with `ins`, `del`, `dup`, or `delins`, and the VCF row
+carries an extra anchor base that HGVS leaves out. Convert those rows with a
+variant normalizer first, then check the result here.
+
+## Check the shape offline
+
+`pattern` mode checks that an id is well formed. It needs no network and
+suits a first pass over a whole column.
+
+```{r}
+ids <- c(
+  "19-44908822-C-T",
+  "chr19-44908822-c-t",
+  "19-44908822--T",
+  "19:44908822:C:T"
+)
+res <- check_id(ids, source_db = "gnomad")
+res[c("input", "valid", "suggestion")]
+```
+
+A lowercase allele is repairable, so the second id gets a suggestion. An empty
+allele and the wrong separator have no repair. `repair_id()` applies every
+suggestion in one call and returns the other values unchanged.
+
+```{r}
+repair_id(ids, source_db = "gnomad")
+```
+
+## Limits of a shape check
+
+A well-formed id can still describe a variant that does not fit the genome.
+All three ids below pass. The second states G as the reference base where the
+genome has C, and the third points past the end of the chromosome.
+
+```{r}
+is_valid_id(
+  c("19-44908822-C-T", "19-44908822-G-T", "19-999999999-C-T"),
+  source_db = "gnomad"
+)
+```
+
+The same holds for `spdi`, and for `hgvs` in `pattern` mode. A shape check
+also cannot tell which genome build a gnomAD-style id counts on.
+
+## Check a variant against the reference sequence
+
+In `remote` mode, the `hgvs` source sends each well-formed description to the
+Mutalyzer normalizer. Mutalyzer confirms that the reference sequence exists,
+that the position lies inside it, and that the stated reference base is the
+base found there. The lookup needs a network, so the code is shown with the
+output of a run on 2026-11-15.
+
+```{r, eval = FALSE}
+candidates <- c(
+  "NC_000019.10:g.44908822C>T", # the real variant
+  "NC_000019.10:g.44908822G>T", # wrong reference base
+  "NC_000019.10:g.999999999C>T" # past the end of the chromosome
+)
+res <- check_id(candidates, source_db = "hgvs", how = "remote")
+res[c("input", "valid", "version")]
+#> # A tibble: 3 × 3
+#>   input                       valid version
+#>   <chr>                       <lgl> <chr>
+#> 1 NC_000019.10:g.44908822C>T  TRUE  2026-11-15T12:19:32Z
+#> 2 NC_000019.10:g.44908822G>T  FALSE 2026-11-15T12:19:32Z
+#> 3 NC_000019.10:g.999999999C>T FALSE 2026-11-15T12:19:33Z
+```
+
+The `version` column holds the time each answer was fetched. biobouncer stores
+remote answers on disk and reuses them, so a repeated call returns the stored
+answer with its first timestamp. Pass `refresh = TRUE` to ask the service
+again.
+
+The `gnomad` and `spdi` sources have `pattern` mode only. To check one of
+those ids against the reference, write the same change as HGVS, as in the
+build step above, and check that.
+
+A variant that fits the reference is a possible variant. This check does not
+say that anyone has observed it. The gnomAD lookup at the end of this article
+does.
+
+## Catch a coordinate from the wrong genome build
+
+A gnomAD-style id does not say which build its position counts on. Writing
+the variant as HGVS forces that choice, and the reference check then tests
+it. `rs7412` sits at position 44908822 in GRCh38 and at 45412079 in GRCh37.
+
+```{r, eval = FALSE}
+is_valid_id(
+  c(
+    "NC_000019.10:g.44908822C>T", # GRCh38 position on the GRCh38 sequence
+    "NC_000019.9:g.44908822C>T", # GRCh38 position on the GRCh37 sequence
+    "NC_000019.9:g.45412079C>T" # GRCh37 position on the GRCh37 sequence
+  ),
+  source_db = "hgvs",
+  how = "remote"
+)
+#> [1]  TRUE FALSE  TRUE
+```
+
+The mismatched pair fails because GRCh37 has an A at position 44908822, where
+the id states a C.
+
+A single passing id proves little about the build. A coordinate from the
+wrong build still passes when the other build happens to carry the same base
+at that position. Check a sample of rows, since each id is a separate
+request. On the wrong build, many of them fail.
+
+## Check a record id against its database
+
+An rsID or a ClinVar accession carries no information about the change, so
+its shape says little. `remote` mode looks the id up in the database that
+assigned it.
+
+```{r, eval = FALSE}
+res <- check_id(
+  c("rs7412", "rs3200542", "rs999999999999"),
+  source_db = "dbsnp",
+  how = "remote"
+)
+res[c("input", "valid", "suggestion", "version")]
+#> # A tibble: 3 × 4
+#>   input          valid suggestion version
+#>   <chr>          <lgl> <chr>      <chr>
+#> 1 rs7412         TRUE  <NA>       2026-11-15T12:19:36Z
+#> 2 rs3200542      FALSE rs7412     2026-11-15T12:19:36Z
+#> 3 rs999999999999 FALSE <NA>       2026-11-15T12:19:36Z
+```
+
+dbSNP merged `rs3200542` into `rs7412`. The old id is reported as not valid,
+and the current id is suggested. An rsID that dbSNP never issued gets no
+suggestion.
+
+For a ClinVar accession the lookup is an existence check only. A pass means
+that ClinVar holds a record under that accession. A superseded accession is
+not reported the way a merged rsID is.
+
+```{r, eval = FALSE}
+is_valid_id(
+  c("VCV000017848", "VCV999999999"),
+  source_db = "clinvar",
+  how = "remote"
+)
+#> [1]  TRUE FALSE
+```
+
+A lookup raises an error when the service cannot be reached, or when it
+answers with a rate limit or a server error. The result in those cases is
+never `FALSE`.
+
+## Check that gnomAD has observed a variant
+
+biobouncer does not look a coordinate up in gnomAD. The
+[bioclients](https://www.samuelbharti.com/bioclients/) package does.
+`gnomad_variant_id()` builds the id that gnomAD takes, and
+`gnomad_frequencies()` returns one row per id. Check the shape in between, so
+an id with a wrong separator or an empty allele stops before the request.
+
+```{r, eval = FALSE}
+library(bioclients)
+
+ids <- gnomad_variant_id(
+  chrom = c("19", "chr19", "19"),
+  pos = c(44908822, 44908684, 44908822),
+  ref = c("C", "t", "G"),
+  alt = c("T", "c", "T")
+)
+ids
+#> [1] "19-44908822-C-T" "19-44908684-T-C" "19-44908822-G-T"
+
+stopifnot(is_valid_id(ids, source_db = "gnomad"))
+
+res <- gnomad_frequencies(ids)
+freq <- biohttp::body_or_null(res)
+if (is.null(freq)) {
+  stop("gnomAD lookup: ", res$status, ". ", res$detail)
+}
+freq[c("variant_id", "rsid", "exome_af", "genome_af")]
+#> # A tibble: 3 × 4
+#>   variant_id      rsid     exome_af genome_af
+#>   <chr>           <chr>       <dbl>     <dbl>
+#> 1 19-44908822-C-T rs7412     0.0738    0.0778
+#> 2 19-44908684-T-C rs429358   0.148     0.157
+#> 3 19-44908822-G-T <NA>      NA        NA
+```
+
+`gnomad_variant_id()` drops a `chr` prefix and writes the alleles in upper
+case. `gnomad_frequencies()` returns no table when it refuses a request, for
+example when the dataset is on another build, and the code stops on that. The
+third id states the wrong reference base. gnomAD has no record of it, so its
+row is `NA`.
+
+A row of `NA` has more than one possible cause. gnomAD may have no record of
+the variant. The request for that part of the batch may also have failed,
+which the status does not show: a request that was sent has the status `ok`.
+One id that gnomAD rejects fails every id sent with it. An id with an `N`
+allele is such an id: it passes the shape check, and gnomAD rejects it.
+`gnomad_frequency_by_id()` settles one id. Its status is `no_data` when gnomAD
+has no record, and its `detail` field gives the reason.
+
+An absent variant can still be a real one, because gnomAD holds only the
+variants found in its samples. The reference check above tells a possible
+variant from an impossible one.
+
+The default dataset is `gnomad_r4`, which is on GRCh38. `gnomad_frequencies()`
+and `gnomad_frequency_by_id()` take a `reference_genome` argument and refuse
+a request when the dataset is on a different build. A refused request also
+has the status `no_data`, and its `detail` field names the mismatch.
