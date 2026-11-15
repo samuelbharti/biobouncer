@@ -206,12 +206,3 @@ bg.is_valid_id(
 
 A failed lookup raises `bg.RemoteError`. It never returns `False`, so a
 network problem cannot be mistaken for a missing variant.
-
-## GA4GH VRS identifiers
-
-The GA4GH [Variation Representation Specification](https://vrs.ga4gh.org)
-defines a computed identifier for a variant: the prefix `ga4gh:VA.` and a
-32-character digest. The digest is computed from a normalized form of the
-variant and from a digest of the reference sequence, which is the work of a
-VRS library. biobouncer has no source for these identifiers. It does not
-compute them and does not check their shape.

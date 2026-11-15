@@ -9,8 +9,8 @@ library(biobouncer)
 
 One variant can be written in several ways, and a check proves something
 different for each of them. This article builds the common forms from VCF
-columns, then checks them at three levels: the shape of the id, the reference
-sequence, and the databases that record variants.
+columns, then checks them four ways: the shape of the id, the reference
+sequence, the databases that assign record ids, and gnomAD.
 
 The running example is `rs7412`, a C to T change in the APOE gene on
 chromosome 19.
@@ -29,15 +29,16 @@ The first three describe the change itself, and you can build them from a VCF
 row. The last two are record ids that a database assigned. The only way to
 check them is a lookup.
 
-## Three levels of checking
+## Four checks
 
-| Check | Source and mode | Network |
+| Check | Tool | Network |
 |---|---|---|
-| The id is well formed | any variant source, `pattern` | no |
-| The change fits the reference sequence | `hgvs`, `remote` | yes |
-| The record id is current in its database | `dbsnp` or `clinvar`, `remote` | yes |
+| The id is well formed | any variant source, `pattern` mode | no |
+| The change fits the reference sequence | `hgvs` source, `remote` mode | yes |
+| The record id is current in its database | `dbsnp` or `clinvar` source, `remote` mode | yes |
+| gnomAD has observed the variant | `gnomad_frequencies()` from bioclients | yes |
 
-Each level is covered below, in this order.
+Each check is covered below, in this order.
 
 ## Build the coordinate forms from VCF columns
 
@@ -147,8 +148,8 @@ those ids against the reference, write the same change as HGVS, as in the
 build step above, and check that.
 
 A variant that fits the reference is a possible variant. This check does not
-say that anyone has observed it, and no source looks a coordinate up in
-gnomAD.
+say that anyone has observed it. The gnomAD lookup at the end of this article
+does.
 
 ## Catch a coordinate from the wrong genome build
 
@@ -215,11 +216,50 @@ is_valid_id(
 A failed lookup raises an error. It never returns `FALSE`, so a network
 problem cannot be mistaken for a missing variant.
 
-## GA4GH VRS identifiers
+## Check that gnomAD has observed a variant
 
-The GA4GH [Variation Representation Specification](https://vrs.ga4gh.org)
-defines a computed identifier for a variant: the prefix `ga4gh:VA.` and a
-32-character digest. The digest is computed from a normalized form of the
-variant and from a digest of the reference sequence, which is the work of a
-VRS library. biobouncer has no source for these identifiers. It does not
-compute them and does not check their shape.
+biobouncer does not look a coordinate up in gnomAD. The
+[bioclients](https://www.samuelbharti.com/bioclients/) package does.
+`gnomad_variant_id()` builds the id that gnomAD takes, and
+`gnomad_frequencies()` returns one row per id. Check the shape in between, so
+a malformed id never reaches the service.
+
+```{r, eval = FALSE}
+library(bioclients)
+
+ids <- gnomad_variant_id(
+  chrom = c("19", "chr19", "19"),
+  pos = c(44908822, 44908684, 44908822),
+  ref = c("C", "t", "G"),
+  alt = c("T", "c", "T")
+)
+ids
+#> [1] "19-44908822-C-T" "19-44908684-T-C" "19-44908822-G-T"
+
+stopifnot(is_valid_id(ids, source_db = "gnomad"))
+
+freq <- biohttp::body_or_null(gnomad_frequencies(ids))
+freq[c("variant_id", "rsid", "exome_af", "genome_af")]
+#> # A tibble: 3 × 4
+#>   variant_id      rsid     exome_af genome_af
+#>   <chr>           <chr>       <dbl>     <dbl>
+#> 1 19-44908822-C-T rs7412     0.0738    0.0778
+#> 2 19-44908684-T-C rs429358   0.148     0.157
+#> 3 19-44908822-G-T <NA>      NA        NA
+```
+
+`gnomad_variant_id()` drops a `chr` prefix and writes the alleles in upper
+case. The third id states the wrong reference base. gnomAD has no record of
+it, so its row is `NA`.
+
+A row of `NA` has two possible causes: gnomAD has no record of the variant,
+or the request for that part of the batch failed. `gnomad_frequency_by_id()`
+settles one id. Its status is `no_data` when gnomAD has no record.
+
+An absent variant can still be a real one, because gnomAD holds only the
+variants found in its samples. The reference check above tells a possible
+variant from an impossible one.
+
+The default dataset is `gnomad_r4`, which is on GRCh38. `gnomad_frequencies()`
+and `gnomad_frequency_by_id()` take a `reference_genome` argument and refuse
+a request when the dataset is on a different build.
