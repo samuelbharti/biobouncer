@@ -9,7 +9,7 @@ library(biobouncer)
 
 One variant can be written in several ways, and a check proves something
 different for each of them. This article builds the common forms from VCF
-columns, then checks them four ways: the shape of the id, the reference
+columns, then checks them against the shape of the id, the reference
 sequence, the databases that assign record ids, and gnomAD.
 
 The running example is `rs7412`, a C to T change in the APOE gene on
@@ -29,13 +29,14 @@ The first three describe the change itself, and you can build them from a VCF
 row. The last two are record ids that a database assigned. The only way to
 check them is a lookup.
 
-## Four checks
+## Checks at a glance
 
 | Check | Tool | Network |
 |---|---|---|
 | The id is well formed | any variant source, `pattern` mode | no |
 | The change fits the reference sequence | `hgvs` source, `remote` mode | yes |
-| The record id is current in its database | `dbsnp` or `clinvar` source, `remote` mode | yes |
+| The rsID is in dbSNP and not merged into another | `dbsnp` source, `remote` mode | yes |
+| The accession exists in ClinVar | `clinvar` source, `remote` mode | yes |
 | gnomAD has observed the variant | `gnomad_frequencies()` from bioclients | yes |
 
 Each check is covered below, in this order.
@@ -148,8 +149,10 @@ res[c("input", "valid", "version")]
 #> 3 NC_000019.10:g.999999999C>T FALSE 2026-11-15T12:19:33Z
 ```
 
-The `version` column holds the time of each lookup, because a live answer can
-change later.
+The `version` column holds the time each answer was fetched. biobouncer stores
+remote answers on disk and reuses them, so a repeated call returns the stored
+answer with its first timestamp. Pass `refresh = TRUE` to ask the service
+again.
 
 The `gnomad` and `spdi` sources have `pattern` mode only. To check one of
 those ids against the reference, write the same change as HGVS, as in the
@@ -211,7 +214,9 @@ dbSNP merged `rs3200542` into `rs7412`. The old id is reported as not valid,
 and the current id is suggested. An rsID that dbSNP never issued gets no
 suggestion.
 
-ClinVar accessions are checked the same way.
+For a ClinVar accession the lookup is an existence check only. A pass means
+that ClinVar holds a record under that accession. A superseded accession is
+not reported the way a merged rsID is.
 
 ```{r, eval = FALSE}
 is_valid_id(
@@ -222,8 +227,9 @@ is_valid_id(
 #> [1]  TRUE FALSE
 ```
 
-A failed lookup raises an error. It never returns `FALSE`, so a network
-problem cannot be mistaken for a missing variant.
+A lookup raises an error when the service cannot be reached, or when it
+answers with a rate limit or a server error. The result in those cases is
+never `FALSE`.
 
 ## Check that gnomAD has observed a variant
 
@@ -247,7 +253,11 @@ ids
 
 stopifnot(is_valid_id(ids, source_db = "gnomad"))
 
-freq <- biohttp::body_or_null(gnomad_frequencies(ids))
+res <- gnomad_frequencies(ids)
+freq <- biohttp::body_or_null(res)
+if (is.null(freq)) {
+  stop("gnomAD lookup: ", res$status, ". ", res$detail)
+}
 freq[c("variant_id", "rsid", "exome_af", "genome_af")]
 #> # A tibble: 3 × 4
 #>   variant_id      rsid     exome_af genome_af
@@ -258,12 +268,15 @@ freq[c("variant_id", "rsid", "exome_af", "genome_af")]
 ```
 
 `gnomad_variant_id()` drops a `chr` prefix and writes the alleles in upper
-case. The third id states the wrong reference base. gnomAD has no record of
-it, so its row is `NA`.
+case. `gnomad_frequencies()` returns no table when it refuses a request, for
+example when the dataset is on another build, and the code stops on that. The
+third id states the wrong reference base. gnomAD has no record of it, so its
+row is `NA`.
 
 A row of `NA` has more than one possible cause. gnomAD may have no record of
-the variant. The request for that part of the batch may also have failed, and
-one id that gnomAD rejects fails every id sent with it. An id with an `N`
+the variant. The request for that part of the batch may also have failed,
+which the status does not show: a request that was sent has the status `ok`.
+One id that gnomAD rejects fails every id sent with it. An id with an `N`
 allele is such an id: it passes the shape check, and gnomAD rejects it.
 `gnomad_frequency_by_id()` settles one id. Its status is `no_data` when gnomAD
 has no record, and its `detail` field gives the reason.

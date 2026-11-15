@@ -2,8 +2,8 @@
 
 One variant can be written in several ways, and a check proves something
 different for each of them. This page builds the common forms from VCF columns,
-then checks them at three levels: the shape of the id, the reference sequence,
-and the databases that record variants.
+then checks them against the shape of the id, the reference sequence, and the
+databases that record variants.
 
 The running example is `rs7412`, a C to T change in the APOE gene on
 chromosome 19.
@@ -22,15 +22,16 @@ The first three describe the change itself, and you can build them from a VCF
 row. The last two are record ids that a database assigned. The only way to
 check them is a lookup.
 
-## Three levels of checking
+## Checks at a glance
 
 | Check | Source and mode | Network |
 |---|---|---|
 | The id is well formed | any variant source, `pattern` | no |
 | The change fits the reference sequence | `hgvs`, `remote` | yes |
-| The record id is current in its database | `dbsnp` or `clinvar`, `remote` | yes |
+| The rsID is in dbSNP and not merged into another | `dbsnp`, `remote` | yes |
+| The accession exists in ClinVar | `clinvar`, `remote` | yes |
 
-Each level is covered below, in this order.
+Each check is covered below, in this order.
 
 ## Build the coordinate forms from VCF columns
 
@@ -139,8 +140,9 @@ for r in bg.check_id(candidates, source_db="hgvs", how="remote"):
 # NC_000019.10:g.999999999C>T False 2026-11-15T12:17:01Z
 ```
 
-`version` holds the time of each lookup, because a live answer can change
-later.
+`version` holds the time each answer was fetched. biobouncer stores remote
+answers on disk and reuses them, so a repeated call returns the stored answer
+with its first timestamp. Pass `refresh=True` to ask the service again.
 
 The `gnomad` and `spdi` sources have `pattern` mode only. To check one of
 those ids against the reference, write the same change as HGVS, as in the
@@ -196,7 +198,9 @@ dbSNP merged `rs3200542` into `rs7412`. The old id is reported as not valid,
 and the current id is suggested. An rsID that dbSNP never issued gets no
 suggestion.
 
-ClinVar accessions are checked the same way.
+For a ClinVar accession the lookup is an existence check only. A pass means
+that ClinVar holds a record under that accession. A superseded accession is
+not reported the way a merged rsID is.
 
 ```python
 bg.is_valid_id(
@@ -205,5 +209,6 @@ bg.is_valid_id(
 # [True, False]
 ```
 
-A failed lookup raises `bg.RemoteError`. It never returns `False`, so a
-network problem cannot be mistaken for a missing variant.
+A lookup raises `bg.RemoteError` when the service cannot be reached, or when
+it answers with a rate limit or a server error. The result in those cases is
+never `False`.
