@@ -174,7 +174,8 @@ the id states a C.
 
 A single passing id proves little about the build. A coordinate from the
 wrong build still passes when the other build happens to carry the same base
-at that position. Check the whole column: on the wrong build, many rows fail.
+at that position. Check a sample of rows, since each id is a separate
+request. On the wrong build, many of them fail.
 
 ## Check a record id against its database
 

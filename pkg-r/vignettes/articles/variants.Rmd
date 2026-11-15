@@ -49,7 +49,7 @@ paste of those four fields.
 ```{r}
 vcf <- data.frame(
   chrom = c("19", "19"),
-  pos = c(44908822, 44908684),
+  pos = c(44908822L, 44908684L),
   ref = c("C", "T"),
   alt = c("T", "C")
 )
@@ -57,14 +57,22 @@ vcf <- data.frame(
 # The RefSeq accession of each chromosome, in the build the VCF was called on.
 # NC_000019.10 is chromosome 19 in GRCh38.
 refseq <- c("19" = "NC_000019.10")
-acc <- unname(refseq[vcf$chrom])
+acc <- unname(refseq[as.character(vcf$chrom)])
+stopifnot(!anyNA(acc))
 
-gnomad_id <- paste(vcf$chrom, vcf$pos, vcf$ref, vcf$alt, sep = "-")
-spdi_id <- paste(acc, vcf$pos - 1, vcf$ref, vcf$alt, sep = ":")
-hgvs_id <- paste0(acc, ":g.", vcf$pos, vcf$ref, ">", vcf$alt)
+pos <- as.integer(vcf$pos)
+
+gnomad_id <- paste(vcf$chrom, pos, vcf$ref, vcf$alt, sep = "-")
+spdi_id <- paste(acc, pos - 1L, vcf$ref, vcf$alt, sep = ":")
+hgvs_id <- paste0(acc, ":g.", pos, vcf$ref, ">", vcf$alt)
 
 data.frame(gnomad_id, spdi_id, hgvs_id)
 ```
+
+The build has three guards. `as.character()` makes the accession lookup go
+by name when the chromosome column is a factor, and `stopifnot()` stops on a
+chromosome that has no accession. `as.integer()` keeps the position whole: R
+writes a round number stored as a double, such as 20000000, as `2e+07`.
 
 Two details differ between the forms. SPDI counts positions from 0, so its
 position is the VCF position minus one. SPDI and HGVS also name a versioned
@@ -175,7 +183,8 @@ the id states a C.
 
 A single passing id proves little about the build. A coordinate from the
 wrong build still passes when the other build happens to carry the same base
-at that position. Check the whole column: on the wrong build, many rows fail.
+at that position. Check a sample of rows, since each id is a separate
+request. On the wrong build, many of them fail.
 
 ## Check a record id against its database
 
@@ -222,7 +231,7 @@ biobouncer does not look a coordinate up in gnomAD. The
 [bioclients](https://www.samuelbharti.com/bioclients/) package does.
 `gnomad_variant_id()` builds the id that gnomAD takes, and
 `gnomad_frequencies()` returns one row per id. Check the shape in between, so
-a malformed id never reaches the service.
+an id with a wrong separator or an empty allele stops before the request.
 
 ```{r, eval = FALSE}
 library(bioclients)
@@ -252,9 +261,12 @@ freq[c("variant_id", "rsid", "exome_af", "genome_af")]
 case. The third id states the wrong reference base. gnomAD has no record of
 it, so its row is `NA`.
 
-A row of `NA` has two possible causes: gnomAD has no record of the variant,
-or the request for that part of the batch failed. `gnomad_frequency_by_id()`
-settles one id. Its status is `no_data` when gnomAD has no record.
+A row of `NA` has more than one possible cause. gnomAD may have no record of
+the variant. The request for that part of the batch may also have failed, and
+one id that gnomAD rejects fails every id sent with it. An id with an `N`
+allele is such an id: it passes the shape check, and gnomAD rejects it.
+`gnomad_frequency_by_id()` settles one id. Its status is `no_data` when gnomAD
+has no record, and its `detail` field gives the reason.
 
 An absent variant can still be a real one, because gnomAD holds only the
 variants found in its samples. The reference check above tells a possible
@@ -262,4 +274,5 @@ variant from an impossible one.
 
 The default dataset is `gnomad_r4`, which is on GRCh38. `gnomad_frequencies()`
 and `gnomad_frequency_by_id()` take a `reference_genome` argument and refuse
-a request when the dataset is on a different build.
+a request when the dataset is on a different build. A refused request also
+has the status `no_data`, and its `detail` field names the mismatch.

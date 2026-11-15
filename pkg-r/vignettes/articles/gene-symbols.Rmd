@@ -18,36 +18,53 @@ steps:
 
 1. Clean the human symbols.
 2. Look up the mouse ortholog of each symbol.
-3. Check the mouse ids that came back.
+3. Check the mouse ids, and the species of any id a lookup returns.
 
 ## Clean the human symbols
 
 A lookup service can only match the symbol it is given, and a retired or
-misspelled symbol may match nothing. Repair the column first. `cache` mode
+misspelled symbol may match nothing. Check the column first. `cache` mode
 checks each symbol against the HGNC snapshot that ships with the package, and
 it needs no network.
 
 ```{r}
-symbols <- c("TP53", "tp53", "MLL", "BRCA1", "NF1", "NOTAGENE")
+symbols <- c("TP53", "tp53", "MLL", "BRCA1", "NF1", "OCT4", "NOTAGENE")
 res <- check_id(symbols, source_db = "hgnc", how = "cache")
 res[c("input", "valid", "suggestion", "version")]
 ```
 
-`tp53` has the wrong case and `MLL` is a previous symbol of `KMT2A`, so both
-get a suggestion. `NOTAGENE` has none. The `version` column is the date of the
-HGNC snapshot that gave the answer.
+`tp53` has the wrong case and `MLL` is a previous symbol of `KMT2A`. Both
+suggestions are right. `NOTAGENE` has none. The `version` column is the date
+of the HGNC snapshot that gave the answer.
 
-`repair_id()` applies the suggestions. Keep the symbols that are valid after
-the repair, and set the others aside for a person to look at.
+Read the suggestions before you apply them. A suggestion is the successor of
+a previous symbol or, when there is none, the approved symbol with the nearest
+spelling. The check does not know aliases. `OCT4` is an alias of `POU5F1`, and
+its suggestion here is `CCT4`, a different gene.
+
+Reject the suggestions that are wrong, then apply the others. One pass over
+the result gives the repaired column and the rows to set aside.
 
 ```{r}
-clean <- repair_id(symbols, source_db = "hgnc", how = "cache")
-ok <- is_valid_id(clean, source_db = "hgnc", how = "cache")
+reject <- "OCT4"
 
-human <- unique(clean[ok])
+fixable <- res$valid %in% FALSE &
+  !is.na(res$suggestion) &
+  !res$input %in% reject
+clean <- ifelse(fixable, res$suggestion, res$input)
+keep <- res$valid %in% TRUE | fixable
+
+human <- unique(clean[keep])
 human
 
-clean[!ok]
+clean[!keep]
+```
+
+```{r, include = FALSE}
+# The lookup output below was pasted from a run on exactly these symbols. A
+# new HGNC snapshot that changes them must fail the build here, so the page
+# cannot contradict itself.
+stopifnot(identical(human, c("TP53", "KMT2A", "BRCA1", "NF1")))
 ```
 
 ## Look up the mouse orthologs
@@ -60,7 +77,11 @@ network, so the code is shown with the output of a run on 2026-11-15.
 library(bioclients)
 
 lookup <- function(symbol) {
-  hit <- biohttp::body_or_null(impc_mouse_ortholog(symbol))
+  res <- impc_mouse_ortholog(symbol)
+  if (!res$ok && res$status != "no_data") {
+    stop("IMPC lookup failed for ", symbol, ": ", res$status)
+  }
+  hit <- res$data
   if (is.null(hit)) {
     hit <- data.frame(mgi = NA_character_, marker_symbol = NA_character_)
   }
@@ -76,17 +97,21 @@ orthologs
 #> 4   NF1  MGI:97306           Nf1
 ```
 
-When IMPC has no mouse ortholog for a gene, the call returns no data. The
-helper turns that into a row of `NA`, so the table keeps one row per human
-symbol.
+When IMPC has no mouse ortholog for a gene, the status is `no_data` and the
+helper writes a row of `NA`, so the table keeps one row per human symbol. Any
+other failure stops the run. A timeout cannot pass for a missing ortholog.
 
-## Check the mouse ids
+## Check MGI ids
 
-The `mgi` source checks each id that came back.
+`impc_mouse_ortholog()` returns only ids that have the MGI shape, so a check
+on its output always passes. The `mgi` source does its work on MGI ids that
+arrive from a file or a hand-edited table, where a bare number or a lowercase
+prefix is common.
 
-```{r, eval = FALSE}
-is_valid_id(orthologs$mgi, source_db = "mgi")
-#> [1] TRUE TRUE TRUE TRUE
+```{r}
+mgi_ids <- c("MGI:98834", "98834", "mgi:96995")
+res <- check_id(mgi_ids, source_db = "mgi")
+res[c("input", "valid", "suggestion")]
 ```
 
 `mgi` has `pattern` mode only. A pass confirms the shape of the id. It does
@@ -95,16 +120,18 @@ not confirm that MGI holds a record for it.
 ## Keep mouse symbols out of the HGNC check
 
 The `hgnc` source holds human symbols only, and biobouncer has no source for
-mouse symbols. A mouse symbol is not valid in `hgnc`. When its spelling is
-close to a human symbol, the suggestion is the human gene.
+mouse symbols. In `cache` mode, a mouse symbol that is spelled differently
+from the human one is not valid, and its suggestion is the human gene.
 
 ```{r}
 res <- check_id(c("Trp53", "Kmt2a", "Nf1"), source_db = "hgnc", how = "cache")
 res[c("input", "valid", "suggestion")]
 ```
 
-`repair_id()` on this column would turn every mouse symbol back into a human
-one. Check a mouse gene by its MGI id, as in the step above.
+`repair_id()` on this column would turn these mouse symbols into human ones.
+A mouse symbol with the same spelling as a human symbol, such as `C3`, passes.
+In both cases the result says nothing about the mouse gene. Check a mouse gene
+by its MGI id.
 
 ## Catch an answer from the wrong species
 
@@ -140,7 +167,12 @@ The mouse gene id for Trp53 passes the same check.
 is_valid_id("ENSMUSG00000059552", source_db = "ensembl", species = "mus_musculus")
 ```
 
-Put this check on any column of Ensembl ids that should hold one species.
+Write the species as a name in this form, or as an NCBI taxon id such as
+`10090`. The Ensembl source checks eight species: `homo_sapiens`,
+`mus_musculus`, `rattus_norvegicus`, `danio_rerio`, `gallus_gallus`,
+`bos_taurus`, `sus_scrofa`, and `canis_lupus_familiaris`. A species outside
+that list is not checked, so a name such as `"mouse"` passes every well-formed
+id.
 
 ## Genome assemblies
 
