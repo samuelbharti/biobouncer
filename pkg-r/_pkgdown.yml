@@ -86,10 +86,12 @@ articles:
     contents:
       - biobouncer
   - title: Recipes
+    navbar: Recipes
     contents:
       - articles/examples
       - articles/sources
   - title: Use cases
+    navbar: Use cases
     contents:
       - articles/gene-symbols
       - articles/variants
