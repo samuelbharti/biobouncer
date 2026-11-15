@@ -54,7 +54,7 @@ jobs:
       - name: Update npm for trusted publishing
         run: npm install -g npm@latest && npm --version
 
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
