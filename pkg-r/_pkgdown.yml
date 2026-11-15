@@ -89,3 +89,6 @@ articles:
     contents:
       - articles/examples
       - articles/sources
+  - title: Use cases
+    contents:
+      - articles/variants
